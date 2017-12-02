@@ -11,7 +11,7 @@
 #include <google/protobuf/message.h>
 #include <google/protobuf/dynamic_message.h>
 
-#include <analytics/stat_walker.h>
+#include "stat_walker.h"
 
 namespace protobuf {
 namespace impl {

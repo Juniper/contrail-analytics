@@ -51,7 +51,7 @@ options_test = env.UnitTest('options_test', ['../buildinfo.o', '../options.o',
                                      '../../analytics/viz_constants.o',
                                              'options_test.cc'],
 			    )
-env.Alias('src/query_engine:options_test', options_test)
+env.Alias('src/contrail-analytics/contrail-query-engine:options_test', options_test)
 
 utils_test = env.UnitTest('utils_test', ['../utils.o',
                                          'utils_test.cc',
@@ -112,6 +112,6 @@ test_suite = [
              ]
 
 test = env.TestSuite('qe-test', test_suite)
-env.Alias('controller/src/query_engine:test', test)
+env.Alias('src/contrail-analytics/contrail-query-engine:test', test)
 
 Return('test_suite')

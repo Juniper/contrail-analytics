@@ -6,8 +6,8 @@
 
 import sys
 
-Import('AnalyticsEnv')
-env = AnalyticsEnv.Clone()
+Import('BuildEnv')
+env = BuildEnv.Clone()
 
 sources = [
     'MANIFEST.in',
@@ -52,12 +52,12 @@ sdist_gen = env.Command('dist/contrail-topology-' \
         + version + '.tar.gz',
         sources + src_sandesh, cd_cmd + 'python setup.py sdist')
 env.Depends(sdist_gen, sdist_depends)
-env.Alias('controller/src/analytics/contrail-topology/' + \
+env.Alias('src/contrail-analytics/contrail-topology/' + \
         'contrail_topology:sdist', sdist_gen)
 
 
 src_rules = [env.Install(Dir("."),
-    '#controller/src/analytics/contrail-topology/' + f) for f in sources]
+    '#src/contrail-analytics/contrail-topology/' + f) for f in sources]
 src_rules += [env.Install(Dir("."), f) for f in common_sources]
 src_rules.append(env.Install(Dir("."),
         '#controller/src/opserver/run_tests.sh'))
@@ -71,7 +71,7 @@ test_sources = [
 ]
 
 src_rules += [env.Install(Dir("."),
-    '#controller/src/analytics/contrail-topology/' + f) for f in test_sources]
+    '#src/contrail-analytics/contrail-topology/' + f) for f in test_sources]
 
 import os
 
@@ -116,12 +116,12 @@ else:
 env.Depends(test_cmd, [env['TOP']+x for x in test_depends])
 env.Depends(test_cmd, src_rules)
 env.Alias('tests', test_cmd)
-env.Alias('controller/src/analytics/contrail-topology:test', test_cmd)
+env.Alias('src/contrail-analytics/contrail-topology:test', test_cmd)
 env.AlwaysBuild(test_cmd)
 
 doc_files = []
-doc_files += env['BASE_DOC_FILES']
-doc_files += env['SANDESH_DOC_FILES']
+#doc_files += env['BASE_DOC_FILES']
+#doc_files += env['SANDESH_DOC_FILES']
 doc_files += env['ANALYTICS_DOC_FILES']
 doc_files += env.SandeshGenDoc('link.sandesh')
 doc_files += env.SandeshGenDoc('topology_info.sandesh')

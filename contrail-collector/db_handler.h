@@ -31,10 +31,10 @@
 #include "gendb_if.h"
 #include "gendb_statistics.h"
 #include "viz_message.h"
-#include "uflow_types.h"
-#include "viz_constants.h"
+#include <analytics/uflow_types.h>
+#include <analytics/viz_constants.h>
 #include <database/cassandra/cql/cql_types.h>
-#include "collector_uve_types.h"
+#include <analytics/collector_uve_types.h>
 #include "config_client_collector.h"
 #include "usrdef_counters.h"
 #include "options.h"

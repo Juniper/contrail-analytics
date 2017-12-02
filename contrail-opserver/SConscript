@@ -19,7 +19,7 @@ setup_sources = [
 setup_sources_rules = []
 for file in setup_sources:
     setup_sources_rules.append(
-        OpEnv.Install(Dir("."), '#controller/src/opserver/' + file))
+        OpEnv.Install(Dir("."), '#src/contrail-analytics/contrail-opserver/' + file))
 
 local_sources = [
            '__init__.py',
@@ -63,14 +63,14 @@ for file in local_sources:
 for file in plugins_sources:
     local_sources_rules.append(OpEnv.Install(Dir("opserver/plugins"), file))
 
-viz_pkg = OpEnv.SandeshGenPy('#controller/src/analytics/viz.sandesh', 'opserver/sandesh/', False)
-analytics_pkg = OpEnv.SandeshGenPy('#controller/src/analytics/analytics.sandesh', 'opserver/sandesh/', False)
+viz_pkg = OpEnv.SandeshGenPy('#src/contrail-analytics/contrail-collector/viz.sandesh', 'opserver/sandesh/', False)
+analytics_pkg = OpEnv.SandeshGenPy('#src/contrail-analytics/contrail-collector/analytics.sandesh', 'opserver/sandesh/', False)
 cpuinfo_pkg2 = OpEnv.SandeshGenPy('#src/contrail-common/base/sandesh/cpuinfo.sandesh', 'opserver/sandesh/analytics/', False)
 process_info_pkg2 = OpEnv.SandeshGenPy('#src/contrail-common/base/sandesh/process_info.sandesh', 'opserver/sandesh/analytics/', False)
 cpuinfo_pkg = OpEnv.SandeshGenPy('#src/contrail-common/base/sandesh/cpuinfo.sandesh', 'opserver/sandesh/nodeinfo/', False)
 process_info_pkg = OpEnv.SandeshGenPy('#src/contrail-common/base/sandesh/process_info.sandesh', 'opserver/sandesh/nodeinfo/', False)
 nodeinfo_pkg = OpEnv.SandeshGenPy('#src/contrail-common/base/sandesh/nodeinfo.sandesh', 'opserver/sandesh/', False)
-redis_pkg = OpEnv.SandeshGenPy('#controller/src/analytics/redis.sandesh', 'opserver/sandesh/', False)
+redis_pkg = OpEnv.SandeshGenPy('#src/contrail-analytics/contrail-collector/redis.sandesh', 'opserver/sandesh/', False)
 analytics_database_pkg = OpEnv.SandeshGenPy('analytics_database.sandesh', 'opserver/sandesh/', False)
 alarmgen_pkg = OpEnv.SandeshGenPy('alarmgen_ctrl.sandesh', 'opserver/sandesh/', False)
 alarm_sandesh_base_pkg = OpEnv.SandeshGenPy('#src/contrail-common/sandesh/library/common/sandesh_alarm_base.sandesh', 'opserver/sandesh/alarmgen_ctrl/', False)
@@ -95,13 +95,13 @@ OpEnv.Depends(sdist_gen, sdist_depends)
 
 # Documentation
 opserver_doc_files = []
-opserver_doc_files += OpEnv['BASE_DOC_FILES']
+#opserver_doc_files += OpEnv['BASE_DOC_FILES']
 opserver_doc_files += OpEnv['ANALYTICS_DOC_FILES']
 opserver_doc_files += OpEnv.SandeshGenDoc('analytics_database.sandesh')
 opserver_doc_files += OpEnv.SandeshGenDoc('analytics_api_info.sandesh')
 
 alarmgen_doc_files = []
-alarmgen_doc_files += OpEnv['BASE_DOC_FILES']
+#alarmgen_doc_files += OpEnv['BASE_DOC_FILES']
 alarmgen_doc_files += OpEnv['ANALYTICS_DOC_FILES']
 alarmgen_doc_files += OpEnv.SandeshGenDoc('alarmgen_ctrl.sandesh')
 alarmgen_doc_files += OpEnv.SandeshGenDoc('#src/contrail-common/sandesh/library/common/sandesh_alarm_base.sandesh', OpEnv['TOP'] + '/opserver/')
@@ -167,8 +167,8 @@ def run_coverage(env, target, source):
     os.system(lcov_run)
     lcov_run = 'lcov -e ' + Dir(env['TOP']).abspath + \
                '/opserver/test/analytics_test_intermediate.info ' + \
-               Dir('#').abspath + '/controller/src/analytics/* ' + \
-               Dir('#').abspath + '/controller/src/query_engine/* ' + \
+               Dir('#').abspath + '/src/contrail-analytics/contrail-collector/* ' + \
+               Dir('#').abspath + '/src/contrail-analytics/contrail-query-engine/* ' + \
                Dir('#').abspath + '/controller/src/database/* ' + \
                ' -o ' + Dir(env['TOP']).abspath + \
                '/opserver/test/analytics_test.info'
@@ -187,13 +187,13 @@ test_sources = [
     '.testr.conf',
     '.coveragerc',
     'test',
-    '../config/utils/contrail_alarm.py',
+    '../../../controller/src/config/utils/contrail_alarm.py',
     ]
 
 test_sources_rules = []
 for file in test_sources:
     test_sources_rules.append(
-       OpEnv.Install(Dir('.'), "#controller/src/opserver/" + file))
+       OpEnv.Install(Dir('.'), "#src/contrail-analytics/contrail-opserver/" + file))
 
 sdist_depends.extend(test_sources_rules)
 OpEnv.Depends(sdist_gen, sdist_depends)
@@ -208,25 +208,25 @@ else:
     top_dir = Dir('.')
 
 vm_pkg = OpEnv.SandeshGenPy(
-        '#controller/src/opserver/test/sandesh/virtual_machine.sandesh',
+        '#src/contrail-analytics/contrail-opserver/test/sandesh/virtual_machine.sandesh',
         'sandesh/', False)
 vn_pkg = OpEnv.SandeshGenPy(
-        '#controller/src/opserver/test/sandesh/virtual_network.sandesh',
+        '#src/contrail-analytics/contrail-opserver/test/sandesh/virtual_network.sandesh',
         'sandesh/', False)
 stats_test_pkg = OpEnv.SandeshGenPy(
-        '#controller/src/opserver/test/sandesh/stats_test.sandesh',
+        '#src/contrail-analytics/contrail-opserver/test/sandesh/stats_test.sandesh',
         'sandesh/', False)
 alarm_test_pkg = OpEnv.SandeshGenPy(
-        '#controller/src/opserver/test/sandesh/alarm_test.sandesh',
+        '#src/contrail-analytics/contrail-opserver/test/sandesh/alarm_test.sandesh',
         'sandesh/', False)
 object_table_test_pkg = OpEnv.SandeshGenPy(
-        '#controller/src/opserver/test/sandesh/object_table_test.sandesh',
+        '#src/contrail-analytics/contrail-opserver/test/sandesh/object_table_test.sandesh',
         'sandesh/', False)
 flow_pkg = OpEnv.SandeshGenPy(
-        '#controller/src/sandesh/common/flow.sandesh',
+        '#src/sandesh/common/flow.sandesh',
         'sandesh/', False)
 qe_test_pkg = OpEnv.SandeshGenPy(
-        '#controller/src/query_engine/qe.sandesh',
+        '#src/contrail-analytics/contrail-query-engine/qe.sandesh',
         'sandesh/', False)
 sandesh_pkgs = [vm_pkg, vn_pkg, stats_test_pkg, alarm_test_pkg,
                 object_table_test_pkg, flow_pkg, qe_test_pkg]
@@ -285,5 +285,5 @@ else:
     OpEnv.Depends(test_cmd, sdist_depends)
 
 OpEnv.Alias('tests', test_cmd)
-OpEnv.Alias('controller/src/opserver:test', test_cmd)
+OpEnv.Alias('src/contrail-analytics/contrail-opserver:test', test_cmd)
 OpEnv.AlwaysBuild(test_cmd)

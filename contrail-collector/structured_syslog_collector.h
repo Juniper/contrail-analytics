@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 #include <boost/scoped_ptr.hpp>
-#include "analytics/structured_syslog_server.h"
+#include "structured_syslog_server.h"
 
 class StructuredSyslogCollector {
  public:

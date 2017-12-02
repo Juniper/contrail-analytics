@@ -5,7 +5,7 @@
 #include "vizd_table_desc.h"
 
 #include <boost/assign/list_of.hpp>
-#include "viz_constants.h"
+#include <analytics/viz_constants.h>
 #include <database/gendb_constants.h>
 
 std::vector<GenDb::NewCf> vizd_tables;

@@ -5,9 +5,9 @@
 #include "sflow_collector.h"
 #include "sflow_generator.h"
 #include "sflow_parser.h"
-#include "uflow_constants.h"
-#include "uflow_types.h"
-#include "sflow_types.h"
+#include <analytics/uflow_constants.h>
+#include <analytics/uflow_types.h>
+#include <analytics/sflow_types.h>
 
 SFlowQueueEntry::SFlowQueueEntry(boost::asio::const_buffer buf, size_t len,
                                  uint64_t ts, SFlowCollector* collector) 

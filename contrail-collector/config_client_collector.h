@@ -13,7 +13,7 @@
 #include "rapidjson/document.h"
 #include <boost/function.hpp>
 
-#include "analytics/options.h"
+#include "options.h"
 
 typedef boost::function<void (const contrail_rapidjson::Document &jdoc, bool)>
                                                    ConfigRxCallback;

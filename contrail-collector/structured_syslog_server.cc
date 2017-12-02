@@ -21,12 +21,12 @@
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/writer.h>
 
-#include "analytics/structured_syslog_server.h"
-#include "analytics/structured_syslog_server_impl.h"
+#include "structured_syslog_server.h"
+#include "structured_syslog_server_impl.h"
 #include "generator.h"
-#include "sdwan_uve_types.h"
-#include "analytics/syslog_collector.h"
-#include "analytics/structured_syslog_config.h"
+#include <analytics/sdwan_uve_types.h>
+#include "syslog_collector.h"
+#include "structured_syslog_config.h"
 
 using std::make_pair;
 

@@ -3,7 +3,7 @@
  */
 
 #include "viz_collector.h"
-#include "viz_constants.h"
+#include <analytics/viz_constants.h>
 #include "OpServerProxy.h"
 #include <tbb/mutex.h>
 #include <boost/bind.hpp>
@@ -31,7 +31,6 @@
 #include "kafka_types.h"
 #include <base/connection_info.h>
 #include "viz_sandesh.h"
-#include "viz_collector.h"
 #include "uve_aggregator.h"
 
 using std::map;

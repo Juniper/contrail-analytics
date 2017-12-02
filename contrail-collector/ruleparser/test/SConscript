@@ -34,7 +34,7 @@ ruleparser_dummy = env.InstallAs('ruleparser_dummy', '/bin/true')
 test = env.TestSuite('ruleparser-test',
                      [ruleparser_test, ruleparser_dummy])
 
-env.Alias('controller/src/analytics/ruleparser:test', test)
+env.Alias('src/contrail-analytics/contrail-collector/ruleparser:test', test)
 
 # Local Variables:
 # mode: python

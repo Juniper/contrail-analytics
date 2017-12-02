@@ -7,7 +7,7 @@ import sys
 Import('OpEnv')
 env = OpEnv.Clone()
 
-vpath = '#controller/src/opserver/docs'
+vpath = '#src/contrail-analytics/contrail-opserver/docs'
 
 build_dir = str(Dir('.').abspath + '/contrail-analytics-api')
 build_dir_doctrees = build_dir+'/doctrees'

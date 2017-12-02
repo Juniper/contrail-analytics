@@ -11,7 +11,7 @@
 #include <base/logging.h>
 #include <tbb/mutex.h>
 #include <boost/lexical_cast.hpp>
-#include "analytics_types.h"
+#include <analytics/analytics_types.h>
 
 tbb::mutex mutex;
 tbb::mutex msglist_mutex;

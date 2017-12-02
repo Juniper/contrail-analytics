@@ -16,7 +16,7 @@ setup_sources = [
 setup_sources_rules = []
 for file in setup_sources:
     setup_sources_rules.append(env.Install(".",
-        "#/controller/src/opserver/plugins/test/alarm_partial_sysinfo/" + file))
+        "#/src/contrail-analytics/contrail-opserver/plugins/test/alarm_partial_sysinfo/" + file))
 
 local_sources = [
     '__init__.py',

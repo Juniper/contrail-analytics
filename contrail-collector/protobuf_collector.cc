@@ -4,9 +4,9 @@
 
 #include <io/io_types.h>
 
-#include "analytics/collector_uve_types.h"
-#include "analytics/db_handler.h"
-#include "analytics/protobuf_collector.h"
+#include <analytics/collector_uve_types.h>
+#include "db_handler.h"
+#include "protobuf_collector.h"
 
 ProtobufCollector::ProtobufCollector(EventManager *evm,
     uint16_t protobuf_udp_port, const std::string schema_file_directory,

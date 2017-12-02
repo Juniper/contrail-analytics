@@ -5,7 +5,7 @@
 
 #include <sstream>
 #include <boost/make_shared.hpp>
-#include "analytics_types.h"
+#include <analytics/analytics_types.h>
 #include "usrdef_counters.h"
 #include "http/client/vncapi.h"
 #include "options.h"

@@ -32,7 +32,7 @@
 //
     
 
-import "analytics/jti-protos/telemetry_top.proto";
+import "jti-protos/telemetry_top.proto";
 
 //
 // This occupies branch 9 from JuniperNetworksSensors

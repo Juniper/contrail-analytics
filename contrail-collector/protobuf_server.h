@@ -10,7 +10,7 @@
 #include <boost/system/error_code.hpp>
 #include <boost/asio/ip/udp.hpp>
 
-#include <analytics/stat_walker.h>
+#include "stat_walker.h"
 
 class SocketIOStats;
 class SocketEndpointMessageStats;

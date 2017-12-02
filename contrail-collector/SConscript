@@ -97,6 +97,8 @@ AnalyticsEnv.Append(LIBPATH=libs)
 
 includes = MapBuildDir(['http/client', 'analytics'])
 
+print 'Jack1'
+print includes
 AnalyticsEnv.Append(CPPPATH = [
                                includes,
                                AnalyticsEnv['TOP'],
@@ -150,7 +152,7 @@ else:
 def RedisLuaBuild(env, scr_name):
   env.Command('%s_lua.cpp' % scr_name ,'%s.lua' % scr_name,\
                   '(cd %s ; xxd -i %s.lua > ../../../%s/%s_lua.cpp)' %
-              (Dir('#controller/src/analytics').path,
+              (Dir('#src/contrail-analytics/contrail-collector').path,
                scr_name, Dir('.').path, scr_name))
   env.Depends('redis_processor_vizd.cc','%s_lua.cpp' % scr_name)
 
@@ -158,6 +160,47 @@ AnalyticsEnv_boost_no_unreach = AnalyticsEnv.Clone()
 AnalyticsEnv_boost_no_unreach.AppendUnique(CCFLAGS='-DBOOST_NO_UNREACHABLE_RETURN_DETECTION')
 syslog_collector_obj = AnalyticsEnv_boost_no_unreach.Object('syslog_collector.o', 'syslog_collector.cc')
 parser_util_obj = AnalyticsEnv_boost_no_unreach.Object('parser_util.o', 'parser_util.cc')
+
+AnalyticsEnv.Install(AnalyticsEnv['TOP_INCLUDE'] + '/database',
+    '#controller/src/database/gendb_if.h')
+AnalyticsEnv.Install(AnalyticsEnv['TOP_INCLUDE'] + '/config/config-client-mgr',
+    '#controller/src/config/config-client-mgr/config_json_parser_base.h')
+AnalyticsEnv.Install(AnalyticsEnv['TOP_INCLUDE'] + '/config/config-client-mgr',
+    '#controller/src/config/config-client-mgr/config_cass2json_adapter.h')
+AnalyticsEnv.Install(AnalyticsEnv['TOP_INCLUDE'] + '/config/config-client-mgr',
+    '#controller/src/config/config-client-mgr/json_adapter_data.h')
+AnalyticsEnv.Install(AnalyticsEnv['TOP_INCLUDE'] + '/config/config-client-mgr',
+    '#controller/src/config/config-client-mgr/config_client_manager.h')
+AnalyticsEnv.Install(AnalyticsEnv['TOP_INCLUDE'] + '/config/config-client-mgr',
+    '#controller/src/config/config-client-mgr/config_client_options.h')
+AnalyticsEnv.Install(AnalyticsEnv['TOP_INCLUDE'] + '/config/config-client-mgr',
+    '#controller/src/config/config-client-mgr/config_factory.h')
+AnalyticsEnv.Install(AnalyticsEnv['TOP_INCLUDE'] + '/config/config-client-mgr',
+    '#controller/src/config/config-client-mgr/config_factory.h')
+
+AnalyticsEnv.Install(AnalyticsEnv['TOP_INCLUDE'] + '/http/client',
+    '#controller/src/http/client/vncapi.h')
+AnalyticsEnv.Install(AnalyticsEnv['TOP_INCLUDE'] + '/http/client',
+    '#controller/src/http/client/http_client.h')
+AnalyticsEnv.Install(AnalyticsEnv['TOP_INCLUDE'] + '/http/client',
+    '#controller/src/http/client/http_curl.h')
+
+AnalyticsEnv.Install(AnalyticsEnv['TOP_INCLUDE'] + '/net',
+    '#controller/src/net/address_util.h')
+AnalyticsEnv.Install(AnalyticsEnv['TOP_INCLUDE'] + '/net',
+    '#controller/src/net/address.h')
+
+AnalyticsEnv.Install(AnalyticsEnv['TOP_INCLUDE'] + '/database/cassandra/cql',
+    '#controller/src/database/cassandra/cql/cql_if.h')
+AnalyticsEnv.Install(AnalyticsEnv['TOP_INCLUDE'] + '/database/cassandra/cql',
+    '#controller/src/database/cassandra/cql/cql_if_impl.h')
+AnalyticsEnv.Install(AnalyticsEnv['TOP_INCLUDE'] + '/database/cassandra/cql',
+    '#controller/src/database/cassandra/cql/cql_lib_if.h')
+AnalyticsEnv.Install(AnalyticsEnv['TOP_INCLUDE'] + '/database',
+    '#controller/src/database/gendb_statistics.h')
+
+AnalyticsEnv.Install(AnalyticsEnv['TOP_INCLUDE'] + '/zookeeper',
+    '#controller/src/zookeeper/zookeeper_client.h')
 
 vizd_sources = ['viz_collector.cc', 'ruleeng.cc', 'collector.cc',
                 'vizd_table_desc.cc', 'viz_message.cc','generator.cc',
@@ -241,7 +284,7 @@ for dfile in ProtobufDescFile:
     AnalyticsEnv.Requires(vizd, desc_file)
 
 AnalyticsEnv.SConscript('ruleparser/SConscript', exports='AnalyticsEnv', duplicate = 0)
-AnalyticsEnv.SConscript('database/SConscript', exports='AnalyticsEnv', duplicate = 0)
+#AnalyticsEnv.SConscript('database/SConscript', exports='AnalyticsEnv', duplicate = 0)
 
 test_suite = AnalyticsEnv.SConscript('test/SConscript', exports='AnalyticsEnv', duplicate = 0)
 
@@ -282,9 +325,9 @@ if AnalyticsEnv.get('OPT') == 'coverage':
 
 # Documentation
 CollectorDocFiles = []
-CollectorDocFiles += AnalyticsEnv['BASE_DOC_FILES']
-CollectorDocFiles += AnalyticsEnv['IO_DOC_FILES']
-CollectorDocFiles += AnalyticsEnv['SANDESH_DOC_FILES']
+#CollectorDocFiles += AnalyticsEnv['BASE_DOC_FILES']
+#CollectorDocFiles += AnalyticsEnv['IO_DOC_FILES']
+#CollectorDocFiles += AnalyticsEnv['SANDESH_DOC_FILES']
 CollectorDocFiles += AnalyticsEnv['ANALYTICS_DOC_FILES']
 CollectorDocFiles += AnalyticsEnv.SandeshGenDoc('collector_uve.sandesh')
 CollectorDocFiles += AnalyticsEnv.SandeshGenDoc('sdwan_uve.sandesh')
@@ -320,15 +363,15 @@ AnalyticsEnv.Alias('install', AnalyticsEnv.Install(
 AnalyticsEnv.Alias('install', AnalyticsEnv.Install(
             AnalyticsEnv['INSTALL_MESSAGE_DOC'] + '/contrail-collector/', CollectorDocFiles))
 
-AnalyticsEnv.SConscript(dirs=['contrail-snmp-collector'],
-        exports='AnalyticsEnv',
-        variant_dir=BuildEnv['TOP'] + '/contrail-snmp-collector',
-        duplicate=1)
+#AnalyticsEnv.SConscript(dirs=['contrail-snmp-collector'],
+#        exports='AnalyticsEnv',
+#        variant_dir=BuildEnv['TOP'] + '/contrail-snmp-collector',
+#        duplicate=1)
 
-AnalyticsEnv.SConscript(dirs=['contrail-topology'],
-        exports='AnalyticsEnv',
-        variant_dir=BuildEnv['TOP'] + '/contrail-topology',
-        duplicate=1)
+#AnalyticsEnv.SConscript(dirs=['contrail-topology'],
+#        exports='AnalyticsEnv',
+#        variant_dir=BuildEnv['TOP'] + '/contrail-topology',
+#        duplicate=1)
 #
 # Not yet
 #AnalyticsEnv.SConscript(dirs=['contrail-broadview'],

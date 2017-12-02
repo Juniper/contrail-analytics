@@ -15,7 +15,7 @@
 #include "hiredis/hiredis.h"
 #include "hiredis/boostasio.hpp"
 #include <list>
-#include "../analytics/redis_connection.h"
+#include <contrail-collector/redis_connection.h>
 #include "base/work_pipeline.h"
 #include "QEOpServerProxy.h"
 #include "rapidjson/document.h"

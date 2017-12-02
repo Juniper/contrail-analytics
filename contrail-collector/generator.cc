@@ -24,7 +24,7 @@
 #include "generator.h"
 #include "viz_collector.h"
 #include "viz_sandesh.h"
-#include "viz_types.h"
+#include <analytics/viz_types.h>
 #include "vizd_table_desc.h"
 
 extern SandeshTraceBufferPtr UVETraceBuf;

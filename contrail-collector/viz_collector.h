@@ -16,7 +16,7 @@
 
 #include "collector.h"
 #include "OpServerProxy.h"
-#include "viz_constants.h"
+#include <analytics/viz_constants.h>
 #include "syslog_collector.h"
 #include "db_handler.h"
 #include "options.h"

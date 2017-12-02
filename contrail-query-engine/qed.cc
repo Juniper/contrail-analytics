@@ -21,9 +21,9 @@
 #include <boost/assign/list_of.hpp>
 #include <sandesh/common/vns_types.h>
 #include <sandesh/common/vns_constants.h>
-#include "analytics_types.h"
+#include <analytics/analytics_types.h>
 #include "nodeinfo_types.h"
-#include "query_engine/options.h"
+#include "options.h"
 #include "query.h"
 #include "qe_sandesh.h"
 #include <base/misc_utils.h>

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2014 Juniper Networks, Inc. All rights reserved.
  */
-#include "analytics/options.h"
+#include "options.h"
 
 #include <fstream>
 #include <iostream>
@@ -11,14 +11,14 @@
 #include <boost/assign/list_of.hpp>
 #include <boost/functional/hash.hpp>
 
-#include "analytics/buildinfo.h"
+#include <analytics/buildinfo.h>
 #include "base/contrail_ports.h"
 #include "base/logging.h"
 #include "base/misc_utils.h"
 #include "base/util.h"
 #include <base/options_util.h>
 #include "net/address_util.h"
-#include "viz_constants.h"
+#include <analytics/viz_constants.h>
 #include <database/gendb_constants.h>
 
 #include "config/config-client-mgr/config_client_manager.h"

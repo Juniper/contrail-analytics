@@ -6,7 +6,7 @@
 #define __VIZD_TABLE_DESC_H__
 
 #include <boost/tuple/tuple.hpp>
-#include "viz_types.h"
+#include <analytics/viz_types.h>
 #include "database/gendb_if.h"
 
 extern std::vector<GenDb::NewCf> vizd_tables;
