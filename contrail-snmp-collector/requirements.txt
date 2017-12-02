@@ -1,0 +1,8 @@
+lxml
+gevent
+geventhttpclient
+xmltodict
+prettytable
+psutil>=0.6.0
+bottle
+consistent-hash
