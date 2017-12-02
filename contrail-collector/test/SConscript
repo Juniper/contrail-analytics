@@ -128,7 +128,7 @@ options_test = env.UnitTest('options_test',
                             analytics_request_obj,
                             ]
                             )
-env.Alias('src/analytics:options_test', options_test)
+env.Alias('src/contrail-analytics/contrail-collector:options_test', options_test)
 
 protobufEnv = env.Clone()
 protobuf_test_gen_files = protobufEnv.ProtocGenCpp('test_message.proto')
@@ -141,7 +141,7 @@ protobuf_test = protobufEnv.UnitTest('protobuf_test', protobuf_test_gen_srcs +
       '../jti-protos/telemetry_top.pb.o'])
 env.Requires(protobuf_test, [env['TOP'] + '/analytics/test/test_message.desc',
                              env['TOP'] + '/analytics/test/test_message_extensions.desc'])
-protobufEnv.Alias('src/analytics:protobuf_test', protobuf_test)
+protobufEnv.Alias('src/contrail-analytics/contrail-collector:protobuf_test', protobuf_test)
 
 structured_syslogEnv = env.Clone()
 structured_syslog_test = structured_syslogEnv.UnitTest('structured_syslog_test',
@@ -224,15 +224,15 @@ test_suite = [
              ]
 test = env.TestSuite('analytics-test', test_suite)
 
-env.Alias('controller/src/analytics:test', [
+env.Alias('src/contrail-analytics/contrail-collector:test', [
     test,
-    'controller/src/analytics/ruleparser:test',
+    'src/contrail-analytics/contrail-collector/ruleparser:test',
 ])
 
 flaky_test_suite = [
 ]
 
 flaky_test = env.TestSuite('analytics-flaky-test', flaky_test_suite)
-env.Alias('controller/src/analytics:flaky-test', flaky_test)
+env.Alias('src/contrail-analytics/contrail-collector:flaky-test', flaky_test)
 
 Return('test_suite')

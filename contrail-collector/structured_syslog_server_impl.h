@@ -5,7 +5,7 @@
 #ifndef ANALYTICS_STRUCTURED_SYSLOG_SERVER_IMPL_H_
 #define ANALYTICS_STRUCTURED_SYSLOG_SERVER_IMPL_H_
 
-#include <analytics/stat_walker.h>
+#include "stat_walker.h"
 
 namespace structured_syslog {
 namespace impl {

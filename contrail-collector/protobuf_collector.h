@@ -9,7 +9,7 @@
 #include <vector>
 #include <boost/scoped_ptr.hpp>
 
-#include "analytics/protobuf_server.h"
+#include "protobuf_server.h"
 
 class ProtobufCollector {
  public:

@@ -25,10 +25,10 @@
 #include <sandesh/sandesh_server.h>
 #include <sandesh/sandesh_session.h>
 
-#include "viz_constants.h"
+#include <analytics/viz_constants.h>
 #include "generator.h"
 #include <string>
-#include "collector_uve_types.h"
+#include <analytics/collector_uve_types.h>
 #include "db_handler.h"
 #include "base/logging.h"
 #include "base/task.h"

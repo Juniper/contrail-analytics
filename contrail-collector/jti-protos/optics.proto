@@ -31,7 +31,7 @@
 // Version 1.1
 //
 
-import "analytics/jti-protos/telemetry_top.proto";
+import "jti-protos/telemetry_top.proto";
 
 //
 //

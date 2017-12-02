@@ -6,7 +6,7 @@
 #include <sstream>
 #include <boost/make_shared.hpp>
 #include <boost/regex.hpp>
-#include "analytics_types.h"
+#include <analytics/analytics_types.h>
 #include "structured_syslog_config.h"
 #include "options.h"
 #include <base/logging.h>

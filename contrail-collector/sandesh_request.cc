@@ -6,10 +6,10 @@
 
 #include <sandesh/request_pipeline.h>
 
-#include <analytics/viz_sandesh.h>
-#include <analytics/collector.h>
-#include <analytics/db_handler.h>
-#include <analytics/viz_collector.h>
+#include "viz_sandesh.h"
+#include "collector.h"
+#include "db_handler.h"
+#include "viz_collector.h"
 #include <analytics/collector_uve_types.h>
 #include <analytics/analytics_types.h>
 

@@ -13,7 +13,7 @@
 #include "base/misc_utils.h"
 #include "base/util.h"
 #include <base/options_util.h>
-#include "query_engine/buildinfo.h"
+#include <query_engine/buildinfo.h>
 #include "net/address_util.h"
 #include "viz_constants.h"
 

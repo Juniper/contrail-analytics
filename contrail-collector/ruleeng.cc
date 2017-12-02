@@ -19,8 +19,8 @@
 #include "ruleparser/ruleglob.h"
 #include "db_handler.h"
 #include "OpServerProxy.h"
-#include "collector_uve_types.h"
-#include "viz_constants.h"
+#include <analytics/collector_uve_types.h>
+#include <analytics/viz_constants.h>
 #include "ruleeng.h"
 #include "stat_walker.h"
 

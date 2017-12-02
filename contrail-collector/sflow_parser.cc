@@ -9,7 +9,7 @@
 #include <netinet/udp.h>
 
 #include "base/logging.h"
-#include "analytics/sflow_parser.h"
+#include "sflow_parser.h"
 #include "sflow_types.h"
 
 

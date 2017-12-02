@@ -8,9 +8,9 @@
 #include <stdint.h>
 #include <database/gendb_constants.h>
 #include <database/gendb_if.h>
-#include "viz_constants.h"
+#include <analytics/viz_constants.h>
 #include <analytics/viz_types.h>
-#include "analytics/vizd_table_desc.h"
+#include <contrail-collector/vizd_table_desc.h>
 
 bool parse_time(const std::string& relative_time, uint64_t *usec_time);
 GenDb::Op::type get_gendb_op_from_op(int op);

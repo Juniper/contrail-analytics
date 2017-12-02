@@ -95,13 +95,13 @@ TEST_F(OptionsTest, DefaultConfFile) {
     int argc = 2;
     char *argv[argc];
     char argv_0[] = "options_test";
-    char argv_1[] = "--conf_file=controller/src/query_engine/contrail-query-engine.conf";
+    char argv_1[] = "--conf_file=src/contrail-analytics/contrail-query-engine/contrail-query-engine.conf";
     argv[0] = argv_0;
     argv[1] = argv_1;
 
     options_.Parse(evm_, argc, argv);
     vector<string> passed_conf_files;
-    passed_conf_files.push_back("controller/src/query_engine/contrail-query-engine.conf");
+    passed_conf_files.push_back("src/contrail-analytics/contrail-query-engine/contrail-query-engine.conf");
 
 
     TASK_UTIL_EXPECT_VECTOR_EQ(default_cassandra_server_list_,
@@ -136,7 +136,7 @@ TEST_F(OptionsTest, OverrideStringFromCommandLine) {
     int argc = 4;
     char *argv[argc];
     char argv_0[] = "options_test";
-    char argv_1[] = "--conf_file=controller/src/query_engine/contrail-query-engine.conf";
+    char argv_1[] = "--conf_file=src/contrail-analytics/contrail-query-engine/contrail-query-engine.conf";
     char argv_2[] = "--DEFAULT.log_file=test.log";
     char argv_3[] = "--DEFAULT.sandesh_send_rate_limit=5";
     argv[0] = argv_0;
@@ -146,7 +146,7 @@ TEST_F(OptionsTest, OverrideStringFromCommandLine) {
 
     options_.Parse(evm_, argc, argv);
     vector<string> passed_conf_files;
-    passed_conf_files.push_back("controller/src/query_engine/contrail-query-engine.conf");
+    passed_conf_files.push_back("src/contrail-analytics/contrail-query-engine/contrail-query-engine.conf");
 
     TASK_UTIL_EXPECT_VECTOR_EQ(default_cassandra_server_list_,
                      options_.cassandra_server_list());
@@ -178,7 +178,7 @@ TEST_F(OptionsTest, OverrideBooleanFromCommandLine) {
     int argc = 4;
     char *argv[argc];
     char argv_0[] = "options_test";
-    char argv_1[] = "--conf_file=controller/src/query_engine/contrail-query-engine.conf";
+    char argv_1[] = "--conf_file=src/contrail-analytics/contrail-query-engine/contrail-query-engine.conf";
     char argv_2[] = "--DEFAULT.test_mode";
     char argv_3[] = "--SANDESH.disable_object_logs";
     argv[0] = argv_0;
@@ -188,7 +188,7 @@ TEST_F(OptionsTest, OverrideBooleanFromCommandLine) {
 
     options_.Parse(evm_, argc, argv);
     vector<string> passed_conf_files;
-    passed_conf_files.push_back("controller/src/query_engine/contrail-query-engine.conf");
+    passed_conf_files.push_back("src/contrail-analytics/contrail-query-engine/contrail-query-engine.conf");
 
     TASK_UTIL_EXPECT_VECTOR_EQ(default_cassandra_server_list_,
                      options_.cassandra_server_list());
@@ -459,9 +459,9 @@ TEST_F(OptionsTest, MultitokenVector) {
     char argv_0[] = "options_test";
     char argv_1[] = "--DEFAULT.collectors=10.10.10.1:100 20.20.20.2:200";
     char argv_2[] = "--DEFAULT.cassandra_server_list=30.30.30.3:300";
-    char argv_3[] = "--conf_file=controller/src/query_engine/contrail-query-engine.conf"
-                    " controller/src/analytics/contrail-database.conf";
-    char argv_4[] = "--conf_file=controller/src/analytics/test-conf.conf";
+    char argv_3[] = "--conf_file=src/contrail-analytics/contrail-query-engine/contrail-query-engine.conf"
+                    " src/contrail-analytics/contrail-collector/contrail-database.conf";
+    char argv_4[] = "--conf_file=src/contrail-analytics/contrail-collector/test-conf.conf";
     argv[0] = argv_0;
     argv[1] = argv_1;
     argv[2] = argv_2;
@@ -476,9 +476,9 @@ TEST_F(OptionsTest, MultitokenVector) {
     vector<string> cassandra_server_list;
     cassandra_server_list.push_back("30.30.30.3:300");
     vector<string> option_file_list;
-    option_file_list.push_back("controller/src/query_engine/contrail-query-engine.conf");
-    option_file_list.push_back("controller/src/analytics/contrail-database.conf");
-    option_file_list.push_back("controller/src/analytics/test-conf.conf");
+    option_file_list.push_back("src/contrail-analytics/contrail-query-engine/contrail-query-engine.conf");
+    option_file_list.push_back("src/contrail-analytics/contrail-collector/contrail-database.conf");
+    option_file_list.push_back("src/contrail-analytics/contrail-collector/test-conf.conf");
     TASK_UTIL_EXPECT_VECTOR_EQ(options_.config_file(),
                      option_file_list);
     TASK_UTIL_EXPECT_VECTOR_EQ(options_.collector_server_list(),

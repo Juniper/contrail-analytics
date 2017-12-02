@@ -11,11 +11,11 @@
 #include "hiredis/hiredis.h"
 #include "hiredis/boostasio.hpp"
 
-#include "seqnum_lua.cpp"
-#include "delrequest_lua.cpp"
-#include "uveupdate_lua.cpp"
-#include "uvedelete_lua.cpp"
-#include "flushuves_lua.cpp"
+#include <analytics/seqnum_lua.cpp>
+#include <analytics/delrequest_lua.cpp>
+#include <analytics/uveupdate_lua.cpp>
+#include <analytics/uvedelete_lua.cpp>
+#include <analytics/flushuves_lua.cpp>
 #include <sandesh/common/vns_types.h>
 #include <sandesh/common/vns_constants.h>
 

@@ -10,9 +10,9 @@
 #include <boost/system/error_code.hpp>
 #include <boost/asio/ip/udp.hpp>
 
-#include <analytics/stat_walker.h>
-#include <analytics/structured_syslog_config.h>
-#include <analytics/structured_syslog_kafka_forwarder.h>
+#include "stat_walker.h"
+#include "structured_syslog_config.h"
+#include "structured_syslog_kafka_forwarder.h"
 #include "grok_parser.h"
 
 namespace structured_syslog {

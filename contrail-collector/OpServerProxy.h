@@ -7,7 +7,7 @@
 
 #include <string>
 #include "io/event_manager.h"
-#include "redis_types.h"
+#include <analytics/redis_types.h>
 #include "redis_processor_vizd.h"
 
 // This class can be used to send UVE Traces from vizd to the OpSever(s)

@@ -12,9 +12,9 @@ Cython==0.24.1
 cassandra-driver==3.0.0
 amqp==1.4.1
 kombu==3.0.9
-../../../controller/src/analytics/test/utils/mockredis
-../../../controller/src/analytics/test/utils/mockcassandra
-../../../controller/src/analytics/test/utils/mockkafka
+../../../src/contrail-analytics/contrail-collector/test/utils/mockredis
+../../../src/contrail-analytics/contrail-collector/test/utils/mockcassandra
+../../../src/contrail-analytics/contrail-collector/test/utils/mockkafka
 ../../../controller/src/config/test/utils/mockzoo
 ../opserver
 ../sandesh/common/dist/sandesh-common-0.1dev.tar.gz

@@ -2,12 +2,12 @@
  * Copyright (c) 2013 Juniper Networks, Inc. All rights reserved.
  */
 
-#include "analytics/viz_message.h"
+#include "viz_message.h"
 
 #include <base/logging.h>
 #include <base/util.h>
 #include <sandesh/sandesh_message_builder.h>
-#include "collector_uve_types.h"
+#include <analytics/collector_uve_types.h>
 
 RuleMsg::RuleMsg(const VizMsg* vmsgp) : 
     hdr(vmsgp->msg->GetHeader()),

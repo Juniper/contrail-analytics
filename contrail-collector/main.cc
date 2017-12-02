@@ -8,8 +8,8 @@
 #include <boost/program_options.hpp>
 #include <boost/tokenizer.hpp>
 #include <malloc.h>
-#include "analytics/options.h"
-#include "analytics/viz_constants.h"
+#include "options.h"
+#include <analytics/viz_constants.h>
 #include "boost/python.hpp"
 #include "base/logging.h"
 #include "base/contrail_ports.h"
@@ -25,9 +25,9 @@
 #include "viz_collector.h"
 #include "viz_sandesh.h"
 #include "ruleeng.h"
-#include "viz_types.h"
-#include "nodeinfo_types.h"
-#include "analytics_types.h"
+#include <analytics/viz_types.h>
+#include <nodeinfo_types.h>
+#include <analytics/analytics_types.h>
 #include "generator.h"
 #include <base/misc_utils.h>
 #include <analytics/buildinfo.h>

@@ -8,7 +8,7 @@
 #include <cassert>
 #include <boost/program_options.hpp>
 #include "io/event_manager.h"
-#include "viz_types.h"
+#include <analytics/viz_types.h>
 #include "config/config-client-mgr/config_client_options.h"
 
 class ConfigClientManager;

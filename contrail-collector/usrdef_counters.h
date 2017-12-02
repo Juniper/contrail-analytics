@@ -11,7 +11,7 @@
 #include <boost/regex.hpp>
 #include "http/client/vncapi.h"
 #include "parser_util.h"
-#include "analytics_types.h"
+#include <analytics/analytics_types.h>
 #include "config_client_collector.h"
 
 class Options;

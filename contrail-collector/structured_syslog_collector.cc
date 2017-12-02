@@ -4,9 +4,9 @@
 
 #include <io/io_types.h>
 
-#include "analytics/collector_uve_types.h"
-#include "analytics/db_handler.h"
-#include "analytics/structured_syslog_collector.h"
+#include <analytics/collector_uve_types.h>
+#include "db_handler.h"
+#include "structured_syslog_collector.h"
 
 StructuredSyslogCollector::StructuredSyslogCollector(EventManager *evm,
     uint16_t structured_syslog_port, const vector<string> &structured_syslog_tcp_forward_dst,

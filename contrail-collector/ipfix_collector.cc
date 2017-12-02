@@ -5,8 +5,8 @@
 #include "db_handler.h"
 #include "ipfix_collector.h"
 #include "ipfix_col.h"
-#include "uflow_constants.h"
-#include "uflow_types.h"
+#include <analytics/uflow_constants.h>
+#include <analytics/uflow_types.h>
 
 #include <boost/assign/list_of.hpp>
 #include <stdio.h>

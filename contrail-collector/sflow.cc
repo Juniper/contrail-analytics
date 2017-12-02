@@ -3,7 +3,7 @@
  */
 
 #include "base/string_util.h"
-#include "analytics/sflow.h"
+#include "sflow.h"
 
 
 bool SFlowHeader::operator==(const SFlowHeader& rhs) const {

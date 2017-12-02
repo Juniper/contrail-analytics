@@ -35,7 +35,7 @@
 //
 
 syntax = "proto2";
-import "analytics/jti-protos/telemetry_top.proto";
+import "jti-protos/telemetry_top.proto";
     
 //  
 // This occupies branch 12 from JuniperNetworksSensors

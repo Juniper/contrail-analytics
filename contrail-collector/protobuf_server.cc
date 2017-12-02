@@ -20,9 +20,9 @@
 #include <dirent.h>
 #include <string.h>
 
-#include "analytics/jti-protos/telemetry_top.pb.h"
-#include "analytics/protobuf_server.h"
-#include "analytics/protobuf_server_impl.h"
+#include "jti-protos/telemetry_top.pb.h"
+#include "protobuf_server.h"
+#include "protobuf_server_impl.h"
 
 using ::google::protobuf::FileDescriptorSet;
 using ::google::protobuf::FileDescriptor;
