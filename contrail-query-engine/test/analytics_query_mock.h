@@ -5,7 +5,7 @@
 #include "gmock/gmock.h"
 
 #include "query.h"
-#include "analytics/test/cql_if_mock.h"
+#include "contrail-collector/test/cql_if_mock.h"
 
 class AnalyticsQueryMock : public AnalyticsQuery {
 public:

@@ -12,7 +12,7 @@
 #include "base/util.h"
 #include "base/logging.h"
 #include "base/test/task_test_util.h"
-#include "query_engine/options.h"
+#include "contrail-query-engine/options.h"
 #include "io/event_manager.h"
 #include "net/address_util.h"
 
