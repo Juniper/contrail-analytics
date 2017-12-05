@@ -97,8 +97,6 @@ AnalyticsEnv.Append(LIBPATH=libs)
 
 includes = MapBuildDir(['http/client', 'analytics'])
 
-print 'Jack1'
-print includes
 AnalyticsEnv.Append(CPPPATH = [
                                includes,
                                AnalyticsEnv['TOP'],
@@ -325,9 +323,9 @@ if AnalyticsEnv.get('OPT') == 'coverage':
 
 # Documentation
 CollectorDocFiles = []
-#CollectorDocFiles += AnalyticsEnv['BASE_DOC_FILES']
-#CollectorDocFiles += AnalyticsEnv['IO_DOC_FILES']
-#CollectorDocFiles += AnalyticsEnv['SANDESH_DOC_FILES']
+CollectorDocFiles += AnalyticsEnv['BASE_DOC_FILES']
+CollectorDocFiles += AnalyticsEnv['IO_DOC_FILES']
+CollectorDocFiles += AnalyticsEnv['VNS_SANDESH_DOC_FILES']
 CollectorDocFiles += AnalyticsEnv['ANALYTICS_DOC_FILES']
 CollectorDocFiles += AnalyticsEnv.SandeshGenDoc('collector_uve.sandesh')
 CollectorDocFiles += AnalyticsEnv.SandeshGenDoc('sdwan_uve.sandesh')

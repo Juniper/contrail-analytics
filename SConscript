@@ -8,6 +8,12 @@
 import sys
 import platform
 
+Import('contrail_common_base_doc_files')
+Import('contrail_common_io_doc_files')
+#requires chnage in controller/src/SConscript
+#Analytics section: controller/src/analytics/analytics.sandesh
+Import('controller_vns_sandesh_doc_files')
+
 subdirs_no_dup = [
           'contrail-collector',
           'contrail-query-engine',
@@ -65,13 +71,24 @@ if sys.platform.startswith('freebsd'):
 # Message documentation for common modules
 #
 
+# base
+BuildEnv['BASE_DOC_FILES'] = contrail_common_base_doc_files
+
+# IO
+BuildEnv['IO_DOC_FILES'] = contrail_common_io_doc_files
+
+# SANDESH
+BuildEnv['VNS_SANDESH_DOC_FILES'] = controller_vns_sandesh_doc_files
+
 # Analytics (contrail-collector)
-analytics_doc_files = []
-analytics_doc_target = BuildEnv['TOP'] + '/' + variant_dir_map['contrail-collector'] + '/'
-analytics_doc_files += BuildEnv.SandeshGenDoc('#src/contrail-analytics/contrail-collector/analytics.sandesh', analytics_doc_target)
-analytics_doc_files += BuildEnv.SandeshGenDoc('#src/contrail-analytics/contrail-collector/viz.sandesh', analytics_doc_target)
-analytics_doc_files += BuildEnv.SandeshGenDoc('#src/contrail-analytics/contrail-collector/redis.sandesh', analytics_doc_target)
-BuildEnv['ANALYTICS_DOC_FILES'] = analytics_doc_files
+contrail_collector_doc_files = []
+analytics_doc_target = common['TOP'] + '/' + variant_dir_map['contrail-collector'] + '/'
+contrail_collector_doc_files += common.SandeshGenDoc('#src/contrail-analytics/contrail-collector/analytics.sandesh', analytics_doc_target)
+contrail_collector_doc_files += common.SandeshGenDoc('#src/contrail-analytics/contrail-collector/viz.sandesh', analytics_doc_target)
+contrail_collector_doc_files += common.SandeshGenDoc('#src/contrail-analytics/contrail-collector/redis.sandesh', analytics_doc_target)
+BuildEnv['ANALYTICS_DOC_FILES'] = contrail_collector_doc_files
+#Export('contrail_collector_doc_files')
+
 
 BuildEnv['INSTALL_DOC_PKG'] = BuildEnv['INSTALL_DOC'] + '/contrail-docs/html'
 BuildEnv['INSTALL_MESSAGE_DOC'] = BuildEnv['INSTALL_DOC_PKG'] + '/messages'
