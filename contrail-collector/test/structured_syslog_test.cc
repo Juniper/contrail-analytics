@@ -14,11 +14,11 @@
 #include <io/io_types.h>
 #include <io/udp_server.h>
 
-#include "analytics/db_handler.h"
-#include "analytics/structured_syslog_server.h"
-#include "analytics/structured_syslog_server_impl.h"
+#include "contrail-collector/db_handler.h"
+#include "contrail-collector/structured_syslog_server.h"
+#include "contrail-collector/structured_syslog_server_impl.h"
 #include "generator.h"
-#include "analytics/syslog_collector.h"
+#include "contrail-collector/syslog_collector.h"
 
 using boost::assign::map_list_of;
 

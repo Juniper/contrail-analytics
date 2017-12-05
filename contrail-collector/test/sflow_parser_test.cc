@@ -10,8 +10,8 @@
 
 #include <base/logging.h>
 
-#include <analytics/sflow_parser.h>
-#include <analytics/test/sflow_pktgen.h>
+#include "contrail-collector/sflow_parser.h"
+#include "contrail-collector/test/sflow_pktgen.h"
 
 class SFlowParserTest : public ::testing::Test {
 protected:

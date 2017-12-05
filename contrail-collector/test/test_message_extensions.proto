@@ -2,8 +2,8 @@
  * Copyright (c) 2015 Juniper Networks, Inc. All rights reserved.
  */
 
-import "analytics/jti-protos/telemetry_top.proto";
-import "analytics/test/test_message.proto";
+import "jti-protos/telemetry_top.proto";
+import "test/test_message.proto";
 
 message TestMessageExtension1Inner {
     required string tm_inner_name = 1 [(telemetry_options).is_key = true];

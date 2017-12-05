@@ -19,10 +19,10 @@
 #include <io/io_types.h>
 #include <io/udp_server.h>
 
-#include "analytics/db_handler.h"
+#include "contrail-collector/db_handler.h"
 #include "analytics/jti-protos/telemetry_top.pb.h"
-#include "analytics/protobuf_server_impl.h"
-#include "analytics/protobuf_server.h"
+#include "contrail-collector/protobuf_server_impl.h"
+#include "contrail-collector/protobuf_server.h"
 #include "test_message.pb.h"
 
 using namespace ::google::protobuf;
