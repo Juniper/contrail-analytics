@@ -223,7 +223,7 @@ object_table_test_pkg = OpEnv.SandeshGenPy(
         '#src/contrail-analytics/contrail-opserver/test/sandesh/object_table_test.sandesh',
         'sandesh/', False)
 flow_pkg = OpEnv.SandeshGenPy(
-        '#src/sandesh/common/flow.sandesh',
+        '#controller/src/sandesh/common/flow.sandesh',
         'sandesh/', False)
 qe_test_pkg = OpEnv.SandeshGenPy(
         '#src/contrail-analytics/contrail-query-engine/qe.sandesh',
