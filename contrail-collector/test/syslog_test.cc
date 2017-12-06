@@ -9,7 +9,7 @@
 #include "base/task.h"
 #include "base/test/task_test_util.h"
 #include "io/test/event_manager_test.h"
-#include "analytics/parser_util.h"
+#include "contrail-collector/parser_util.h"
 
 using ::testing::Field;
 using ::testing::StrEq;

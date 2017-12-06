@@ -7,7 +7,7 @@
 
 #include <boost/asio/ip/host_name.hpp>
 
-#include "contrail-collector/viz_constants.h"
+#include <analytics/viz_constants.h>
 #include "base/contrail_ports.h"
 #include "base/test/task_test_util.h"
 #include "base/util.h"
