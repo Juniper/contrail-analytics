@@ -2,7 +2,7 @@
  * Copyright (c) 2013 Juniper Networks, Inc. All rights reserved.
  */
 
-#include "../analytics/redis_connection.h"
+#include "contrail-collector/redis_connection.h"
 
 RedisAsyncConnection * rac_alloc(EventManager *evm, const std::string & redis_ip,
             unsigned short redis_port,

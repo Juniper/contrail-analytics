@@ -28,8 +28,8 @@ sources = [
     ]
 
 common_sources = [
-    '#controller/src/opserver/analytics_logger.py',
-    '#controller/src/opserver/config_handler.py'
+    '#src/contrail-analytics/contrail-opserver/analytics_logger.py',
+    '#src/contrail-analytics/contrail-opserver/config_handler.py'
 ]
 
 src_sandesh = env.SandeshGenPy('link.sandesh', 'contrail_topology/sandesh/', False)
@@ -60,7 +60,7 @@ src_rules = [env.Install(Dir("."),
     '#src/contrail-analytics/contrail-topology/' + f) for f in sources]
 src_rules += [env.Install(Dir("."), f) for f in common_sources]
 src_rules.append(env.Install(Dir("."),
-        '#controller/src/opserver/run_tests.sh'))
+        '#src/contrail-analytics/contrail-opserver/run_tests.sh'))
 
 test_sources = [
     'requirements.txt',
