@@ -131,8 +131,8 @@ options_test = env.UnitTest('options_test',
 env.Alias('src/contrail-analytics/contrail-collector:options_test', options_test)
 
 protobufEnv = env.Clone()
-protobuf_test_gen_files = protobufEnv.ProtocGenCpp('test_message.proto')
-protobuf_test_gen_files += protobufEnv.ProtocGenCpp('test_message_extensions.proto')
+protobuf_test_gen_files = protobufEnv.ProtocGenCppMapTgtDir('test_message.proto', 'analytics')
+protobuf_test_gen_files += protobufEnv.ProtocGenCppMapTgtDir('test_message_extensions.proto', 'analytics')
 protobuf_test_gen_srcs = protobufEnv.ExtractCpp(protobuf_test_gen_files)
 protobuf_test_desc_files = protobufEnv.ProtocGenDesc('test_message.proto')
 protobuf_test_desc_files += protobufEnv.ProtocGenDesc('test_message_extensions.proto')
