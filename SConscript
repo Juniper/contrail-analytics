@@ -10,7 +10,7 @@ import platform
 
 Import('contrail_common_base_doc_files')
 Import('contrail_common_io_doc_files')
-#requires chnage in controller/src/SConscript
+#requires change in controller/src/SConscript
 #Analytics section: controller/src/analytics/analytics.sandesh
 Import('controller_vns_sandesh_doc_files')
 
