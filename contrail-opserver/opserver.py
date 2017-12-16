@@ -632,6 +632,127 @@ class OpServer(object):
             self._args.auth_conf_info.get('auth_uri')
         return { "WWW-Authenticate" : header_val }
 
+    def _add_stats_table(self, stat_tables)
+        '''
+        stat_tables should be the list like:
+        {
+             'display_name' : 'Values Table - string',
+             'stat_type' : 'FieldNames'
+             'stat_attr' : 'fields'
+             'obj_table' : 'NONE',
+             'attributes': [
+                  { 'name' : 'fields.value',  'datatype' : 'string',    'index' : false},
+             ]
+        }
+        '''
+        for table in stat_tables:
+            stat_id = table["stat_type"] + "." + table["stat_attr"]
+            scols = []
+
+            keyln = stat_query_column(name=STAT_SOURCE_FIELD, datatype='string', index=True)
+            scols.append(keyln)
+
+            tln = stat_query_column(name=STAT_TIME_FIELD, datatype='int', index=False)
+            scols.append(tln)
+
+            tcln = stat_query_column(name="CLASS(" + STAT_TIME_FIELD + ")",
+                     datatype='int', index=False)
+            scols.append(tcln)
+
+            teln = stat_query_column(name=STAT_TIMEBIN_FIELD, datatype='int', index=False)
+            scols.append(teln)
+
+            tecln = stat_query_column(name="CLASS(" + STAT_TIMEBIN_FIELD+ ")",
+                     datatype='int', index=False)
+            scols.append(tecln)
+
+            uln = stat_query_column(name=STAT_UUID_FIELD, datatype='uuid', index=False)
+            scols.append(uln)
+
+            cln = stat_query_column(name="COUNT(" + table["stat_attr"] + ")",
+                    datatype='int', index=False)
+            scols.append(cln)
+
+            isname = False
+            for aln in table["attributes"]:
+                if aln["name"]==STAT_OBJECTID_FIELD:
+                    isname = True
+                if "suffixes" in aln.keys():
+                    if "uve_type" in aln.keys():
+                        aln_col = stat_query_column(name=aln["name"], \
+                        datatype=aln["datatype"], index=aln["index"], \
+                        suffixes=aln["suffixes"], uve_type=aln["uve_type"])
+                    else:
+                        aln_col = stat_query_column(name=aln["name"], \
+                        datatype=aln["datatype"], index=aln["index"], \
+                        suffixes=aln["suffixes"])
+                else:
+                    if "uve_type" in aln.keys():
+                        aln_col = stat_query_column(name=aln["name"], \
+                        datatype=aln["datatype"], index=aln["index"], \
+                        uve_type=aln["uve_type"])
+                    else:
+                        aln_col = stat_query_column(name=aln["name"], \
+                        datatype=aln["datatype"], index=aln["index"])
+                scols.append(aln_col)
+
+                if aln["datatype"] in ['int','double']:
+                    sln = stat_query_column(name= "SUM(" + aln["name"] + ")",
+                            datatype=aln["datatype"], index=False)
+                    scols.append(sln)
+                    scln = stat_query_column(name= "CLASS(" + aln["name"] + ")",
+                            datatype=aln["datatype"], index=False)
+                    scols.append(scln)
+                    sln = stat_query_column(name= "MAX(" + aln["name"] + ")",
+                            datatype=aln["datatype"], index=False)
+                    scols.append(sln)
+                    scln = stat_query_column(name= "MIN(" + aln["name"] + ")",
+                            datatype=aln["datatype"], index=False)
+                    scols.append(scln)
+                    scln = stat_query_column(name= "PERCENTILES(" + aln["name"] + ")",
+                            datatype='percentiles', index=False)
+                    scols.append(scln)
+                    scln = stat_query_column(name= "AVG(" + aln["name"] + ")",
+                            datatype='avg', index=False)
+                    scols.append(scln)
+            if not isname:
+                if "obj_table" in table and table["obj_table"] in \
+                        self.ObjectLogTypeToUveType:
+                    uve_type = self.ObjectLogTypeToUveType[table["obj_table"]]
+                    keyln = stat_query_column(name=STAT_OBJECTID_FIELD, \
+                            datatype='string', index=True, uve_type=uve_type)
+                else:
+                    keyln = stat_query_column(name=STAT_OBJECTID_FIELD, \
+                            datatype='string', index=True)
+                scols.append(keyln)
+
+            sch = query_schema_type(type='STAT', columns=scols)
+
+            stt = query_table(
+                name = STAT_VT_PREFIX + "." + stat_id,
+                display_name = table["display_name"],
+                schema = sch,
+                columnvalues = [STAT_OBJECTID_FIELD, SOURCE])
+            self._VIRTUAL_TABLES.append(stt)
+
+    def _del_stat_table(self, stat_table)
+        '''
+        stat_tables should be like:
+        {
+             'display_name' : 'Values Table - string',
+             'stat_type' : 'FieldNames'
+             'stat_attr' : 'fields'
+             'obj_table' : 'NONE',
+             'attributes': [
+                  { 'name' : 'fields.value',  'datatype' : 'string',    'index' : false},
+             ]
+        }
+        '''
+        stat_id = table["stat_type"] + "." + table["stat_attr"]
+        for i in range(len(self._VIRTUAL_TABLES), 0, -1):
+            if self._VIRTUAL_TABLES[i].name == STAT_VT_PREFIX + "." + stat_id:
+                del _VIRTUAL_TABLES[i]
+
     def __init__(self, args_str=' '.join(sys.argv[1:])):
         self.gevs = []
         self._args = None
@@ -865,100 +986,18 @@ class OpServer(object):
                     if table not in stat_tables:
                         stat_tables.append(table)
 
-        for table in stat_tables:
-            stat_id = table["stat_type"] + "." + table["stat_attr"]
-            scols = []
-
-            keyln = stat_query_column(name=STAT_SOURCE_FIELD, datatype='string', index=True)
-            scols.append(keyln)
-
-            tln = stat_query_column(name=STAT_TIME_FIELD, datatype='int', index=False)
-            scols.append(tln)
-
-            tcln = stat_query_column(name="CLASS(" + STAT_TIME_FIELD + ")", 
-                     datatype='int', index=False)
-            scols.append(tcln)
-
-            teln = stat_query_column(name=STAT_TIMEBIN_FIELD, datatype='int', index=False)
-            scols.append(teln)
-
-            tecln = stat_query_column(name="CLASS(" + STAT_TIMEBIN_FIELD+ ")", 
-                     datatype='int', index=False)
-            scols.append(tecln)
-
-            uln = stat_query_column(name=STAT_UUID_FIELD, datatype='uuid', index=False)
-            scols.append(uln)
-
-            cln = stat_query_column(name="COUNT(" + table["stat_attr"] + ")",
-                    datatype='int', index=False)
-            scols.append(cln)
-
-            isname = False
-            for aln in table["attributes"]:
-                if aln["name"]==STAT_OBJECTID_FIELD:
-                    isname = True
-                if "suffixes" in aln.keys():
-                    if "uve_type" in aln.keys():
-                        aln_col = stat_query_column(name=aln["name"], \
-                        datatype=aln["datatype"], index=aln["index"], \
-                        suffixes=aln["suffixes"], uve_type=aln["uve_type"])
-                    else:
-                        aln_col = stat_query_column(name=aln["name"], \
-                        datatype=aln["datatype"], index=aln["index"], \
-                        suffixes=aln["suffixes"])
-                else:
-                    if "uve_type" in aln.keys():
-                        aln_col = stat_query_column(name=aln["name"], \
-                        datatype=aln["datatype"], index=aln["index"], \
-                        uve_type=aln["uve_type"])
-                    else:
-                        aln_col = stat_query_column(name=aln["name"], \
-                        datatype=aln["datatype"], index=aln["index"])
-                scols.append(aln_col)
-
-                if aln["datatype"] in ['int','double']:
-                    sln = stat_query_column(name= "SUM(" + aln["name"] + ")",
-                            datatype=aln["datatype"], index=False)
-                    scols.append(sln)
-                    scln = stat_query_column(name= "CLASS(" + aln["name"] + ")",
-                            datatype=aln["datatype"], index=False)
-                    scols.append(scln)
-                    sln = stat_query_column(name= "MAX(" + aln["name"] + ")",
-                            datatype=aln["datatype"], index=False)
-                    scols.append(sln)
-                    scln = stat_query_column(name= "MIN(" + aln["name"] + ")",
-                            datatype=aln["datatype"], index=False)
-                    scols.append(scln)
-                    scln = stat_query_column(name= "PERCENTILES(" + aln["name"] + ")",
-                            datatype='percentiles', index=False)
-                    scols.append(scln)
-                    scln = stat_query_column(name= "AVG(" + aln["name"] + ")",
-                            datatype='avg', index=False)
-                    scols.append(scln)
-            if not isname: 
-                if "obj_table" in table and table["obj_table"] in \
-                        self.ObjectLogTypeToUveType:
-                    uve_type = self.ObjectLogTypeToUveType[table["obj_table"]]
-                    keyln = stat_query_column(name=STAT_OBJECTID_FIELD, \
-                            datatype='string', index=True, uve_type=uve_type)
-                else:
-                    keyln = stat_query_column(name=STAT_OBJECTID_FIELD, \
-                            datatype='string', index=True)
-                scols.append(keyln)
-
-            sch = query_schema_type(type='STAT', columns=scols)
-
-            stt = query_table(
-                name = STAT_VT_PREFIX + "." + stat_id,
-                display_name = table["display_name"],
-                schema = sch,
-                columnvalues = [STAT_OBJECTID_FIELD, SOURCE])
-            self._VIRTUAL_TABLES.append(stt)
+        self._add_stats_table(stat_tables);
 
         self._analytics_db = AnalyticsDb(self._logger,
             self._args.auth_conf_info['admin_port'],
             self._args.auth_conf_info['admin_user'],
             self._args.auth_conf_info['admin_password'])
+
+        # Create config handler to read/update alarm config
+        self._config_handler = AnalyticsApiConfigHandler(self._sandesh,
+            self._moduleid, self._instance_id, self._conf.rabbitmq_params(),
+            self._conf.cassandra_params(), None,
+            self.analytics_api_config_change_callback)
 
         # Register introspect request handlers
         UVEDbCacheTablesRequest.handle_request = \
