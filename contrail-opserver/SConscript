@@ -47,6 +47,8 @@ local_sources = [
            'config_handler.py',
            'alarmgen_config_handler.py',
            'alarmgen_config_db.py',
+           'analytics_api_config_handler.py',
+           'analytics_api_config_db.py', 
            'vnc_cfg_api_client.py',
            'opserver_local.py',
            'strict_redis_wrapper.py',
