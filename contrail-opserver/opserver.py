@@ -85,7 +85,7 @@ from sandesh.analytics_api_info.ttypes import AnalyticsApiInfoUVE, \
     UVEDbCacheTableKey, UVEDbCacheTableKeysResponse, \
     UVEDbCacheUveRequest, UVEDbCacheUveResponse
 from cfgm_common.exceptions import BadRequest, HttpError, PermissionDenied, AuthFailed
-
+from analytics_api_config_handler import AnalyticsApiConfigHandler
 
 _ERRORS = {
     errno.EBADMSG: 400,
@@ -632,6 +632,127 @@ class OpServer(object):
             self._args.auth_conf_info.get('auth_uri')
         return { "WWW-Authenticate" : header_val }
 
+    def _add_stats_table(self, stat_tables):
+        '''
+        stat_tables should be the list like:
+        {
+             'display_name' : 'Values Table - string',
+             'stat_type' : 'FieldNames'
+             'stat_attr' : 'fields'
+             'obj_table' : 'NONE',
+             'attributes': [
+                  { 'name' : 'fields.value',  'datatype' : 'string',    'index' : false},
+             ]
+        }
+        '''
+        for table in stat_tables:
+            stat_id = table["stat_type"] + "." + table["stat_attr"]
+            scols = []
+
+            keyln = stat_query_column(name=STAT_SOURCE_FIELD, datatype='string', index=True)
+            scols.append(keyln)
+
+            tln = stat_query_column(name=STAT_TIME_FIELD, datatype='int', index=False)
+            scols.append(tln)
+
+            tcln = stat_query_column(name="CLASS(" + STAT_TIME_FIELD + ")",
+                     datatype='int', index=False)
+            scols.append(tcln)
+
+            teln = stat_query_column(name=STAT_TIMEBIN_FIELD, datatype='int', index=False)
+            scols.append(teln)
+
+            tecln = stat_query_column(name="CLASS(" + STAT_TIMEBIN_FIELD+ ")",
+                     datatype='int', index=False)
+            scols.append(tecln)
+
+            uln = stat_query_column(name=STAT_UUID_FIELD, datatype='uuid', index=False)
+            scols.append(uln)
+
+            cln = stat_query_column(name="COUNT(" + table["stat_attr"] + ")",
+                    datatype='int', index=False)
+            scols.append(cln)
+
+            isname = False
+            for aln in table["attributes"]:
+                if aln["name"]==STAT_OBJECTID_FIELD:
+                    isname = True
+                if "suffixes" in aln.keys():
+                    if "uve_type" in aln.keys():
+                        aln_col = stat_query_column(name=aln["name"], \
+                        datatype=aln["datatype"], index=aln["index"], \
+                        suffixes=aln["suffixes"], uve_type=aln["uve_type"])
+                    else:
+                        aln_col = stat_query_column(name=aln["name"], \
+                        datatype=aln["datatype"], index=aln["index"], \
+                        suffixes=aln["suffixes"])
+                else:
+                    if "uve_type" in aln.keys():
+                        aln_col = stat_query_column(name=aln["name"], \
+                        datatype=aln["datatype"], index=aln["index"], \
+                        uve_type=aln["uve_type"])
+                    else:
+                        aln_col = stat_query_column(name=aln["name"], \
+                        datatype=aln["datatype"], index=aln["index"])
+                scols.append(aln_col)
+
+                if aln["datatype"] in ['int','double']:
+                    sln = stat_query_column(name= "SUM(" + aln["name"] + ")",
+                            datatype=aln["datatype"], index=False)
+                    scols.append(sln)
+                    scln = stat_query_column(name= "CLASS(" + aln["name"] + ")",
+                            datatype=aln["datatype"], index=False)
+                    scols.append(scln)
+                    sln = stat_query_column(name= "MAX(" + aln["name"] + ")",
+                            datatype=aln["datatype"], index=False)
+                    scols.append(sln)
+                    scln = stat_query_column(name= "MIN(" + aln["name"] + ")",
+                            datatype=aln["datatype"], index=False)
+                    scols.append(scln)
+                    scln = stat_query_column(name= "PERCENTILES(" + aln["name"] + ")",
+                            datatype='percentiles', index=False)
+                    scols.append(scln)
+                    scln = stat_query_column(name= "AVG(" + aln["name"] + ")",
+                            datatype='avg', index=False)
+                    scols.append(scln)
+            if not isname:
+                if "obj_table" in table and table["obj_table"] in \
+                        self.ObjectLogTypeToUveType:
+                    uve_type = self.ObjectLogTypeToUveType[table["obj_table"]]
+                    keyln = stat_query_column(name=STAT_OBJECTID_FIELD, \
+                            datatype='string', index=True, uve_type=uve_type)
+                else:
+                    keyln = stat_query_column(name=STAT_OBJECTID_FIELD, \
+                            datatype='string', index=True)
+                scols.append(keyln)
+
+            sch = query_schema_type(type='STAT', columns=scols)
+
+            stt = query_table(
+                name = STAT_VT_PREFIX + "." + stat_id,
+                display_name = table["display_name"],
+                schema = sch,
+                columnvalues = [STAT_OBJECTID_FIELD, SOURCE])
+            self._VIRTUAL_TABLES.append(stt)
+
+    def _del_stat_table(self, stat_table):
+        '''
+        stat_tables should be like:
+        {
+             'display_name' : 'Values Table - string',
+             'stat_type' : 'FieldNames'
+             'stat_attr' : 'fields'
+             'obj_table' : 'NONE',
+             'attributes': [
+                  { 'name' : 'fields.value',  'datatype' : 'string',    'index' : false},
+             ]
+        }
+        '''
+        stat_id = table["stat_type"] + "." + table["stat_attr"]
+        for i in range(len(self._VIRTUAL_TABLES), 0, -1):
+            if self._VIRTUAL_TABLES[i].name == STAT_VT_PREFIX + "." + stat_id:
+                del _VIRTUAL_TABLES[i]
+
     def __init__(self, args_str=' '.join(sys.argv[1:])):
         self.gevs = []
         self._args = None
@@ -865,100 +986,18 @@ class OpServer(object):
                     if table not in stat_tables:
                         stat_tables.append(table)
 
-        for table in stat_tables:
-            stat_id = table["stat_type"] + "." + table["stat_attr"]
-            scols = []
-
-            keyln = stat_query_column(name=STAT_SOURCE_FIELD, datatype='string', index=True)
-            scols.append(keyln)
-
-            tln = stat_query_column(name=STAT_TIME_FIELD, datatype='int', index=False)
-            scols.append(tln)
-
-            tcln = stat_query_column(name="CLASS(" + STAT_TIME_FIELD + ")", 
-                     datatype='int', index=False)
-            scols.append(tcln)
-
-            teln = stat_query_column(name=STAT_TIMEBIN_FIELD, datatype='int', index=False)
-            scols.append(teln)
-
-            tecln = stat_query_column(name="CLASS(" + STAT_TIMEBIN_FIELD+ ")", 
-                     datatype='int', index=False)
-            scols.append(tecln)
-
-            uln = stat_query_column(name=STAT_UUID_FIELD, datatype='uuid', index=False)
-            scols.append(uln)
-
-            cln = stat_query_column(name="COUNT(" + table["stat_attr"] + ")",
-                    datatype='int', index=False)
-            scols.append(cln)
-
-            isname = False
-            for aln in table["attributes"]:
-                if aln["name"]==STAT_OBJECTID_FIELD:
-                    isname = True
-                if "suffixes" in aln.keys():
-                    if "uve_type" in aln.keys():
-                        aln_col = stat_query_column(name=aln["name"], \
-                        datatype=aln["datatype"], index=aln["index"], \
-                        suffixes=aln["suffixes"], uve_type=aln["uve_type"])
-                    else:
-                        aln_col = stat_query_column(name=aln["name"], \
-                        datatype=aln["datatype"], index=aln["index"], \
-                        suffixes=aln["suffixes"])
-                else:
-                    if "uve_type" in aln.keys():
-                        aln_col = stat_query_column(name=aln["name"], \
-                        datatype=aln["datatype"], index=aln["index"], \
-                        uve_type=aln["uve_type"])
-                    else:
-                        aln_col = stat_query_column(name=aln["name"], \
-                        datatype=aln["datatype"], index=aln["index"])
-                scols.append(aln_col)
-
-                if aln["datatype"] in ['int','double']:
-                    sln = stat_query_column(name= "SUM(" + aln["name"] + ")",
-                            datatype=aln["datatype"], index=False)
-                    scols.append(sln)
-                    scln = stat_query_column(name= "CLASS(" + aln["name"] + ")",
-                            datatype=aln["datatype"], index=False)
-                    scols.append(scln)
-                    sln = stat_query_column(name= "MAX(" + aln["name"] + ")",
-                            datatype=aln["datatype"], index=False)
-                    scols.append(sln)
-                    scln = stat_query_column(name= "MIN(" + aln["name"] + ")",
-                            datatype=aln["datatype"], index=False)
-                    scols.append(scln)
-                    scln = stat_query_column(name= "PERCENTILES(" + aln["name"] + ")",
-                            datatype='percentiles', index=False)
-                    scols.append(scln)
-                    scln = stat_query_column(name= "AVG(" + aln["name"] + ")",
-                            datatype='avg', index=False)
-                    scols.append(scln)
-            if not isname: 
-                if "obj_table" in table and table["obj_table"] in \
-                        self.ObjectLogTypeToUveType:
-                    uve_type = self.ObjectLogTypeToUveType[table["obj_table"]]
-                    keyln = stat_query_column(name=STAT_OBJECTID_FIELD, \
-                            datatype='string', index=True, uve_type=uve_type)
-                else:
-                    keyln = stat_query_column(name=STAT_OBJECTID_FIELD, \
-                            datatype='string', index=True)
-                scols.append(keyln)
-
-            sch = query_schema_type(type='STAT', columns=scols)
-
-            stt = query_table(
-                name = STAT_VT_PREFIX + "." + stat_id,
-                display_name = table["display_name"],
-                schema = sch,
-                columnvalues = [STAT_OBJECTID_FIELD, SOURCE])
-            self._VIRTUAL_TABLES.append(stt)
+        self._add_stats_table(stat_tables);
 
         self._analytics_db = AnalyticsDb(self._logger,
             self._args.auth_conf_info['admin_port'],
             self._args.auth_conf_info['admin_user'],
             self._args.auth_conf_info['admin_password'])
+
+        # Create config handler to read/update alarm config
+        self._config_handler = AnalyticsApiConfigHandler(self._sandesh,
+            self._moduleid, self._instance_id, self.rabbitmq_params(),
+            self.cassandra_params(), None,
+            self.analytics_api_config_change_callback)
 
         # Register introspect request handlers
         UVEDbCacheTablesRequest.handle_request = \
@@ -1063,6 +1102,7 @@ class OpServer(object):
             'admin_port'        : OpServerAdminPort,
             'cloud_admin_role'  : CLOUD_ADMIN_ROLE,
             'api_server_use_ssl': False,
+            'cluster_id'        :'',
         }
         defaults.update(SandeshConfig.get_default_options(['DEFAULTS']))
         redis_opts = {
@@ -1078,6 +1118,22 @@ class OpServer(object):
             'admin_password': 'contrail123',
             'admin_tenant_name': 'default-domain'
         }
+        configdb_opts = {
+            'rabbitmq_server_list': None,
+            'rabbitmq_port': 5672,
+            'rabbitmq_user': 'guest',
+            'rabbitmq_password': 'guest',
+            'rabbitmq_vhost': None,
+            'rabbitmq_ha_mode': False,
+            'rabbitmq_use_ssl': False,
+            'kombu_ssl_version': '',
+            'kombu_ssl_keyfile': '',
+            'kombu_ssl_certfile': '',
+            'kombu_ssl_ca_certs': '',
+            'config_db_server_list': None,
+            'config_db_username': None,
+            'config_db_password': None
+        }
         sandesh_opts = SandeshConfig.get_default_options()
 
         # read contrail-analytics-api own conf file
@@ -1091,6 +1147,8 @@ class OpServer(object):
                 redis_opts.update(dict(config.items('REDIS')))
             if 'KEYSTONE' in config.sections():
                 keystone_opts.update(dict(config.items('KEYSTONE')))
+            if 'CONFIGDB' in config.sections():
+                configdb_opts.update(dict(config.items('CONFIGDB')))
             SandeshConfig.update_options(sandesh_opts, config)
 
         # Override with CLI options
@@ -1104,6 +1162,7 @@ class OpServer(object):
             formatter_class=argparse.ArgumentDefaultsHelpFormatter)
         defaults.update(redis_opts)
         defaults.update(keystone_opts)
+        defaults.update(configdb_opts)
         defaults.update(sandesh_opts)
         parser.set_defaults(**defaults)
 
@@ -1187,6 +1246,28 @@ class OpServer(object):
             help="Port with local auth for admin access")
         parser.add_argument("--api_server_use_ssl",
             help="Use SSL to connect with API server")
+        parser.add_argument("--rabbitmq_server_list", type=str,
+            help="List of Rabbitmq server ip address separated by comma")
+        parser.add_argument("--rabbitmq_port",
+            help="Rabbitmq server port")
+        parser.add_argument("--rabbitmq_user",
+            help="Username for Rabbitmq")
+        parser.add_argument("--rabbitmq_password",
+            help="Password for Rabbitmq")
+        parser.add_argument("--rabbitmq_vhost",
+            help="vhost for Rabbitmq")
+        parser.add_argument("--rabbitmq_ha_mode",
+            action="store_true",
+            help="True if the rabbitmq cluster is mirroring all queue")
+        parser.add_argument("--config_db_server_list",
+            help="List of cassandra servers in ip:port format",
+            nargs='+')
+        parser.add_argument("--config_db_username",
+            help="Cassandra user name")
+        parser.add_argument("--config_db_password",
+            help="Cassandra password")
+        parser.add_argument("--cluster_id",
+            help="Used for database keyspace separation")
         SandeshConfig.add_parser_arguments(parser)
         self._args = parser.parse_args(remaining_argv)
         if type(self._args.collectors) is str:
@@ -1197,6 +1278,9 @@ class OpServer(object):
             self._args.zk_list= self._args.zk_list.split()
         if type(self._args.api_server) is str:
             self._args.api_server = self._args.api_server.split()
+        if type(self._args.config_db_server_list) is str:
+            self._args.config_db_server_list = \
+                self._args.config_db_server_list.split()
 
         auth_conf_info = {}
         auth_conf_info['admin_user'] = self._args.admin_user
@@ -1230,6 +1314,34 @@ class OpServer(object):
     def get_uve_server(self):
         return self._uve_server
     # end get_uve_server
+
+    def rabbitmq_params(self):
+        return {'servers': self._args.rabbitmq_server_list,
+                'port': self._args.rabbitmq_port,
+                'user': self._args.rabbitmq_user,
+                'password': self._args.rabbitmq_password,
+                'vhost': self._args.rabbitmq_vhost,
+                'ha_mode': self._args.rabbitmq_ha_mode,
+                'use_ssl': self._args.rabbitmq_use_ssl,
+                'ssl_version': self._args.kombu_ssl_version,
+                'ssl_keyfile': self._args.kombu_ssl_keyfile,
+                'ssl_certfile': self._args.kombu_ssl_certfile,
+                'ssl_ca_certs': self._args.kombu_ssl_ca_certs}
+    # end rabbitmq_params
+
+    def cassandra_params(self):
+        return {'servers': self._args.config_db_server_list,
+                'user': self._args.config_db_username,
+                'password': self._args.config_db_password,
+                'cluster_id': self._args.cluster_id}
+    # end cassandra_params
+
+    def analytics_api_config_change_callback(self, stat_tables, add_update):
+        if add_update is true:
+           self._add_stats_tablestat_tables(stat_tables)
+        else:
+           self._del_stat_table(stat_tables) 
+        return
 
     def homepage_http_get(self):
         json_body = {}
@@ -2488,7 +2600,8 @@ class OpServer(object):
             self._uvedbstream,
             gevent.spawn(self.start_webserver),
             gevent.spawn(self.start_uve_server),
-            gevent.spawn(self.monitor_analytics_db)
+            gevent.spawn(self.monitor_analytics_db),
+            gevent.spawn(self._config_handler.start)
             ]
 
         if self._ad is not None:

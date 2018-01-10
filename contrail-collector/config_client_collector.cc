@@ -68,6 +68,9 @@ void ConfigJsonParserCollector::SetupObjectFilter() {
     AddObjectType("global_analytics_config");
     AddObjectType("global_system_config");
     AddObjectType("structured_syslog_message");
+    // for generic stats
+    AddObjectType("rfc5424");
+    AddObjectType("syslog_parser");
 }
 void ConfigJsonParserCollector::SetupSchemaGraphFilter() {
     // for structed system log
@@ -89,13 +92,18 @@ void ConfigJsonParserCollector::SetupSchemaGraphFilter() {
                             "global-analytics-config-structured-syslog-config");
     AddParentName(make_pair("global_system_config", "global_analytics_config"), 
                             "global-system-config-global-analytics-config");
+    // for generic stats
+    AddParentName(make_pair("rfc5424", "syslog_parser"),
+                            "global_system_config_syslog_parser");
+    AddParentName(make_pair("global_system_config", "rfc5424"),
+                            "global_rfc5424");
 }
 void ConfigJsonParserCollector::SetupSchemaWrapperPropertyInfo() {
     // for user defined log stats
     AddWrapperField("global_system_config:user_defined_log_statistics",
                                                             "statlist");
-    AddWrapperField("global_system_config:user_defined_syslog_patterns", 
-                                                         "patternlist");
+    AddWrapperField("global_system_config:user_defined_syslog_parsers", 
+                                                         "parserlist");
 }
 
 void ConfigJsonParserCollector::SetupGraphFilter() {
