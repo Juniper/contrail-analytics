@@ -25,32 +25,12 @@ public:
 
 TEST_F(GrokParserTest, DISABLED_Add_Match_n_Delete) {
     GrokParser gp;
-    gp.init();
-    gp.add_base_pattern(pat2);
-    gp.add_base_pattern("POSTFIX_QUEUEID [0-9A-F]{10,11}");
-    EXPECT_TRUE(gp.msg_type_add("OTHER_LOG"));
-    EXPECT_FALSE(gp.msg_type_add("SHOULD_NOT_EXIST"));
-    EXPECT_TRUE(gp.match(msg2, NULL));
-    EXPECT_TRUE(gp.msg_type_del("OTHER_LOG"));
-    EXPECT_FALSE(gp.msg_type_del("SHOULD_NOT_EXIST"));
-    EXPECT_FALSE(gp.match(msg2, NULL));
-}
-
-TEST_F(GrokParserTest, DISABLED_MultipleMsgType) {
-    GrokParser gp;
-    gp.init();
-    gp.add_base_pattern(pat2);
-    gp.add_base_pattern(pat3);
-    gp.add_base_pattern("POSTFIX_QUEUEID [0-9A-F]{10,11}");
-    EXPECT_TRUE(gp.msg_type_add("OTHER_LOG"));
-    EXPECT_TRUE(gp.msg_type_add("HTTP_LOG"));
-    std::map<std::string, std::string> matched_data2;
-    EXPECT_TRUE(gp.match(msg2, &matched_data2));
-    EXPECT_TRUE("postfix/cleanup" == matched_data2["program"]);
-    std::map<std::string, std::string> matched_data3;
-    EXPECT_TRUE(gp.match(msg3, &matched_data3));
-    EXPECT_TRUE("OTHER_LOG" == matched_data2["Message Type"]);
-    EXPECT_TRUE("HTTP_LOG" == matched_data3["Message Type"]);
+    gp.create_grok_instance("OTHER_LOG");
+    gp.add_pattern("OTHER_LOG", pat2);
+    gp.add_pattern("OTHER_LOG", "POSTFIX_QUEUEID [0-9A-F]{10,11}");
+    gp.del_grok_instance("OTHER_LOG");
+    gp.create_grok_instance("OTHER_LOG");
+    EXPECT_TRUE(gp.match("OTHER_LOG", msg2, NULL));
 }
 
 int main(int argc, char **argv) {
