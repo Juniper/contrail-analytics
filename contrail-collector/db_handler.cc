@@ -353,6 +353,18 @@ bool DbHandler::CreateTables() {
             DB_LOG(ERROR, it->cfname_ << " FAILED");
             return false;
         }
+        table_schema cfschema;
+        cfschema = g_viz_constants._VIZD_STAT_TABLE_SCHEMA.find(it->cfname_)->second;
+        BOOST_FOREACH (schema_column column, cfschema.columns) {
+            if (column.index_mode != GenDb::ColIndexMode::NONE) {
+                if (!dbif_->Db_CreateIndex(it->cfname_, column.name, "",
+                                           column.index_mode)) {
+                    DB_LOG(ERROR, it->cfname_ << ": CreateIndex FAILED for "
+                           << column.name);
+                    return false;
+                }
+	    }
+        }
     }
 
     for (std::vector<GenDb::NewCf>::const_iterator it = vizd_session_tables.begin();
@@ -928,124 +940,55 @@ void DbHandler::ObjectTableInsert(const std::string &table, const std::string &o
     }
 }
 
-bool DbHandler::StatTableWrite(uint32_t t2,
-        const std::string& statName, const std::string& statAttr,
-        const std::pair<std::string,DbHandler::Var>& ptag,
-        const std::pair<std::string,DbHandler::Var>& stag,
+// Prepend T2 in decimal since T2 timestamp column is in decimal
+std::string PrependT2(uint32_t T2, const std::string &str) {
+    std::string tempstr = integerToString(T2);
+    tempstr.append(":");
+    tempstr.append(str);
+    return tempstr;
+}
+
+bool DbHandler::StatTableV4Write(uint32_t t2, const std::string& statName,
+        const std::string& statAttr, const std::string& source, const std::string& name,
+        const std::string& key, const std::string& proxy,
+        const std::vector<std::vector<std::string> >& tags,
         uint32_t t1, const boost::uuids::uuid& unm,
         const std::string& jsonline, int ttl,
         GenDb::GenDbIf::DbAddColumnCb db_cb) {
 
     uint8_t part = 0;
-    string cfname;
-    const DbHandler::Var& pv = ptag.second;
-    const DbHandler::Var& sv = stag.second;
-    GenDb::DbDataValue pg,sg;
-
-    bool bad_suffix = false;
-    switch (pv.type) {
-        case DbHandler::STRING : {
-                pg = pv.str;
-                if (sv.type==DbHandler::STRING) {
-                    cfname = g_viz_constants.STATS_TABLE_BY_STR_STR_TAG;
-                    sg = sv.str;
-                } else if (sv.type==DbHandler::UINT64) {
-                    cfname = g_viz_constants.STATS_TABLE_BY_STR_U64_TAG;
-                    sg = sv.num;
-                } else if (sv.type==DbHandler::INVALID) {
-                    cfname = g_viz_constants.STATS_TABLE_BY_STR_TAG;
-                } else {
-                    bad_suffix = true;
-                }
-            }
-            break;
-        case DbHandler::UINT64 : {
-                pg = pv.num;
-                if (sv.type==DbHandler::STRING) {
-                    cfname = g_viz_constants.STATS_TABLE_BY_U64_STR_TAG;
-                    sg = sv.str;
-                } else if (sv.type==DbHandler::UINT64) {
-                    cfname = g_viz_constants.STATS_TABLE_BY_U64_U64_TAG;
-                    sg = sv.num;
-                } else if (sv.type==DbHandler::INVALID) {
-                    cfname = g_viz_constants.STATS_TABLE_BY_U64_TAG;
-                } else {
-                    bad_suffix = true;
-                }
-            }
-            break;
-        case DbHandler::DOUBLE : {
-                pg = pv.dbl;
-                if (sv.type==DbHandler::INVALID) {
-                    cfname = g_viz_constants.STATS_TABLE_BY_DBL_TAG;
-                } else {
-                    bad_suffix = true;
-                }
-            }
-            break;
-        default:
-            tbb::mutex::scoped_lock lock(smutex_);
-            stable_stats_.Update(statName + ":" + statAttr, true, true,
-                false, 1);
-            DB_LOG(ERROR, "Bad Prefix Tag " << statName <<
-                    ", " << statAttr <<  " tag " << ptag.first <<
-                    ":" << stag.first << " jsonline " << jsonline);
-            return false;
-    }
-    if (bad_suffix) {
-        tbb::mutex::scoped_lock lock(smutex_);
-        stable_stats_.Update(statName + ":" + statAttr, true, true, false, 1);
-        DB_LOG(ERROR, "Bad Suffix Tag " << statName <<
-                ", " << statAttr <<  " tag " << ptag.first <<
-                ":" << stag.first << " jsonline " << jsonline);
-        return false;
-    }
     std::auto_ptr<GenDb::ColList> col_list(new GenDb::ColList);
-    col_list->cfname_ = cfname;
-    
-    GenDb::DbDataValueVec& rowkey = col_list->rowkey_;
-    if (sv.type==DbHandler::INVALID) {
-        rowkey.reserve(5);
-        rowkey.push_back(t2);
-        rowkey.push_back(part);
-        rowkey.push_back(statName);
-        rowkey.push_back(statAttr);
-        rowkey.push_back(ptag.first);
-    } else {
-        rowkey.reserve(6);
-        rowkey.push_back(t2);
-        rowkey.push_back(part);
-        rowkey.push_back(statName);
-        rowkey.push_back(statAttr);
-        rowkey.push_back(ptag.first);
-        rowkey.push_back(stag.first);
-    }
+    col_list->cfname_ = g_viz_constants.STATS_TABLE;
 
-    GenDb::NewColVec& columns = col_list->columns_;
+    GenDb::DbDataValueVec& rowkey = col_list->rowkey_;
+    rowkey.reserve(4);
+    rowkey.push_back(t2);
+    rowkey.push_back(part);
+    rowkey.push_back(statName);
+    rowkey.push_back(statAttr);
 
     GenDb::DbDataValueVec *col_name(new GenDb::DbDataValueVec);
-    if (sv.type==DbHandler::INVALID) {
-        col_name->reserve(3);
-        col_name->push_back(pg);
-        col_name->push_back(t1);
-        col_name->push_back(unm);
-    } else {
-        col_name->reserve(4);
-        col_name->push_back(pg);
-        col_name->push_back(sg);
-        col_name->push_back(t1);
-        col_name->push_back(unm);
-    }
+    col_name->reserve(6);
+    col_name->push_back(t1);
+    col_name->push_back(unm);
+    col_name->push_back(PrependT2(t2, name));
+    col_name->push_back(PrependT2(t2, source));
+    col_name->push_back(PrependT2(t2, key));
+    col_name->push_back(PrependT2(t2, proxy));
+    col_name->push_back(PrependT2(t2, boost::algorithm::join(tags[0], ";")));
+    col_name->push_back(PrependT2(t2, boost::algorithm::join(tags[1], ";")));
+    col_name->push_back(PrependT2(t2, boost::algorithm::join(tags[2], ";")));
+    col_name->push_back(PrependT2(t2, boost::algorithm::join(tags[3], ";")));
 
     GenDb::DbDataValueVec *col_value(new GenDb::DbDataValueVec(1, jsonline));
     GenDb::NewCol *col(new GenDb::NewCol(col_name, col_value, ttl));
+    GenDb::NewColVec& columns = col_list->columns_;
     columns.push_back(col);
 
     if (!InsertIntoDb(col_list, GenDb::DbConsistency::LOCAL_ONE, db_cb)) {
         DB_LOG(ERROR, "Addition of " << statName <<
-                ", " << statAttr <<  " tag " << ptag.first <<
-                ":" << stag.first << " into table " <<
-                cfname <<" FAILED");
+                ", " << statAttr << " into table " <<
+                g_viz_constants.STATS_TABLE <<" FAILED");
         tbb::mutex::scoped_lock lock(smutex_);
         stable_stats_.Update(statName + ":" + statAttr, true, true, false, 1);
         return false;
@@ -1069,6 +1012,13 @@ DbHandler::StatTableInsert(uint64_t ts,
     int ttl = GetTtl(TtlType::STATSDATA_TTL);
     StatTableInsertTtl(ts, statName, statAttr, attribs_tag, attribs, ttl,
         db_cb);
+}
+
+static inline unsigned int djb_hash (const char *str, size_t len) {
+    unsigned int hash = 5381;
+    for (size_t i = 0 ; i < len ; i++)
+        hash = ((hash << 5) + hash) + str[i];
+    return hash;
 }
 
 // This function writes Stats samples to the DB.
@@ -1159,6 +1109,8 @@ DbHandler::StatTableInsertTtl(uint64_t ts,
                     "STAT:", tablename, tablename, ttl, db_cb);
     }
 
+    std::vector<std::vector<std::string> > tags(4);
+    std::string name, source, key, proxy;
     for (TagMap::const_iterator it = attribs_tag.begin();
             it != attribs_tag.end(); it++) {
 
@@ -1176,20 +1128,45 @@ DbHandler::StatTableInsertTtl(uint64_t ts,
                     db_cb);
         }
 
-        if (it->second.second.empty()) {
-            pair<string,DbHandler::Var> stag;
-            StatTableWrite(temp_u32, statName, statAttr,
-                                ptag, stag, t1, unm, jsonline, ttl, db_cb);
+        if (ptag.first == g_viz_constants.STATS_NAME_FIELD) {
+            name = ptag.second.str;
+        } else if (ptag.first == g_viz_constants.STATS_SOURCE_FIELD) {
+            source = ptag.second.str;
+        } else if (boost::algorithm::ends_with(ptag.first, g_viz_constants.STATS_KEY_FIELD)) {
+            key = ptag.second.str;
+        } else if (boost::algorithm::ends_with(ptag.first, g_viz_constants.STATS_PROXY_FIELD)) {
+            proxy = ptag.second.str;
         } else {
-            for (AttribMap::const_iterator jt = it->second.second.begin();
-                    jt != it->second.second.end(); jt++) {
-                StatTableWrite(temp_u32, statName, statAttr,
-                                    ptag, *jt, t1, unm, jsonline, ttl, db_cb);
-            }
+            std::ostringstream tag_oss;
+            tag_oss << ptag.first << "=" << ptag.second;
+            size_t idx = djb_hash(ptag.first.c_str(), ptag.first.length())
+                % g_viz_constants.NUM_STATS_TAGS_FIELD;
+            tags[idx].push_back(tag_oss.str());
         }
 
+        if (!it->second.second.empty()) {
+            for (AttribMap::const_iterator jt = it->second.second.begin();
+                    jt != it->second.second.end(); jt++) { 
+                if (jt->first == g_viz_constants.STATS_NAME_FIELD) {
+                    name = jt->second.str;
+                } else if (jt->first == g_viz_constants.STATS_SOURCE_FIELD) {
+                    source = jt->second.str;
+                } else if (boost::algorithm::ends_with(jt->first, g_viz_constants.STATS_KEY_FIELD)) {
+                    key = jt->second.str;
+                } else if (boost::algorithm::ends_with(jt->first, g_viz_constants.STATS_PROXY_FIELD)) {
+                    proxy = jt->second.str;
+                } else {
+                    std::ostringstream tag_oss;
+                    tag_oss << jt->first << "=" << jt->second;
+                    size_t idx = djb_hash(jt->first.c_str(), jt->first.length())
+                        % g_viz_constants.NUM_STATS_TAGS_FIELD;
+                    tags[idx].push_back(tag_oss.str());
+                }
+            }
+        }
     }
-
+    StatTableV4Write(temp_u32, statName, statAttr, source, name, key, proxy, tags, t1,
+                        unm, jsonline, ttl, db_cb);
 }
 
 boost::uuids::uuid DbHandler::seed_uuid = StringToUuid(std::string("ffffffff-ffff-ffff-ffff-ffffffffffff"));
@@ -1769,12 +1746,4 @@ void DbHandlerInitializer::StartInitTimer() {
 void DbHandlerInitializer::ScheduleInit() {
     db_handler_->UnInit();
     StartInitTimer();
-}
-
-// Prepend T2 in decimal since T2 timestamp column is in decimal
-std::string PrependT2(uint32_t T2, const std::string &str) {
-    std::string tempstr = integerToString(T2);
-    tempstr.append(":");
-    tempstr.append(str);
-    return tempstr;
 }

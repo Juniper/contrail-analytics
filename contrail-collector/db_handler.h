@@ -225,6 +225,12 @@ private:
         boost::function<void (void)> cb);
     bool Setup();
     bool Initialize();
+    bool StatTableV4Write(uint32_t t2, const std::string& statName,
+        const std::string& statAttr, const std::string& source,
+        const std::string& name, const std::string& key, const std::string& proxy,
+        const std::vector<std::vector<std::string> >& tags,
+        uint32_t t1, const boost::uuids::uuid& unm, const std::string& jsonline,
+        int ttl, GenDb::GenDbIf::DbAddColumnCb db_cb);
     bool StatTableWrite(uint32_t t2,
         const std::string& statName, const std::string& statAttr,
         const std::pair<std::string,DbHandler::Var>& ptag,

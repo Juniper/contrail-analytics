@@ -302,140 +302,45 @@ WhereQuery::StatTermParse(QueryUnit *main_query, const contrail_rapidjson::Value
     return true;
 }
 
-static bool StatSlicer(DbQueryUnit *db_query, match_op op,
-        const GenDb::DbDataValue& val, const GenDb::DbDataValue& val2) {
-    if (val.which() == GenDb::DB_VALUE_STRING) {
-        if (!((op == EQUAL) || (op == PREFIX))) return false;
-    } else {
-        if (!((op == EQUAL) || (op == IN_RANGE))) return false;
-    }
-    db_query->cr.start_.push_back(val);
-    if (op == PREFIX) {
-        std::string str_smpl2(boost::get<std::string>(val) + "\x7f");
-        db_query->cr.finish_.push_back(str_smpl2);
-    } else if (op == IN_RANGE) {
-        db_query->cr.finish_.push_back(val2);
-    } else {
-        db_query->cr.finish_.push_back(val);
-    }
-    return true;
-}
-
-bool WhereQuery::StatTermProcess(const contrail_rapidjson::Value& where_term,
-        QueryUnit* and_node, QueryUnit *main_query) {
-
-    AnalyticsQuery *m_query = (AnalyticsQuery *)main_query;
-    std::string pname,sname,cfname;
-    match_op pop,sop;
-    GenDb::DbDataValue pval, pval2, sval, sval2;
-
-    bool res = StatTermParse(main_query, where_term,
-            pname, pop, pval, pval2, sname, sop, sval, sval2);
-
-    if (!res) return false;
-    
-    bool twotag = true;
-    if ((sop==(match_op)0)&&(sname.empty())) {
-        // We need to look at the single-tag stat index tables
-        twotag = false;
-        if (pval.which() == GenDb::DB_VALUE_STRING) {
-            cfname = g_viz_constants.STATS_TABLE_BY_STR_TAG;
-        } else if (pval.which() == GenDb::DB_VALUE_UINT64) {
-            cfname = g_viz_constants.STATS_TABLE_BY_U64_TAG;
-        } else if (pval.which() == GenDb::DB_VALUE_DOUBLE) {
-            cfname = g_viz_constants.STATS_TABLE_BY_DBL_TAG;
-        } else {
-            QE_TRACE(DEBUG, "For single-tag index table, wrong WHERE type " <<
-                    pval.which());
-            return false;
-        }
-    } else {
-        if (pval.which() == GenDb::DB_VALUE_STRING) {
-            if (sval.which() == GenDb::DB_VALUE_STRING) {
-                cfname = g_viz_constants.STATS_TABLE_BY_STR_STR_TAG;
-            } else if (sval.which() == GenDb::DB_VALUE_UINT64) {
-                cfname = g_viz_constants.STATS_TABLE_BY_STR_U64_TAG;
-            } else {
-                QE_TRACE(DEBUG, "For two-tag STR table, wrong WHERE suffix type " <<
-                        sval.which());
-                return false;
-            }
-        } else if (pval.which() == GenDb::DB_VALUE_UINT64) {
-            if (sval.which() == GenDb::DB_VALUE_STRING) {
-                cfname = g_viz_constants.STATS_TABLE_BY_U64_STR_TAG;
-            } else if (sval.which() == GenDb::DB_VALUE_UINT64) {
-                cfname = g_viz_constants.STATS_TABLE_BY_U64_U64_TAG;
-            } else {
-                QE_TRACE(DEBUG, "For two-tag U64 table, wrong WHERE suffix type " <<
-                        sval.which());
-                return false;
-            }
-        } else {
-            QE_TRACE(DEBUG, "For two-tag index table, wrong WHERE prefix type " <<
-                    pval.which());
-            return false;
-        }
-    }
-    QE_TRACE(DEBUG, "Query Stat Index " << cfname <<  " twotag " << twotag);
-    DbQueryUnit *db_query = new DbQueryUnit(and_node, main_query);
-
-    db_query->t_only_col = false;
-    db_query->t_only_row = false;
-    db_query->cfname = cfname;
-
+void GetStatTableAttrName(const std::string& tname, std::string *tstr, std::string *astr) {
     size_t tpos,apos;
-    std::string tname = m_query->table();
     tpos = tname.find('.');
     apos = tname.find('.', tpos+1);
 
-    std::string tstr = tname.substr(tpos+1, apos-tpos-1);
-    std::string astr = tname.substr(apos+1, std::string::npos);
-
-    db_query->row_key_suffix.push_back(tstr);
-    db_query->row_key_suffix.push_back(astr);
-    db_query->row_key_suffix.push_back(pname);
-  
-    if (twotag) {
-        db_query->row_key_suffix.push_back(sname);
-        if (sop==(match_op)0) {
-            // We will only be using the prefix value for querying
-            if (!StatSlicer(db_query, pop, pval, pval2)) return false;
-
-            if (sval.which() == GenDb::DB_VALUE_STRING) {
-                db_query->cr.start_.push_back(std::string("\x00"));
-                db_query->cr.finish_.push_back(std::string("\x7f"));
-            } else {
-                db_query->cr.start_.push_back((uint64_t)0);
-                db_query->cr.finish_.push_back((uint64_t)0xffffffffffffffff);
-            }
-        } else {
-            // We will be using the suffix value for querying
-            if (!(pop == EQUAL)) return false;
-            db_query->cr.start_.push_back(pval);
-            db_query->cr.finish_.push_back(pval);
-
-            if (!StatSlicer(db_query, sop, sval, sval2)) return false;
-        }
-
-    } else {
-        if (!StatSlicer(db_query, pop, pval, pval2)) return false;
-    }
-
-    return true;
+    *tstr = tname.substr(tpos+1, apos-tpos-1);
+    *astr = tname.substr(apos+1, std::string::npos);
 }
 
-bool SessionTableQueryColumn2CassColumn(const std::string& name, std::string *cass_name) {
-    std::map<string, table_schema>::const_iterator it =
-        (g_viz_constants._VIZD_SESSION_TABLE_SCHEMA.find(
-            g_viz_constants.SESSION_TABLE));
-    QE_ASSERT(it != g_viz_constants._VIZD_SESSION_TABLE_SCHEMA.end());
-    std::map<string, string>::const_iterator itr =
-        it->second.index_column_to_column.find(name);
-    if (itr == (it->second.index_column_to_column.end())) {
-        return false;
+void populate_stats_where_vec_list(std::vector<GenDb::WhereIndexInfoVec> *where_vec_list,
+    const GenDb::WhereIndexInfoVec& where_vec_stats,
+    const std::vector<GenDb::WhereIndexInfoVec>& where_vec_tags_stats) {
+    uint16_t max_tags(0);
+    BOOST_FOREACH(const GenDb::WhereIndexInfoVec& where_vec, where_vec_tags_stats) {
+        if (max_tags < where_vec.size()) {
+            max_tags = where_vec.size();
+        }
     }
-    *cass_name = itr->second;
-    return true; 
+    if (!max_tags) {
+        where_vec_list->push_back(where_vec_stats);
+        return;
+    } else {
+        for (size_t i = 0; i < max_tags; ++i) {
+            GenDb::WhereIndexInfoVec where_vec(where_vec_stats);
+            BOOST_FOREACH(const GenDb::WhereIndexInfoVec& where_vec_tags, where_vec_tags_stats) {
+                if (i < where_vec_tags.size()) {
+                    where_vec.push_back(where_vec_tags[i]);
+                }
+            }
+            where_vec_list->push_back(where_vec);
+        }
+    }
+}
+
+static inline unsigned int djb_hash (const char *str, size_t len) {
+    unsigned int hash = 5381;
+    for (size_t i = 0 ; i < len ; i++)
+        hash = ((hash << 5) + hash) + str[i];
+    return hash;
 }
 
 WhereQuery::WhereQuery(const std::string& where_json_string, int session_type,
@@ -555,9 +460,10 @@ WhereQuery::WhereQuery(const std::string& where_json_string, int session_type,
         bool dport_match = false; GenDb::DbDataValue dport, dport2; int dport_op = 0;
         bool object_id_specified = false;
         bool isSession = m_query->is_session_query(m_query->table());
-        GenDb::WhereIndexInfoVec rest_where_vec;
         GenDb::WhereIndexInfoVec labels_vec, remote_labels_vec;
         GenDb::WhereIndexInfoVec custom_tags_vec, remote_custom_tags_vec;
+        GenDb::WhereIndexInfoVec where_vec_session_rest, where_vec_stats;
+        std::vector<GenDb::WhereIndexInfoVec> where_vec_tags_stats(4);
         std::vector<filter_match_t> filter_and;
 
         // All where parameters in subquery are AND.
@@ -662,8 +568,9 @@ WhereQuery::WhereQuery(const std::string& where_json_string, int session_type,
             if ((name == g_viz_constants.SOURCE) && (!isStat))
             {
                 QE_INVALIDARG_ERROR((op == EQUAL) || (op == PREFIX));
-                populate_where_vec(msg_table_db_query, name, op,
-                                   std::string(""), value);
+                QE_INVALIDARG_ERROR(populate_where_vec(m_query,
+                    &(msg_table_db_query->where_vec), name,
+                    get_gendb_op_from_op(op), value));
                 QE_TRACE(DEBUG, "where match term for source " << value);
             }
 
@@ -671,8 +578,9 @@ WhereQuery::WhereQuery(const std::string& where_json_string, int session_type,
             if ((name == g_viz_constants.MODULE) && (!isStat))
             {
                 QE_INVALIDARG_ERROR((op == EQUAL) || (op == PREFIX));
-                populate_where_vec(msg_table_db_query, name, op,
-                                   std::string(""), value);
+                QE_INVALIDARG_ERROR(populate_where_vec(m_query, 
+                    &(msg_table_db_query->where_vec), name,
+                    get_gendb_op_from_op(op), value));
 
                 // dont filter query engine logs if the query is about query
                 // engine
@@ -685,8 +593,9 @@ WhereQuery::WhereQuery(const std::string& where_json_string, int session_type,
             if ((name == g_viz_constants.MESSAGE_TYPE) && (!isStat))
             {
                 QE_INVALIDARG_ERROR((op == EQUAL) || (op == PREFIX));
-                populate_where_vec(msg_table_db_query, name, op,
-                                   std::string(""), value);
+                QE_INVALIDARG_ERROR(populate_where_vec(m_query,
+                    &(msg_table_db_query->where_vec), name,
+                    get_gendb_op_from_op(op), value));
                 QE_TRACE(DEBUG, "where match term for msg-type " << value);
             }
 
@@ -697,11 +606,11 @@ WhereQuery::WhereQuery(const std::string& where_json_string, int session_type,
                 // Object-id is saved in column[6..11] in MessageTablev2 in the format
                 // T2:ObjectType:ObjectId
                 // T2: is prefixed later, we need to prefix ObjectType: here.
-                std::string value_prefix = m_query->table();
-                value_prefix.append(":");
+                std::string val = m_query->table() + ":" + value;
                 std::string col_name = g_viz_constants.OBJECT_TYPE_NAME1;
-                populate_where_vec(msg_table_db_query, col_name, op,
-                                   value_prefix, value);
+                QE_INVALIDARG_ERROR(populate_where_vec(m_query,
+                    &(msg_table_db_query->where_vec),
+                    col_name, get_gendb_op_from_op(op), val));
                 object_id_specified = true;
                 QE_TRACE(DEBUG, "where match term for objectid " << value);
             }
@@ -740,53 +649,29 @@ WhereQuery::WhereQuery(const std::string& where_json_string, int session_type,
                     QE_TRACE(DEBUG, "where match term for sport_value " << value);
                 } else if (name == g_viz_constants.SessionRecordNames[
                                  SessionRecordFields::SESSION_LABELS]) {
-                    std::string columnN;
-                    if (!SessionTableQueryColumn2CassColumn(name, &columnN)) {
-                        QE_INVALIDARG_ERROR(0);
-                    }
                     QE_INVALIDARG_ERROR(op == CONTAINS);
                     value = "%" + value + "%";
-                    GenDb::WhereIndexInfo label_where = boost::make_tuple(columnN,
-                        GenDb::Op::LIKE, value);
-                    labels_vec.push_back(label_where);
+                    QE_INVALIDARG_ERROR(populate_where_vec(m_query,
+                        &labels_vec, name, GenDb::Op::LIKE, value));
                 } else if (name == g_viz_constants.SessionRecordNames[
                                  SessionRecordFields::SESSION_REMOTE_LABELS]) {
-                    std::string columnN;
-                    if (!SessionTableQueryColumn2CassColumn(name, &columnN)) {
-                        QE_INVALIDARG_ERROR(0);
-                    }
                     QE_INVALIDARG_ERROR(op == CONTAINS);
                     value = "%" + value + "%";
-                    GenDb::WhereIndexInfo label_where = boost::make_tuple(columnN,
-                        GenDb::Op::LIKE, value);
-                    remote_labels_vec.push_back(label_where);
+                    QE_INVALIDARG_ERROR(populate_where_vec(m_query,
+                        &remote_labels_vec, name, GenDb::Op::LIKE, value));
                 } else if (name == g_viz_constants.SessionRecordNames[
                                  SessionRecordFields::SESSION_CUSTOM_TAGS]) {
-                    std::string columnN;
-                    if (!SessionTableQueryColumn2CassColumn(name, &columnN)) {
-                        QE_INVALIDARG_ERROR(0);
-                    }
                     QE_INVALIDARG_ERROR(op == CONTAINS);
                     value = "%" + value + "%";
-                    GenDb::WhereIndexInfo custom_tags_where = boost::make_tuple(columnN,
-                        GenDb::Op::LIKE, value);
-                    custom_tags_vec.push_back(custom_tags_where);
+                    QE_INVALIDARG_ERROR(populate_where_vec(m_query,
+                        &custom_tags_vec, name, GenDb::Op::LIKE, value));
                 } else if (name == g_viz_constants.SessionRecordNames[
                                  SessionRecordFields::SESSION_REMOTE_CUSTOM_TAGS]) {
-                    std::string columnN;
-                    if (!SessionTableQueryColumn2CassColumn(name, &columnN)) {
-                        QE_INVALIDARG_ERROR(0);
-                    }
                     QE_INVALIDARG_ERROR(op == CONTAINS);
                     value = "%" + value + "%";
-                    GenDb::WhereIndexInfo remote_custom_tags_where = boost::make_tuple(columnN,
-                        GenDb::Op::LIKE, value);
-                    remote_custom_tags_vec.push_back(remote_custom_tags_where);
+                    QE_INVALIDARG_ERROR(populate_where_vec(m_query,
+                        &remote_custom_tags_vec, name, GenDb::Op::LIKE, value));
                 } else {
-                    std::string columnN;
-                    if (!SessionTableQueryColumn2CassColumn(name, &columnN)) {
-                        QE_INVALIDARG_ERROR(0);
-                    }
                     GenDb::Op::type comparator;
                     if (op == PREFIX) {
                         value += "%";
@@ -794,9 +679,8 @@ WhereQuery::WhereQuery(const std::string& where_json_string, int session_type,
                     } else {
                         comparator = GenDb::Op::EQ;
                     }
-                    GenDb::WhereIndexInfo where_info = boost::make_tuple(columnN,
-                            comparator, value);
-                    rest_where_vec.push_back(where_info);
+                    QE_INVALIDARG_ERROR(populate_where_vec(m_query,
+                        &where_vec_session_rest, name, comparator, value));
                 }
             } else if (m_query->is_flow_query(m_query->table())){
                 if (name == g_viz_constants.FlowRecordNames[
@@ -957,8 +841,100 @@ WhereQuery::WhereQuery(const std::string& where_json_string, int session_type,
             }
             if (isStat)
             {
-                StatTermProcess(json_or_node[j], this, main_query);
+                std::string pname, sname;
+                match_op pop,sop;
+                GenDb::DbDataValue pval, pval2, sval, sval2;
+
+                if (!StatTermParse(main_query, json_or_node[j],
+                    pname, pop, pval, pval2, sname, sop, sval, sval2)) {
+                    QE_INVALIDARG_ERROR(false);
+                }
+
+                QE_INVALIDARG_ERROR(pop == EQUAL || pop == PREFIX);
+                if (pname == g_viz_constants.STATS_SOURCE_FIELD ||
+                    pname == g_viz_constants.STATS_NAME_FIELD ||
+                    boost::algorithm::ends_with(pname, g_viz_constants.STATS_KEY_FIELD) ||
+                    boost::algorithm::ends_with(pname, g_viz_constants.STATS_PROXY_FIELD)) {
+                    if (boost::algorithm::ends_with(pname, g_viz_constants.STATS_KEY_FIELD)) {
+                        pname = g_viz_constants.STATS_KEY_FIELD;
+                    }
+                    if (boost::algorithm::ends_with(pname, g_viz_constants.STATS_PROXY_FIELD)) {
+                        pname = g_viz_constants.STATS_PROXY_FIELD;
+                    }
+                   
+                    GenDb::Op::type db_op;
+                    if (pop == EQUAL) {
+                        db_op = GenDb::Op::EQ;
+                        QE_INVALIDARG_ERROR(populate_where_vec(m_query, &where_vec_stats,
+                            pname, db_op, GenDb::DbDataValueToString(pval)));
+                    } else {
+                        std::string val(GenDb::DbDataValueToString(pval));
+                        if (!val.empty()) {
+                            pval = val + "%";
+                            db_op = GenDb::Op::LIKE;
+                            QE_INVALIDARG_ERROR(populate_where_vec(m_query, &where_vec_stats,
+                                pname, db_op, GenDb::DbDataValueToString(pval)));
+                        }
+                    }
+                } else {
+                    GenDb::Op::type db_op;
+                    pval = "%" + pname + "=" + GenDb::DbDataValueToString(pval) + "%";
+                    db_op = GenDb::Op::LIKE;
+                    size_t idx = djb_hash(pname.c_str(), pname.length())
+                        % g_viz_constants.NUM_STATS_TAGS_FIELD;
+                    QE_INVALIDARG_ERROR(populate_where_vec(m_query, &where_vec_tags_stats[idx],
+                        g_viz_constants.STATS_TAGS_FIELD + integerToString(idx),
+                        db_op, GenDb::DbDataValueToString(pval)));
+                }
+                if (sop != 0 && (sname == g_viz_constants.STATS_SOURCE_FIELD ||
+                    sname == g_viz_constants.STATS_NAME_FIELD ||
+                    boost::algorithm::ends_with(pname, g_viz_constants.STATS_KEY_FIELD) ||
+                    boost::algorithm::ends_with(pname, g_viz_constants.STATS_PROXY_FIELD))) {
+                    if (boost::algorithm::ends_with(pname, g_viz_constants.STATS_KEY_FIELD)) {
+                        pname = g_viz_constants.STATS_KEY_FIELD;
+                    }
+                    if (boost::algorithm::ends_with(pname, g_viz_constants.STATS_PROXY_FIELD)) {
+                        pname = g_viz_constants.STATS_PROXY_FIELD;
+                    }
+
+                    QE_INVALIDARG_ERROR(sop == EQUAL || sop == PREFIX);
+                    GenDb::Op::type db_op;
+                    if (sop == EQUAL) {
+                        db_op = GenDb::Op::EQ;
+                    } else {
+                        sval = GenDb::DbDataValueToString(sval) + "%";
+                        db_op = GenDb::Op::LIKE;
+                    }
+                    QE_INVALIDARG_ERROR(populate_where_vec(m_query, &where_vec_stats,
+                        sname, db_op, GenDb::DbDataValueToString(sval)));
+
+                } else if (sop != 0) {
+                    QE_INVALIDARG_ERROR(sop == EQUAL || sop == PREFIX);
+                    GenDb::Op::type db_op;
+                    sval = "%" + sname + "=" + GenDb::DbDataValueToString(sval) + "%";
+                    db_op = GenDb::Op::LIKE;
+                    size_t idx = djb_hash(sname.c_str(), sname.length())
+                        % g_viz_constants.NUM_STATS_TAGS_FIELD;
+                    QE_INVALIDARG_ERROR(populate_where_vec(m_query, &where_vec_tags_stats[idx], 
+                        g_viz_constants.STATS_TAGS_FIELD + integerToString(idx),
+                        db_op, GenDb::DbDataValueToString(sval)));
+                }
                 object_id_specified = true;
+            }
+        }
+
+        if (m_query->is_stat_table_query(m_query->table())) {
+            std::vector<GenDb::WhereIndexInfoVec> where_vec_list;
+            populate_stats_where_vec_list(&where_vec_list, where_vec_stats,
+                where_vec_tags_stats);
+            BOOST_FOREACH(const GenDb::WhereIndexInfoVec &where_vec, where_vec_list) {
+                DbQueryUnit *db_query = new DbQueryUnit(this, main_query);
+                db_query->cfname = g_viz_constants.STATS_TABLE;
+                std::string tstr, astr;
+                GetStatTableAttrName(m_query->table(), &tstr, &astr);
+                db_query->row_key_suffix.push_back(tstr);
+                db_query->row_key_suffix.push_back(astr);
+                db_query->where_vec = where_vec;
             }
         }
 
@@ -971,7 +947,7 @@ WhereQuery::WhereQuery(const std::string& where_json_string, int session_type,
 
         if (isSession) {
             std::vector<GenDb::WhereIndexInfoVec> where_vec_list;
-            populate_session_where_vec_list(&where_vec_list, rest_where_vec, labels_vec, remote_labels_vec,
+            populate_session_where_vec_list(&where_vec_list, where_vec_session_rest, labels_vec, remote_labels_vec,
                 custom_tags_vec, remote_custom_tags_vec);
 
             BOOST_FOREACH(const GenDb::WhereIndexInfoVec &where_vec, where_vec_list) {
@@ -1043,10 +1019,6 @@ WhereQuery::WhereQuery(const std::string& where_json_string, int session_type,
                 }
                 if ((direction_ing == 0 && dip_match) ||
                     (direction_ing == 1 && sip_match)) {
-                    std::string columnN;
-                    if (!SessionTableQueryColumn2CassColumn("local_ip", &columnN)) {
-                        QE_INVALIDARG_ERROR(0);
-                    }
 
                     int op = direction_ing?sip_op:dip_op;
                     std::string val = direction_ing?
@@ -1058,17 +1030,12 @@ WhereQuery::WhereQuery(const std::string& where_json_string, int session_type,
                     } else {
                         comparator = GenDb::Op::EQ;
                     }
-                    GenDb::WhereIndexInfo where_info = boost::make_tuple(columnN,
-                        comparator, val);
-                    client_session_query->where_vec.push_back(where_info);
+                    QE_INVALIDARG_ERROR(populate_where_vec(m_query,
+                        &(client_session_query->where_vec), "local_ip", comparator, val));
                 }
                 if ((direction_ing == 0 && dvn_match) ||
                     (direction_ing == 1 && svn_match)) {
-                    std::string columnN;
-                    if (!SessionTableQueryColumn2CassColumn("vn", &columnN)) {
-                        QE_INVALIDARG_ERROR(0);
-                    }
-                    int op = (direction_ing?svn_op:dvn_op);
+                    int op = direction_ing?svn_op:dvn_op;
                     std::string val = direction_ing?
                         (boost::get<std::string>(svn)):(boost::get<std::string>(dvn));
                     GenDb::Op::type comparator;
@@ -1078,16 +1045,11 @@ WhereQuery::WhereQuery(const std::string& where_json_string, int session_type,
                     } else {
                         comparator = GenDb::Op::EQ;
                     }
-                    GenDb::WhereIndexInfo where_info = boost::make_tuple(columnN,
-                        comparator, val);
-                    client_session_query->where_vec.push_back(where_info);
+                    QE_INVALIDARG_ERROR(populate_where_vec(m_query,
+                        &(client_session_query->where_vec), "vn", comparator, val));
                 }
                 if ((direction_ing == 0 && svn_match) ||
                     (direction_ing == 1 && dvn_match)) {
-                    std::string columnN;
-                    if (!SessionTableQueryColumn2CassColumn("remote_vn", &columnN)) {
-                        QE_INVALIDARG_ERROR(0);
-                    }
                     int op = (direction_ing?dvn_op:svn_op);
                     GenDb::Op::type comparator;
                     std::string val = direction_ing?
@@ -1098,9 +1060,8 @@ WhereQuery::WhereQuery(const std::string& where_json_string, int session_type,
                     } else {
                         comparator = GenDb::Op::EQ;
                     }
-                    GenDb::WhereIndexInfo where_info = boost::make_tuple(columnN,
-                        comparator, val);
-                    client_session_query->where_vec.push_back(where_info);
+                    QE_INVALIDARG_ERROR(populate_where_vec(m_query,
+                        &(client_session_query->where_vec), "remote_vn", comparator, val));
                 }
             }
             {
@@ -1138,10 +1099,6 @@ WhereQuery::WhereQuery(const std::string& where_json_string, int session_type,
                 }
                 if ((direction_ing == 0 && dip_match) ||
                     (direction_ing == 1 && sip_match)) {
-                    std::string columnN;
-                    if (!SessionTableQueryColumn2CassColumn("local_ip", &columnN)) {
-                        QE_INVALIDARG_ERROR(0);
-                    }
                     int op = direction_ing?sip_op:dip_op;
                     std::string val = direction_ing?
                         (boost::get<std::string>(sip)):(boost::get<std::string>(dip));
@@ -1152,16 +1109,11 @@ WhereQuery::WhereQuery(const std::string& where_json_string, int session_type,
                     } else {
                         comparator = GenDb::Op::EQ;
                     }
-                    GenDb::WhereIndexInfo where_info = boost::make_tuple(columnN,
-                        comparator, val);
-                    server_session_query->where_vec.push_back(where_info);
+                    QE_INVALIDARG_ERROR(populate_where_vec(m_query,
+                        &(server_session_query->where_vec), "local_ip", comparator, val));
                 }
                 if ((direction_ing == 0 && dvn_match) ||
                     (direction_ing == 1 && svn_match)) {
-                    std::string columnN;
-                    if (!SessionTableQueryColumn2CassColumn("vn", &columnN)) {
-                        QE_INVALIDARG_ERROR(0);
-                    }
                     int op = (direction_ing?svn_op:dvn_op);
                     std::string val = direction_ing?
                         (boost::get<std::string>(svn)):(boost::get<std::string>(dvn));
@@ -1172,16 +1124,11 @@ WhereQuery::WhereQuery(const std::string& where_json_string, int session_type,
                     } else {
                         comparator = GenDb::Op::EQ;
                     }
-                    GenDb::WhereIndexInfo where_info = boost::make_tuple(columnN,
-                        comparator, val);
-                    server_session_query->where_vec.push_back(where_info);
+                    QE_INVALIDARG_ERROR(populate_where_vec(m_query,
+                        &(server_session_query->where_vec), "vn", comparator, val));
                 }
                 if ((direction_ing == 0 && svn_match) ||
                     (direction_ing == 1 && dvn_match)) {
-                    std::string columnN;
-                    if (!SessionTableQueryColumn2CassColumn("remote_vn", &columnN)) {
-                        QE_INVALIDARG_ERROR(0);
-                    }
                     int op = (direction_ing?dvn_op:svn_op);
                     GenDb::Op::type comparator;
                     std::string val = direction_ing?
@@ -1192,9 +1139,8 @@ WhereQuery::WhereQuery(const std::string& where_json_string, int session_type,
                     } else {
                         comparator = GenDb::Op::EQ;
                     }
-                    GenDb::WhereIndexInfo where_info = boost::make_tuple(columnN,
-                        comparator, val);
-                    server_session_query->where_vec.push_back(where_info);
+                    QE_INVALIDARG_ERROR(populate_where_vec(m_query,
+                        &(server_session_query->where_vec), "remote_vn", comparator, val));
                 }
             }
         }
@@ -1345,18 +1291,20 @@ void WhereQuery::handle_object_type_value(
 {
     if (m_query->is_object_table_query(m_query->table())) {
         QE_TRACE(DEBUG, "object-type-value handling");
-        std::string column1 = MsgTableQueryColumnToColumn(
+        std::string column1 = query_column_to_cass_column(m_query,
                                         g_viz_constants.OBJECT_TYPE_NAME1);
+        if (column1.empty()) {
+            QE_INVALIDARG_ERROR(false);
+        }
         if (object_id_specified == false) {
             // create db_query entry for OBJECT_TYPE_NAME1
             // as done for OBJECTID case above.
             // rest falls in place as with --object-id case.
             match_op op = PREFIX;
-            std::string value_prefix = m_query->table();
-            value_prefix.append(":");
+            std::string val(m_query->table() + ":");
             std::string col_name = g_viz_constants.OBJECT_TYPE_NAME1;
-            populate_where_vec(db_query, col_name, op,
-                               value_prefix, std::string(""));
+            QE_INVALIDARG_ERROR(populate_where_vec(m_query, &(db_query->where_vec),
+                col_name, get_gendb_op_from_op(op), val));
         }
 
         // regular --object-id processing from here
@@ -1382,25 +1330,52 @@ void WhereQuery::handle_object_type_value(
             std::string col_name = g_viz_constants.OBJECT_TYPE_NAME_PFX;
             col_name.append(integerToString(i));
 
-            std::string columnN = MsgTableQueryColumnToColumn(col_name);
+            std::string columnN = query_column_to_cass_column(m_query, col_name);
+            if (column1.empty()) {
+                QE_INVALIDARG_ERROR(false);
+            }
             where_info2->get<0>() = columnN;
         }
     }
 }
 
-void WhereQuery::populate_where_vec(DbQueryUnit *db_query,
-                                    const std::string query_col,
-                                    match_op op,
-                                    const std::string value_prefix,
-                                    const std::string value)
-{
-    std::string value2 = value_prefix;
-    value2.append(value);
-    if (op == PREFIX) {
-        value2.append("%");
+bool WhereQuery::populate_where_vec(AnalyticsQuery *m_query,
+                                    GenDb::WhereIndexInfoVec *where_vec,
+                                    const std::string& query_col,
+                                    const GenDb::Op::type db_op,
+                                    const std::string& value) {
+    std::string columnN = query_column_to_cass_column(m_query, query_col);
+    if (columnN.empty()) {
+        return false;
     }
-    std::string columnN = MsgTableQueryColumnToColumn(query_col);
     GenDb::WhereIndexInfo where_info =
-            boost::make_tuple(columnN, get_gendb_op_from_op(op), value2);
-    db_query->where_vec.push_back(where_info);
+            boost::make_tuple(columnN, db_op, value);
+    where_vec->push_back(where_info);
+    return true;
+}
+
+std::string WhereQuery::query_column_to_cass_column(AnalyticsQuery *m_query,
+                                                    const std::string& query_column) {
+    std::map<std::string, table_schema> schema;
+    std::string table_name;
+    if (m_query->is_message_table_query(m_query->table()) ||
+        m_query->is_object_table_query(m_query->table())) {
+        schema = g_viz_constants._VIZD_TABLE_SCHEMA;
+        table_name = g_viz_constants.COLLECTOR_GLOBAL_TABLE;
+    } else if (m_query->is_session_query(m_query->table()) ||
+        m_query->is_flow_query(m_query->table())) {
+        schema = g_viz_constants._VIZD_SESSION_TABLE_SCHEMA;
+        table_name = g_viz_constants.SESSION_TABLE;
+    } else if (m_query->is_stat_table_query(m_query->table())) {
+        schema = g_viz_constants._VIZD_STAT_TABLE_SCHEMA;
+        table_name = g_viz_constants.STATS_TABLE;
+    }
+    std::map<std::string, table_schema>::const_iterator it = schema.find(table_name);
+    QE_ASSERT(it != schema.end());
+    std::map<string, string>::const_iterator itr =
+        it->second.index_column_to_column.find(query_column);
+    if (itr == (it->second.index_column_to_column.end())) {
+        return "";
+    }
+    return itr->second;
 }
