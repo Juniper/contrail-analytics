@@ -282,10 +282,20 @@ elif OpEnv['PYTESTARG']:
     OpEnv.Depends(test_cmd, sdist_depends)
 else:
     test_cmd = OpEnv.Command('test.log', sdist_gen + sandesh_pkgs,
-            testr_str % ('', 'test'))
-    OpEnv.Depends(test_cmd, [OpEnv['TOP']+x for x in test_depends])
-    OpEnv.Depends(test_cmd, sdist_depends)
+                             testr_str % ('', 'test'))
 
-OpEnv.Alias('tests', test_cmd)
+# XXX Need to extend SetupPyTestSuite*() to handle above variations
+#
+if 'BUILD_ONLY' in OpEnv['ENV']:
+    test_cmd = OpEnv.Command('build_only.log', sdist_gen, 'touch $TARGET')
+
+OpEnv.Depends(test_cmd, [OpEnv['TOP']+x for x in test_depends])
+OpEnv.Depends(test_cmd, sdist_depends)
+
+OpEnv.Alias('test', test_cmd)
 OpEnv.Alias('src/contrail-analytics/contrail-opserver:test', test_cmd)
 OpEnv.AlwaysBuild(test_cmd)
+
+# Local Variables:
+# mode: python
+# End:
