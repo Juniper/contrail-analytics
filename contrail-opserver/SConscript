@@ -281,11 +281,18 @@ elif OpEnv['PYTESTARG']:
     OpEnv.Depends(test_cmd, [OpEnv['TOP']+x for x in test_depends])
     OpEnv.Depends(test_cmd, sdist_depends)
 else:
-    test_cmd = OpEnv.Command('test.log', sdist_gen + sandesh_pkgs,
-            testr_str % ('', 'test'))
+    if 'BUILD_ONLY' in OpEnv['ENV']: c = "echo Skipping test for BUILD_ONLY"
+    else: c = testr_str % ('', 'test')
+
+    test_cmd = OpEnv.Command('test.log', sdist_gen + sandesh_pkgs, c)
+
     OpEnv.Depends(test_cmd, [OpEnv['TOP']+x for x in test_depends])
     OpEnv.Depends(test_cmd, sdist_depends)
 
-OpEnv.Alias('tests', test_cmd)
+OpEnv.Alias('tests', test_cmd)  # XXX should probably be 'test'
 OpEnv.Alias('src/contrail-analytics/contrail-opserver:test', test_cmd)
-OpEnv.AlwaysBuild(test_cmd)
+OpEnv.AlwaysBuild(test_cmd)     # XXX Do better
+
+# Local Variables:
+# mode: python
+# End:
