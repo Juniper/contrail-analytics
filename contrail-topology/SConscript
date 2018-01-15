@@ -41,14 +41,18 @@ derived_stats_pkg = env.SandeshGenPy('#src/contrail-common/sandesh/library/commo
 
 common_sources_rules = [env.Install('contrail_topology', f) for f in common_sources]
 
-version = '0.0.1'
+version = '0.1.0'               # Make this match what is in setup.py
+
+# XXX Was this disabled/removed as part of repo split? If so, it might
+# explain the version discrepancy. Probably this should be done via
+# version setting in setup.py
 #with open("CHANGES.txt") as f:
 #    version = f.read().split(",")[0][1:]
 
 sdist_depends = [ nodeinfo_pkg, cpuinfo_pkg, process_info_pkg,
                   derived_stats_pkg, topology_info_pkg, common_sources_rules ]
 cd_cmd = 'cd ' + Dir('.').path + ' && '
-sdist_gen = env.Command('dist/contrail-topology-' \
+sdist_gen = env.Command('dist/contrail_topology-' \
         + version + '.tar.gz',
         sources + src_sandesh, cd_cmd + 'python setup.py sdist')
 env.Depends(sdist_gen, sdist_depends)
@@ -111,11 +115,16 @@ elif env['PYTESTARG']:
             env['PYTESTARG']))
 else:
     test_cmd = env.Command('test.log', sdist_gen,
-            testr_str % ('', 'test'))
+                           testr_str % ('', 'test'))
+
+# XXX Need to extend SetupPyTestSuite*() to handle above variations
+#
+if 'BUILD_ONLY' in env['ENV']:
+    test_cmd = env.Command('build_only.log', sdist_gen, 'touch $TARGET')
 
 env.Depends(test_cmd, [env['TOP']+x for x in test_depends])
 env.Depends(test_cmd, src_rules)
-env.Alias('tests', test_cmd)
+env.Alias('test', test_cmd)
 env.Alias('src/contrail-analytics/contrail-topology:test', test_cmd)
 env.AlwaysBuild(test_cmd)
 
@@ -145,3 +154,7 @@ env.Alias('install', env.Install(
             'contrail-topology.ini'))
 env.Alias('install', env.Install(
     env['INSTALL_MESSAGE_DOC'] + '/contrail-topology/', doc_files))
+
+# Local Variables:
+# mode: python
+# End:
