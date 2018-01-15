@@ -376,3 +376,7 @@ AnalyticsEnv.Alias('install', AnalyticsEnv.Install(
 #       exports='AnalyticsEnv',
 #       variant_dir=BuildEnv['TOP'] + '/contrail-broadview',
 #       duplicate=1)
+
+# Local Variables:
+# mode: python
+# End:
