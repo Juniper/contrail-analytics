@@ -498,11 +498,13 @@ public:
     void handle_object_type_value(AnalyticsQuery *m_query,
                                   DbQueryUnit *db_query,
                                   bool object_id_specified);
-    void populate_where_vec(DbQueryUnit *db_query,
-                            const std::string query_col,
-                            match_op op,
-                            const std::string value_prefix,
-                            const std::string value);
+    bool populate_where_vec(AnalyticsQuery *m_query,
+                            GenDb::WhereIndexInfoVec *where_vec,
+                            const std::string& query_col,
+                            const GenDb::Op::type db_op,
+                            const std::string& value);
+    std::string query_column_to_cass_column(AnalyticsQuery *m_query,
+                                            const std::string& query_column);
 
     // filter list to store filters converted from where cluase
     std::vector<std::vector<filter_match_t> > filter_list_;
