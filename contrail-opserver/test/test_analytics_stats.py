@@ -174,7 +174,7 @@ class StatsTest(testtools.TestCase, fixtures.TestWithFixtures):
 
         assert generator_obj.verify_test_stat("StatTable.StatTestState.st","-2m",
             select_fields = [ "UUID", "st.s1", "st.i1", "st.d1" ],
-            where_clause = 'st.i1|st.i2=2|1<6', num = 1, check_rows =
+            where_clause = 'st.i1|st.i2=2|5', num = 1, check_rows =
             [{ "st.s1":"samp3", "st.i1":2, "st.d1":2}]);
         
         logging.info("Checking CLASS " + str(UTCTimestampUsec()))

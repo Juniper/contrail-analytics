@@ -329,8 +329,6 @@ void DbQueryUnit::cb(GenDb::DbOpResult::type dresult,
             query_result_unit_t result_unit;
             uint32_t t1;
             if (m_query->is_stat_table_query(m_query->table())) {
-                assert(i->value->size()==1);
-                assert((i->name->size()==4)||(i->name->size()==3));
                 try {
                     t1 = boost::get<uint32_t>(i->name->at(i->name->size()-2));
                 } catch (boost::bad_get& ex) {
@@ -386,7 +384,7 @@ void DbQueryUnit::cb(GenDb::DbOpResult::type dresult,
                 }
 
                 try {
-                    attribstr = boost::get<std::string>(i->value->at(0));
+                    attribstr = boost::get<std::string>(i->value->at(i->value->size()-1));
                 } catch (boost::bad_get& ex) {
                     QE_ASSERT(0);
                 } catch (const std::out_of_range& oor) {
