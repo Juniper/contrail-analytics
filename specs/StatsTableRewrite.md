@@ -5,7 +5,7 @@ Currently all the stats collected by collector consists of a number of tags agai
 Currently all the stats collected by collector consists of a number of tags against which the stat is to be indexed. With the current schema, we need to do as many writes as the number of tags for the stat. If high number of stats are sent to collector, it will scheme will not scale. Hence, the number of writes per stat should be reduced.
 
 # 3. Proposed solution
-Currently we do one write in database per tag. Instead, we can create an encoded string in **tag1=value1;tag2=value2;tag3=value3...** format. We will have 4 such fields and each tag will go into 1 of the four buckets depending on the hashing of the tag name. Apart from that we will have separate columns for well-known tags like name, source, key and proxy. we will index the encoded tags string, name, source and key fields with SASI index, which will allow these fields to be queried. The new schema will look like below -  
+Currently we do one write in database per tag. Instead, we can create an encoded string in **tag1=value1;tag2=value2;tag3=value3...** format. We will have 4 such fields and each tag will go into 1 of the four buckets depending on the hashing of the tag name. Apart from that we will have separate columns for well-known tags like name, source, key and proxy. Name field will be a clustering column while we will index the encoded tags string, source, key and proxy fields with SASI index, which will allow these fields to be queried. The new schema will look like below -  
 
 ```
 CREATE TABLE "ContrailAnalyticsCql".stattablev4 (
@@ -13,9 +13,9 @@ CREATE TABLE "ContrailAnalyticsCql".stattablev4 (
     key2 int,             \\ partition_number
     key3 text,            \\ StatName
     key4 text,            \\ StatAttr
-    column1 int,          \\ T1
-    column2 uuid,         \\ UUID
-    column3 text,         \\ T2:name
+    column1 text,         \\ name
+    column2 int,          \\ T1
+    column3 uuid,         \\ UUID
     column4 text,         \\ T2:source
     column5 text,         \\ T2:key
     column6 text,         \\ T2:proxy
@@ -27,7 +27,6 @@ CREATE TABLE "ContrailAnalyticsCql".stattablev4 (
     PRIMARY KEY ((key, key2, key3, key4), column1, column2)
 ) WITH CLUSTERING ORDER BY (column1 ASC, column2 ASC)
 
-CREATE CUSTOM INDEX stattablev4_column3_idx ON "ContrailAnalyticsCql".stattablev4 (column3) USING 'org.apache.cassandra.index.sasi.SASIIndex' WITH OPTIONS = {'mode': 'PREFIX'};
 CREATE CUSTOM INDEX stattablev4_column4_idx ON "ContrailAronalyticsCql".stattablev4 (column4) USING 'org.apache.cassandra.index.sasi.SASIIndex' WITH OPTIONS = {'mode': 'PREFIX'};
 CREATE CUSTOM INDEX stattablev4_column5_idx ON "ContrailAnalyticsCql".stattablev4 (column5) USING 'org.apache.cassandra.index.sasi.SASIIndex' WITH OPTIONS = {'mode': 'PREFIX'};
 CREATE CUSTOM INDEX stattablev4_column6_idx ON "ContrailAnalyticsCql".stattablev4 (column6) USING 'org.apache.cassandra.index.sasi.SASIIndex' WITH OPTIONS = {'mode': 'PREFIX'};
@@ -60,6 +59,7 @@ None
 None
 # 4. Implementation
 # 5. Performance and scaling impact
+Because there will be only 1 write per stats, the number of writes would be less and hence write performance would increase by the number of tags (at least 2x as all the tags have source and name).
 ## 5.1 API and control plane
 None
 ## 5.2 Forwarding performance
@@ -67,7 +67,7 @@ None
 # 6. Upgrade
 When upgrading, older data will not be any use once upgraded. We shall be providing a script to migrate older data to new format.
 # 7. Deprecations
-Range queries on U64 and Double tags will no longer be supported
+Range queries on U64 and Double tags will no longer be supported in the Where clause. Though this operations can still be done in the Filter clause.
 # 8. Dependencies
 None
 # 9. Testing
