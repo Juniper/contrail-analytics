@@ -5717,7 +5717,9 @@ const list<query_table> _TABLES = [
                { 'name' : 'SUM(reverse_logged_pkts)', 'datatype': 'int',
                  'index': false },
 
-               { 'name' : 'sample_count', 'datatype': 'int', 'index': false}
+               { 'name' : 'sample_count', 'datatype': 'int', 'index': false},
+               { 'name' : 'COUNT_DISTINCT(local_ip)', 'datatype': 'int', 'index': false },
+               { 'name' : 'COUNT_DISTINCT(remote_ip)', 'datatype': 'int', 'index': false }
                ]
         },
         'columnvalues' : [ ],

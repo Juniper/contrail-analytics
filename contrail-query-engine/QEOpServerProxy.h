@@ -93,7 +93,8 @@ public:
         MAX = 4,
         MIN = 5,
         PERCENTILES = 6,
-	AVG = 7,
+        AVG = 7,
+        COUNT_DISTINCT = 8,
     };
 
     // This is a map of aggregations for an output row
