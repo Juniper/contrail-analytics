@@ -226,12 +226,12 @@ class StatsTest(testtools.TestCase, fixtures.TestWithFixtures):
     # end test_02_overflowsamples
 
     #@unittest.skip('Get minmax values from inserted stats')
-    def test_03_min_max_query(self):
+    def test_03_aggregate_query(self):
         '''
         This test starts redis,vizd,opserver and qed
         It uses the test class' cassandra instance
         Then it inserts into the stat table rows 
-        and queries MAX and MIN on them
+        and queries aggregate functions on them
         '''
         logging.info("%%% test_03_min_max_query %%%")
         if StatsTest._check_skip_test() is True:
@@ -253,6 +253,7 @@ class StatsTest(testtools.TestCase, fixtures.TestWithFixtures):
         generator_obj.send_test_stat("t04","lxxx","samp1",1,5);
         generator_obj.send_test_stat("t04","lyyy","samp1",4,3.4);
         generator_obj.send_test_stat("t04","lyyy","samp1",2,4,"",5);
+        generator_obj.send_test_stat("t04","lyyy","samp2",3,7.2);
 
         logging.info("Checking Stats " + str(UTCTimestampUsec()))
         assert generator_obj.verify_test_stat("StatTable.StatTestState.st","-2m",
@@ -265,8 +266,14 @@ class StatsTest(testtools.TestCase, fixtures.TestWithFixtures):
             where_clause = 'name|st.s1=t04|samp1', num = 1, check_rows =
             [{u'MIN(st.d1)': 3.4, u'AVG(st.d1)': 4.13333}]);
 
+        assert generator_obj.verify_test_stat("StatTable.StatTestState.st","-2m",
+            select_fields = [ "l1", "COUNT_DISTINCT(st.s1)", "SUM(st.i1)"],
+            where_clause = 'name=*', num = 2, check_rows =
+            [{'l1': 'lxxx', u'COUNT_DISTINCT(st.s1)': 1, u'SUM(st.i1)': 1},
+             {'l1': 'lyyy', u'COUNT_DISTINCT(st.s1)': 2, u'SUM(st.i1)': 9}]);
+
         return True
-    # end test_03_min_max_query
+    # end test_03_aggregate_query
 
     #@unittest.skip('Get samples from objectlog stats')
     def test_04_statprefix_obj(self):
