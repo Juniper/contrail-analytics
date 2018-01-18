@@ -131,6 +131,8 @@ StatsSelect::Jsonify(const std::string& table,
                 sname = string("PERCENTILES(") + it->first.second + string(")");
             } else if (it->first.first == QEOpServerProxy::AVG) {
                 sname = string("AVG(") + it->first.second + string(")");
+            } else if (it->first.first == QEOpServerProxy::COUNT_DISTINCT) {
+                sname = string("COUNT_DISTINCT(") + it->first.second + string(")");
             } else {
                 QE_ASSERT(0);
             }
@@ -215,15 +217,14 @@ StatsSelect::Jsonify(const std::string& table,
     return true;
 }
 
-
 void StatsSelect::MergeFinal(const std::vector<boost::shared_ptr<MapBufT> >& inputs,
         MapBufT& output) {
     MapBufT temp;
     for (size_t idx = 0; idx < inputs.size(); idx++) {
         if (agg_sort_cols_.empty())
-            Merge(*inputs[idx], output);
+           Merge(count_distinct_field_, *inputs[idx], output);
         else
-            Merge(*inputs[idx], temp); 
+           Merge(count_distinct_field_, *inputs[idx], temp);
     }
     if (!agg_sort_cols_.empty()) {
         MapBufT::iterator jt = temp.end();
@@ -246,12 +247,23 @@ void StatsSelect::MergeFinal(const std::vector<boost::shared_ptr<MapBufT> >& inp
     }
 }
 
-void StatsSelect::Merge(const MapBufT& input, MapBufT& output) {
-    for (MapBufT::const_iterator it = input.begin(); 
+void StatsSelect::Merge(const std::string& count_distinct_field_, const MapBufT& input, MapBufT& output) {
+    for (MapBufT::const_iterator it = input.begin();
             it!=input.end(); it++) {
-        const std::vector<StatVal>& ukey = it->first;
-        const StatMap& uniks = it->second.first;
-        const QEOpServerProxy::AggRowT& narows = it->second.second;
+        std::vector<StatVal> ukey(it->first);
+        StatMap uniks(it->second.first);
+        QEOpServerProxy::AggRowT narows(it->second.second);
+
+        StatMap::iterator itr = uniks.find(count_distinct_field_);
+        if (itr != uniks.end()) {
+            pair<QEOpServerProxy::AggOper,string> aggkey(
+                QEOpServerProxy::COUNT_DISTINCT,count_distinct_field_);
+            narows.insert(make_pair(aggkey, (uint64_t) 1));
+            uniks.erase(itr);
+            size_t hash_slot = ukey.size() - 1;
+            uint64_t hash_val = boost::hash_range(uniks.begin(), uniks.end());
+            ukey[hash_slot] = hash_val;
+        }
 
         MergeFullRow(ukey, uniks, narows, output);
 
@@ -300,6 +312,10 @@ StatsSelect::StatsSelect(AnalyticsQuery * m_query,
             } else if (agg == QEOpServerProxy::COUNT) {
                 count_field_ = sfield;
                 QE_TRACE(DEBUG, "StatsSelect COUNT " << sfield);
+            } else if (agg == QEOpServerProxy::COUNT_DISTINCT) {
+                count_distinct_field_ = sfield;
+                unik_cols_.insert(sfield);
+                QE_TRACE(DEBUG, "StatsSelect COUNT_DISTINCT " << sfield);
             } else if (agg == QEOpServerProxy::SUM) {
                 sum_cols_.insert(sfield);
                 QE_TRACE(DEBUG, "StatsSelect SUM " << sfield);
@@ -416,7 +432,9 @@ void StatsSelect::MergeAggRow(QEOpServerProxy::AggRowT &arows,
                 }                        
 
             }
-            if (jt->first.first == QEOpServerProxy::COUNT) {
+
+            if (jt->first.first == QEOpServerProxy::COUNT ||
+                jt->first.first == QEOpServerProxy::COUNT_DISTINCT) {
                 try {
                     uint64_t& sv =  boost::get<uint64_t>(jt->second);
                     sv = sv + boost::get<uint64_t>(kt->second);
