@@ -90,6 +90,13 @@ QEOpServerProxy::AggOper StatsQuery::ParseAgg(
         const std::string& vname,
         std::string& sfield) {
 
+    if (0 == vname.compare(0,14,string("COUNT_DISTINCT"))) {
+        sfield = vname.substr(15);
+        int len = sfield.size();
+        sfield.erase(len-1);
+        return QEOpServerProxy::COUNT_DISTINCT;
+    }
+
     if (0 == vname.compare(0,5,string("COUNT"))) {
         sfield = vname.substr(6);
         int len = sfield.size();
