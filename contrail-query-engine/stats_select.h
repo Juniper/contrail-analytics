@@ -51,7 +51,7 @@ public:
 
     bool IsMergeNeeded() { return !isT_; }
 
-    static void Merge(const MapBufT& input, MapBufT& output);
+    static void Merge(const std::string& count_distinct_field_, const MapBufT& input, MapBufT& output);
     void MergeFinal(const std::vector<boost::shared_ptr<MapBufT> >& inputs,
         MapBufT& output);
 
@@ -87,6 +87,7 @@ private:
     // This is the column name corresponding to the COUNT select field.
     // It will be empty if the SELECT did not have COUNT.
     std::string count_field_;
+    std::string count_distinct_field_;
 
     // This is the set of columns names to be used for sorting
     // The value is a sequence number - this is the position to use for this column
