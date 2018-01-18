@@ -176,13 +176,6 @@ AnalyticsEnv.Install(AnalyticsEnv['TOP_INCLUDE'] + '/config/config-client-mgr',
 AnalyticsEnv.Install(AnalyticsEnv['TOP_INCLUDE'] + '/config/config-client-mgr',
     '#controller/src/config/config-client-mgr/config_factory.h')
 
-AnalyticsEnv.Install(AnalyticsEnv['TOP_INCLUDE'] + '/http/client',
-    '#controller/src/http/client/vncapi.h')
-AnalyticsEnv.Install(AnalyticsEnv['TOP_INCLUDE'] + '/http/client',
-    '#controller/src/http/client/http_client.h')
-AnalyticsEnv.Install(AnalyticsEnv['TOP_INCLUDE'] + '/http/client',
-    '#controller/src/http/client/http_curl.h')
-
 AnalyticsEnv.Install(AnalyticsEnv['TOP_INCLUDE'] + '/net',
     '#controller/src/net/address_util.h')
 AnalyticsEnv.Install(AnalyticsEnv['TOP_INCLUDE'] + '/net',
