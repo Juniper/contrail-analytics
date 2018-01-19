@@ -8,14 +8,17 @@
 #include <map>
 #include <tbb/atomic.h>
 #include <boost/shared_ptr.hpp>
-#include <boost/regex.hpp>
 #include "http/client/vncapi.h"
 #include "parser_util.h"
 #include <analytics/analytics_types.h>
+#include "base/regex.h"
 #include "config_client_collector.h"
 
-class Options;
+using contrail::regex;
+using contrail::regex_match;
+using contrail::regex_search;
 
+class Options;
 
 class UserDefinedCounterData {
     public:
@@ -24,13 +27,13 @@ class UserDefinedCounterData {
             SetPattern(pat);
         }
         void SetPattern(std::string pat) {
-            regexp_ = boost::regex(pat);
+            regexp_ = contrail::regex(pat);
             regexp_str_ = pat;
         }
         bool operator==(const UserDefinedCounterData &rhs) {
             return rhs.IsMe(name_) &&  rhs.pattern() == regexp_str_;
         }
-        const boost::regex& regexp() const { return regexp_; }
+        const contrail::regex& regexp() const { return regexp_; }
         const std::string name() { return name_; }
         bool IsMe(std::string name) const { return name == name_; }
         const std::string pattern() const { return regexp_str_; }
@@ -40,7 +43,7 @@ class UserDefinedCounterData {
         bool                   refreshed_;
         std::string            name_;
         std::string            regexp_str_;
-        boost::regex           regexp_;
+        contrail::regex        regexp_;
 };
 
 typedef std::map<std::string, boost::shared_ptr<UserDefinedCounterData> > Cfg_t;
