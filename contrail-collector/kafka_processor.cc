@@ -461,6 +461,12 @@ KafkaProcessor::StopKafka(void) {
         kafkaworker_.reset();
     }
     if (producer_) {
+        /*Give a chance to send local Q producer to broker*/
+        if (producer_->outq_len() > 0) {
+            LOG(ERROR, "flush kafka Q:" << producer_->outq_len());
+            producer_->flush(1);
+        }
+
         for (unsigned int i=0; i<partitions_; i++) {
             topic_[i].reset();
         }
@@ -474,7 +480,10 @@ KafkaProcessor::StopKafka(void) {
 
         producer_.reset();
 
-        assert(RdKafka::wait_destroyed(8000) == 0);
+        /*
+         * From version 0.9, this is not strictly required.
+         */
+        RdKafka::wait_destroyed(8000);
         LOG(ERROR, "Kafka Stopped");
     }
 }
