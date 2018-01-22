@@ -471,10 +471,23 @@ KafkaProcessor::StopKafka(void) {
             it->second.reset();
         }
         aggtopic_.clear();
+        int check_times = 8; 
+        while (check_times > 0 && producer_->outq_len() > 0) {
+            LOG(ERROR, "Wait for kafka Q:" << producer_->outq_len());
+            producer_->poll(1000);
+            check_times--;
+        }
 
         producer_.reset();
 
-        assert(RdKafka::wait_destroyed(8000) == 0);
+        /*
+         * Wait for RdKafka to decommission.
+         * This is not strictly needed (when check outq_len() above), but
+         * allows RdKafka to clean up all its resources before the application
+         * exits so that memory profilers such as valgrind wont complain about
+         * memory leaks.
+         */
+        RdKafka::wait_destroyed(8000);
         LOG(ERROR, "Kafka Stopped");
     }
 }
