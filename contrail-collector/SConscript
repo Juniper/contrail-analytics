@@ -185,8 +185,6 @@ AnalyticsEnv.Install(AnalyticsEnv['TOP_INCLUDE'] + '/http/client',
 
 AnalyticsEnv.Install(AnalyticsEnv['TOP_INCLUDE'] + '/net',
     '#controller/src/net/address_util.h')
-AnalyticsEnv.Install(AnalyticsEnv['TOP_INCLUDE'] + '/net',
-    '#controller/src/net/address.h')
 
 AnalyticsEnv.Install(AnalyticsEnv['TOP_INCLUDE'] + '/database/cassandra/cql',
     '#controller/src/database/cassandra/cql/cql_if.h')
