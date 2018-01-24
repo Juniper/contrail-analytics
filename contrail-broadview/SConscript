@@ -96,9 +96,15 @@ else:
     test_cmd = env.Command('test.log', sdist_gen,
             testr_str % ('', 'test'))
 
+# XXX Need to extend SetupPyTestSuite*() to handle above variations
+#
+if 'BUILD_ONLY' in env['ENV']:
+    test_cmd = env.Command('build_only.log', sdist_gen, 'touch $TARGET')
+
 env.Depends(test_cmd, [env['TOP']+x for x in test_depends])
 env.Depends(test_cmd, src_rules)
-env.Alias('tests', test_cmd)
+
+env.Alias('test', test_cmd)
 env.Alias('controller/src/analytics/contrail-broadview:test', test_cmd)
 env.AlwaysBuild(test_cmd)
 
@@ -123,3 +129,7 @@ env.Alias('install', env.Install(
             'contrail-broadview.ini'))
 env.Alias('install', env.Install(
     env['INSTALL_MESSAGE_DOC'] + '/contrail-broadview/', doc_files))
+
+# Local Variables:
+# mode: python
+# End:
