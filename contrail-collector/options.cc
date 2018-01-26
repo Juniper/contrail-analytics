@@ -21,7 +21,7 @@
 #include <analytics/viz_constants.h>
 #include <database/gendb_constants.h>
 
-#include "config/config-client-mgr/config_client_manager.h"
+#include "config-client-mgr/config_client_manager.h"
 
 using namespace std;
 using namespace boost::asio::ip;

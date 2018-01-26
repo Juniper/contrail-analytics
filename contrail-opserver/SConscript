@@ -75,7 +75,7 @@ analytics_database_pkg = OpEnv.SandeshGenPy('analytics_database.sandesh', 'opser
 alarmgen_pkg = OpEnv.SandeshGenPy('alarmgen_ctrl.sandesh', 'opserver/sandesh/', False)
 alarm_sandesh_base_pkg = OpEnv.SandeshGenPy('#src/contrail-common/sandesh/library/common/sandesh_alarm_base.sandesh', 'opserver/sandesh/alarmgen_ctrl/', False)
 derived_stats_pkg = OpEnv.SandeshGenPy('#src/contrail-common/sandesh/library/common/derived_stats_results.sandesh', 'opserver/sandesh/analytics/', False)
-database_pkg = OpEnv.SandeshGenPy('#controller/src/database/gendb.sandesh', 'opserver/sandesh/viz/', False)
+database_pkg = OpEnv.SandeshGenPy('#src/contrail-common/database/gendb.sandesh', 'opserver/sandesh/viz/', False)
 analytics_api_info_pkg = OpEnv.SandeshGenPy('analytics_api_info.sandesh', 'opserver/sandesh/', False)
 OpEnv.Depends(alarm_sandesh_base_pkg, alarmgen_pkg)
 OpEnv.Depends(derived_stats_pkg, analytics_pkg)

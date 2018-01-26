@@ -9,7 +9,7 @@
 #include <map>
 #include <string>
 
-#include "config/config-client-mgr/config_json_parser_base.h"
+#include "config-client-mgr/config_json_parser_base.h"
 #include "rapidjson/document.h"
 #include <boost/function.hpp>
 
