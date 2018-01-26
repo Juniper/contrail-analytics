@@ -23,10 +23,10 @@ python = 'python'+full_version[0]+'.'+full_version[1]
 AnalyticsEnv.Append(CPPPATH = ['/usr/include/'+ python,
                                '/usr/include/librdkafka',
                                AnalyticsEnv['TOP'] + '/tools/sandesh/library/common',
-                               AnalyticsEnv['TOP'] + '../../src/contrail-common/base',
                                AnalyticsEnv['TOP'] + '/io',
                                AnalyticsEnv['TOP'] + '/database',
                                AnalyticsEnv['TOP'] + '/database/cassandra/cql',
+                               AnalyticsEnv['TOP'] + '/config-client-mgr',
                                AnalyticsEnv['TOP'],
                               ])
 AnalyticsEnv.Append(LIBS=['boost_python', python])
@@ -160,37 +160,6 @@ AnalyticsEnv_boost_no_unreach.AppendUnique(CCFLAGS='-DBOOST_NO_UNREACHABLE_RETUR
 syslog_collector_obj = AnalyticsEnv_boost_no_unreach.Object('syslog_collector.o', 'syslog_collector.cc')
 parser_util_obj = AnalyticsEnv_boost_no_unreach.Object('parser_util.o', 'parser_util.cc')
 
-AnalyticsEnv.Install(AnalyticsEnv['TOP_INCLUDE'] + '/database',
-    '#controller/src/database/gendb_if.h')
-AnalyticsEnv.Install(AnalyticsEnv['TOP_INCLUDE'] + '/config/config-client-mgr',
-    '#controller/src/config/config-client-mgr/config_json_parser_base.h')
-AnalyticsEnv.Install(AnalyticsEnv['TOP_INCLUDE'] + '/config/config-client-mgr',
-    '#controller/src/config/config-client-mgr/config_cass2json_adapter.h')
-AnalyticsEnv.Install(AnalyticsEnv['TOP_INCLUDE'] + '/config/config-client-mgr',
-    '#controller/src/config/config-client-mgr/json_adapter_data.h')
-AnalyticsEnv.Install(AnalyticsEnv['TOP_INCLUDE'] + '/config/config-client-mgr',
-    '#controller/src/config/config-client-mgr/config_client_manager.h')
-AnalyticsEnv.Install(AnalyticsEnv['TOP_INCLUDE'] + '/config/config-client-mgr',
-    '#controller/src/config/config-client-mgr/config_client_options.h')
-AnalyticsEnv.Install(AnalyticsEnv['TOP_INCLUDE'] + '/config/config-client-mgr',
-    '#controller/src/config/config-client-mgr/config_factory.h')
-AnalyticsEnv.Install(AnalyticsEnv['TOP_INCLUDE'] + '/config/config-client-mgr',
-    '#controller/src/config/config-client-mgr/config_factory.h')
-
-AnalyticsEnv.Install(AnalyticsEnv['TOP_INCLUDE'] + '/net',
-    '#controller/src/net/address_util.h')
-
-AnalyticsEnv.Install(AnalyticsEnv['TOP_INCLUDE'] + '/database/cassandra/cql',
-    '#controller/src/database/cassandra/cql/cql_if.h')
-AnalyticsEnv.Install(AnalyticsEnv['TOP_INCLUDE'] + '/database/cassandra/cql',
-    '#controller/src/database/cassandra/cql/cql_if_impl.h')
-AnalyticsEnv.Install(AnalyticsEnv['TOP_INCLUDE'] + '/database/cassandra/cql',
-    '#controller/src/database/cassandra/cql/cql_lib_if.h')
-AnalyticsEnv.Install(AnalyticsEnv['TOP_INCLUDE'] + '/database',
-    '#controller/src/database/gendb_statistics.h')
-
-AnalyticsEnv.Install(AnalyticsEnv['TOP_INCLUDE'] + '/zookeeper',
-    '#controller/src/zookeeper/zookeeper_client.h')
 
 vizd_sources = ['viz_collector.cc', 'ruleeng.cc', 'collector.cc',
                 'vizd_table_desc.cc', 'viz_message.cc','generator.cc',
@@ -323,8 +292,8 @@ CollectorDocFiles += AnalyticsEnv.SandeshGenDoc('collector_uve.sandesh')
 CollectorDocFiles += AnalyticsEnv.SandeshGenDoc('sdwan_uve.sandesh')
 CollectorDocFiles += AnalyticsEnv.SandeshGenDoc('uflow.sandesh')
 CollectorDocFiles += AnalyticsEnv.SandeshGenDoc('sflow.sandesh')
-CollectorDocFiles += AnalyticsEnv.SandeshGenDoc('../database/gendb.sandesh')
-CollectorDocFiles += AnalyticsEnv.SandeshGenDoc('../database/cassandra/cql/cql.sandesh')
+CollectorDocFiles += AnalyticsEnv.SandeshGenDoc('#src/contrail-common/database/gendb.sandesh')
+CollectorDocFiles += AnalyticsEnv.SandeshGenDoc('#src/contrail-common/database/cassandra/cql/cql.sandesh')
 CollectorDocFiles += AnalyticsEnv.SandeshGenDoc('#src/contrail-common/sandesh/library/common/sandesh_uve.sandesh')
 CollectorDocFiles += AnalyticsEnv.SandeshGenDoc('#src/contrail-common/sandesh/library/common/derived_stats_results.sandesh')
 
