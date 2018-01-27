@@ -169,7 +169,7 @@ def run_coverage(env, target, source):
                '/opserver/test/analytics_test_intermediate.info ' + \
                Dir('#').abspath + '/src/contrail-analytics/contrail-collector/* ' + \
                Dir('#').abspath + '/src/contrail-analytics/contrail-query-engine/* ' + \
-               Dir('#').abspath + '/controller/src/database/* ' + \
+               Dir('#').abspath + '/src/contrail-common/database/* ' + \
                ' -o ' + Dir(env['TOP']).abspath + \
                '/opserver/test/analytics_test.info'
     os.system(lcov_run)

@@ -36,13 +36,13 @@ cd_cmd = 'cd ' + Dir('.').path + ' && '
 sdist_gen = env.Command('dist/contrail-broadview-' \
         + version + '.tar.gz',
         sources + src_sandesh, cd_cmd + 'python setup.py sdist')
-env.Alias('controller/src/analytics/contrail-broadview/' + \
+env.Alias('src/contrail-analytics/contrail-broadview/' + \
         'contrail_broadview:sdist', sdist_gen)
 
 src_rules = [env.Install(Dir("."),
-    '#controller/src/analytics/contrail-broadview/' + f) for f in sources]
+    '#src/contrail-analytics/contrail-broadview/' + f) for f in sources]
 src_rules.append(env.Install(Dir("."),
-        '#controller/src/opserver/run_tests.sh'))
+        '#src/contrail-analytics/contrail-opserver/run_tests.sh'))
 
 test_sources = [
     'requirements.txt',
@@ -53,7 +53,7 @@ test_sources = [
 ]
 
 src_rules += [env.Install(Dir("."),
-    '#controller/src/analytics/contrail-broadview/' + f) for f in test_sources]
+    '#src/contrail-analytics/contrail-broadview/' + f) for f in test_sources]
 
 import os
 
@@ -105,7 +105,7 @@ env.Depends(test_cmd, [env['TOP']+x for x in test_depends])
 env.Depends(test_cmd, src_rules)
 
 env.Alias('test', test_cmd)
-env.Alias('controller/src/analytics/contrail-broadview:test', test_cmd)
+env.Alias('src/contrail-analytics/contrail-broadview:test', test_cmd)
 env.AlwaysBuild(test_cmd)
 
 doc_files = []
