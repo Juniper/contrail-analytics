@@ -21,7 +21,7 @@ from opserver.alarmgen import AlarmProcessor
 from opserver.opserver_util import camel_case_to_hyphen
 
 from cfgm_common.exceptions import *
-from contrail_alarm import alarm_list
+from test.utils.contrail_alarm_utils import alarm_list
 
 logging.basicConfig(level=logging.DEBUG,
     format='%(asctime)s %(levelname)s %(message)s')

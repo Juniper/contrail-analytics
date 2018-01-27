@@ -32,7 +32,7 @@ variant_dir_map['contrail-snmp-collector'] = 'contrail-snmp-collector'
 variant_dir_map['contrail-topology'] = 'contrail-topology'
 variant_dir_map['contrail-opserver'] = 'opserver'
 
-include = ['#/src/contrail-analytics', '#/build/include', '#src/contrail-common', '#controller/lib']
+include = ['#/src/contrail-analytics', '#/build/include', '#src/contrail-common']
 
 libpath = ['#/build/lib']
 
@@ -89,10 +89,8 @@ contrail_collector_doc_files += common.SandeshGenDoc('#src/contrail-analytics/co
 BuildEnv['ANALYTICS_DOC_FILES'] = contrail_collector_doc_files
 #Export('contrail_collector_doc_files')
 
-
 BuildEnv['INSTALL_DOC_PKG'] = BuildEnv['INSTALL_DOC'] + '/contrail-docs/html'
 BuildEnv['INSTALL_MESSAGE_DOC'] = BuildEnv['INSTALL_DOC_PKG'] + '/messages'
-
 
 for dir in subdirs_no_dup:
     BuildEnv.SConscript(dir + '/SConscript',
