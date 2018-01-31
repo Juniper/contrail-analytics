@@ -92,7 +92,7 @@ class AnalyticsTest(testtools.TestCase, fixtures.TestWithFixtures):
             cluster.shutdown()
     # end _update_analytics_start_time
 
-    #@unittest.skip('Skipping cassandra test with vizd')
+    @unittest.skip('Skipping cassandra test with vizd')
     def test_01_startup(self):
         '''
         This test starts redis,vizd,opserver and qed
@@ -112,7 +112,7 @@ class AnalyticsTest(testtools.TestCase, fixtures.TestWithFixtures):
         assert vizd_obj.verify_collector_obj_count()
         return True
 
-    #@unittest.skip('Query query engine logs to test QE')
+    @unittest.skip('Query query engine logs to test QE')
     def test_02_message_table_query(self):
         '''
         This test starts redis,vizd,opserver and qed
@@ -143,7 +143,7 @@ class AnalyticsTest(testtools.TestCase, fixtures.TestWithFixtures):
         return True
     # end test_02_message_table_query
 
-    #@unittest.skip('Send/query flow stats to test QE')
+    @unittest.skip('Send/query flow stats to test QE')
     def test_03_flow_query(self):
         '''
         This test starts redis,vizd,opserver and qed
@@ -179,7 +179,7 @@ class AnalyticsTest(testtools.TestCase, fixtures.TestWithFixtures):
         return True
     # end test_03_flow_query
 
-    #@unittest.skip('Send/query session stats to test QE')
+    @unittest.skip('Send/query session stats to test QE')
     def test_04_session_query(self):
         '''
         This test starts redis, vizd, opserver and qed
@@ -213,7 +213,7 @@ class AnalyticsTest(testtools.TestCase, fixtures.TestWithFixtures):
         return True
     # end test_04_session_query
 
-    #@unittest.skip('InterVN stats using StatsOracle')
+    @unittest.skip('InterVN stats using StatsOracle')
     def test_05_intervn_query(self):
         '''
         This test starts redis,vizd,opserver and qed
@@ -222,7 +222,7 @@ class AnalyticsTest(testtools.TestCase, fixtures.TestWithFixtures):
         and checks if intervn stats can be accessed from
         QE.
         '''
-        logging.info("%%% test_04_intervn_query %%%")
+        logging.info("%%% test_05_intervn_query %%%")
         if AnalyticsTest._check_skip_test() is True:
             return True
 
@@ -248,9 +248,9 @@ class AnalyticsTest(testtools.TestCase, fixtures.TestWithFixtures):
         assert vizd_obj.verify_intervn_all(generator_obj)
         assert vizd_obj.verify_intervn_sum(generator_obj)
         return True
-    # end test_04_intervn_query
+    # end test_05_intervn_query
 
-    #@unittest.skip('Fieldname queries')
+    @unittest.skip('Fieldname queries')
     def test_06_fieldname_query(self):
         '''
         This test starts redis,vizd,opserver and qed
@@ -258,7 +258,7 @@ class AnalyticsTest(testtools.TestCase, fixtures.TestWithFixtures):
         It then queries the stats table for messagetypes
         and objecttypes
         '''
-        logging.info("%%% test_05_fieldname_query %%%")
+        logging.info("%%% test_06_fieldname_query %%%")
         vizd_obj = self.useFixture(
             AnalyticsFixture(logging, builddir,
                              self.__class__.cassandra_port))
@@ -285,9 +285,9 @@ class AnalyticsTest(testtools.TestCase, fixtures.TestWithFixtures):
         assert vizd_obj.verify_fieldname_messagetype()
         assert vizd_obj.verify_fieldname_table()
         return True
-    # end test_05_fieldname_query
+    # end test_06_fieldname_query
 
-    #@unittest.skip('verify send-tracebuffer')
+    @unittest.skip('verify send-tracebuffer')
     def test_07_send_tracebuffer(self):
         '''
         This test verifies /analytics/send-tracebuffer/ REST API.
@@ -298,7 +298,7 @@ class AnalyticsTest(testtools.TestCase, fixtures.TestWithFixtures):
         analytics db. Verify that the trace messages are written in
         the analytics db.
         '''
-        logging.info('%%% test_06_send_tracebuffer %%%')
+        logging.info('%%% test_07_send_tracebuffer %%%')
         if AnalyticsTest._check_skip_test() is True:
             return True
         
@@ -335,9 +335,9 @@ class AnalyticsTest(testtools.TestCase, fixtures.TestWithFixtures):
         assert vizd_obj.verify_tracebuffer_in_analytics_db(
                     vizd_obj.collectors[1].hostname,
                     ModuleNames[Module.COLLECTOR], 'UveTrace')
-    #end test_06_send_tracebuffer
+    #end test_07_send_tracebuffer
 
-    #@unittest.skip(' where queries with different conditions')
+    @unittest.skip(' where queries with different conditions')
     def test_08_where_clause_query(self):
         '''
         This test is used to check the working of integer 
@@ -368,7 +368,7 @@ class AnalyticsTest(testtools.TestCase, fixtures.TestWithFixtures):
         return True
     #end test_08_where_clause_query
 
-    #@unittest.skip('verify ObjectTable query')
+    @unittest.skip('verify ObjectTable query')
     def test_18_verify_object_table_query(self):
         '''
         This test verifies the Object Table query.
@@ -407,7 +407,7 @@ class AnalyticsTest(testtools.TestCase, fixtures.TestWithFixtures):
             [vm1_name, vm2_name])
     # end test_18_verify_object_table_query
 
-    #@unittest.skip('verify ObjectValueTable query')
+    @unittest.skip('verify ObjectValueTable query')
     def test_10_verify_object_value_table_query(self):
         '''
         This test verifies the ObjectValueTable query.
@@ -438,7 +438,7 @@ class AnalyticsTest(testtools.TestCase, fixtures.TestWithFixtures):
             exp_object_values=['vm11&>'])
     # end test_10_verify_object_table_query
 
-    #@unittest.skip('verify message non ascii')
+    @unittest.skip('verify message non ascii')
     def test_12_verify_message_non_ascii(self):
         '''
         This test verifies message sent with non ascii character does not
@@ -460,7 +460,7 @@ class AnalyticsTest(testtools.TestCase, fixtures.TestWithFixtures):
         assert analytics.verify_collector_gen(analytics.collectors[0])
     # end test_12_verify_message_non_ascii
 
-    #@unittest.skip('verify sandesh ssl')
+    @unittest.skip('verify sandesh ssl')
     def test_13_verify_sandesh_ssl(self):
         '''
         This test enables sandesh ssl on contrail-collector and all the
@@ -544,7 +544,7 @@ class AnalyticsTest(testtools.TestCase, fixtures.TestWithFixtures):
                                               exp_genlist)
     # end test_13_verify_sandesh_ssl
 
-    #@unittest.skip('verify test_14_verify_qe_stats_collection query')
+    @unittest.skip('verify test_14_verify_qe_stats_collection query')
     def test_14_verify_qe_stats_collection(self):
         '''
         This test checks if the QE is able to collect the stats
@@ -591,7 +591,7 @@ class AnalyticsTest(testtools.TestCase, fixtures.TestWithFixtures):
         assert(new_reads > old_reads)
     # end test_14_verify_qe_stats_collection
 
-    #@unittest.skip('verify introspect ssl')
+    @unittest.skip('verify introspect ssl')
     def test_15_verify_introspect_ssl(self):
         '''
         This test enables introspect ssl and starts all the analytics
@@ -628,7 +628,7 @@ class AnalyticsTest(testtools.TestCase, fixtures.TestWithFixtures):
 
     # end test_15_verify_introspect_ssl
 
-    #@unittest.skip('check for rbac permissions')
+    @unittest.skip('check for rbac permissions')
     @mock.patch.object(OpServer, 'get_resource_list_from_uve_type')
     @mock.patch.object(OpServer, 'is_role_cloud_admin')
     def test_16_rbac(self, mock_is_role_cloud_admin,
@@ -670,7 +670,7 @@ class AnalyticsTest(testtools.TestCase, fixtures.TestWithFixtures):
         return True
     # end test_16_rbac
 
-    #@unittest.skip('check for rbac permissions for alarms')
+    @unittest.skip('check for rbac permissions for alarms')
     @mock.patch.object(OpServer, 'is_role_cloud_admin')
     def test_17_rbac_alarms(self, mock_is_role_cloud_admin):
         logging.info("%%% test_17_rbac_alarms %%%")

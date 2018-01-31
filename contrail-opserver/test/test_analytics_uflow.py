@@ -77,7 +77,7 @@ class AnalyticsUFlowTest(testtools.TestCase, fixtures.TestWithFixtures):
         return True
     # end verify_uflow
 
-    #@unittest.skip('test_ipfix')
+    @unittest.skip('test_ipfix')
     def test_ipfix(self):
         '''
         This test starts redis, vizd, opserver and qed
@@ -111,7 +111,7 @@ class AnalyticsUFlowTest(testtools.TestCase, fixtures.TestWithFixtures):
         assert(self.verify_uflow(vizd_obj, 'IPFIX', uexp))
     # end test_ipfix
 
-    #@unittest.skip('test_sflow')
+    @unittest.skip('test_sflow')
     def test_sflow(self):
         '''
         This test injects sFlow packets to the collector

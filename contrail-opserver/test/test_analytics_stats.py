@@ -69,7 +69,7 @@ class StatsTest(testtools.TestCase, fixtures.TestWithFixtures):
         mock_is_role_cloud_admin.start()
         self.addCleanup(mock_is_role_cloud_admin.stop)
 
-    #@unittest.skip('Get samples using StatsOracle')
+    @unittest.skip('Get samples using StatsOracle')
     def test_00_basicsamples(self):
         '''
         This test starts redis,vizd,opserver and qed
@@ -123,7 +123,7 @@ class StatsTest(testtools.TestCase, fixtures.TestWithFixtures):
         return True
     # end test_00_basicsamples
 
-    #@unittest.skip('Get samples using StatsOracle')
+    @unittest.skip('Get samples using StatsOracle')
     def test_01_statprefix(self):
         '''
         This test starts redis,vizd,opserver and qed
@@ -187,7 +187,7 @@ class StatsTest(testtools.TestCase, fixtures.TestWithFixtures):
         return True
     # end test_01_statprefix
 
-    #@unittest.skip('Get samples using StatsOracle')
+    @unittest.skip('Get samples using StatsOracle')
     def test_02_overflowsamples(self):
         '''
         This test starts redis,vizd,opserver and qed
@@ -225,7 +225,7 @@ class StatsTest(testtools.TestCase, fixtures.TestWithFixtures):
         return True
     # end test_02_overflowsamples
 
-    #@unittest.skip('Get minmax values from inserted stats')
+    @unittest.skip('Get minmax values from inserted stats')
     def test_03_min_max_query(self):
         '''
         This test starts redis,vizd,opserver and qed
@@ -268,7 +268,7 @@ class StatsTest(testtools.TestCase, fixtures.TestWithFixtures):
         return True
     # end test_03_min_max_query
 
-    #@unittest.skip('Get samples from objectlog stats')
+    @unittest.skip('Get samples from objectlog stats')
     def test_04_statprefix_obj(self):
         '''
         This test starts redis,vizd,opserver and qed
@@ -312,7 +312,7 @@ class StatsTest(testtools.TestCase, fixtures.TestWithFixtures):
         return True
     # end test_04_statprefix_obj
 
-    #@unittest.skip('Send stats with 2nd level of hierarchy')
+    @unittest.skip('Send stats with 2nd level of hierarchy')
     def test_05_statprefix_double(self):
         '''
         This test starts redis,vizd,opserver and qed
@@ -355,7 +355,7 @@ class StatsTest(testtools.TestCase, fixtures.TestWithFixtures):
         return True
     # end test_05_statprefix_double
 
-    #@unittest.skip('Stats query filter test')
+    @unittest.skip('Stats query filter test')
     def test_06_stats_filter(self):
         '''
         This test starts redis,vizd,opserver and qed

@@ -62,7 +62,7 @@ class AnalyticsUveTest(testtools.TestCase, fixtures.TestWithFixtures):
         mock_is_role_cloud_admin.start()
         self.addCleanup(mock_is_role_cloud_admin.stop)
 
-    #@unittest.skip('Skipping non-cassandra test with vizd')
+    @unittest.skip('Skipping non-cassandra test with vizd')
     def test_00_nocassandra(self):
         '''
         This test starts redis,vizd,opserver and qed
@@ -78,7 +78,7 @@ class AnalyticsUveTest(testtools.TestCase, fixtures.TestWithFixtures):
         return True
     # end test_00_nocassandra
 
-    #@unittest.skip('Skipping VM UVE test')
+    @unittest.skip('Skipping VM UVE test')
     def test_01_vm_uve(self):
         '''
         This test starts redis, vizd, opserver, qed, and a python generator
@@ -122,7 +122,7 @@ class AnalyticsUveTest(testtools.TestCase, fixtures.TestWithFixtures):
         return True
     # end test_01_vm_uve
 
-    #@unittest.skip('Skipping VM UVE test')
+    @unittest.skip('Skipping VM UVE test')
     def test_02_vm_uve_with_password(self):
         '''
         This test starts redis, vizd, opserver, qed, and a python generator
@@ -150,7 +150,7 @@ class AnalyticsUveTest(testtools.TestCase, fixtures.TestWithFixtures):
         return True
     # end test_02_vm_uve_with_password
 
-    #@unittest.skip('skipping verify redis-uve restart')
+    @unittest.skip('skipping verify redis-uve restart')
     def test_03_redis_uve_restart(self):
         logging.info('%%% test_03_redis_uve_restart %%%')
 
@@ -180,7 +180,7 @@ class AnalyticsUveTest(testtools.TestCase, fixtures.TestWithFixtures):
             "default-global-system-config:partial-sysinfo-compute"))
     # end test_03_redis_uve_restart
 
-    #@unittest.skip('verify redis-uve restart')
+    @unittest.skip('verify redis-uve restart')
     def test_04_redis_uve_restart_with_password(self):
         logging.info('%%% test_04_redis_uve_restart_with_password %%%')
 
@@ -348,7 +348,7 @@ class AnalyticsUveTest(testtools.TestCase, fixtures.TestWithFixtures):
                                       num_vm_ifs=5, msg_count=5)
     # end test_05_collector_ha
 
-    #@unittest.skip('Skipping AlarmGen basic test')
+    @unittest.skip('Skipping AlarmGen basic test')
     def test_06_alarmgen_basic(self):
         '''
         This test starts the analytics processes.
@@ -470,7 +470,7 @@ class AnalyticsUveTest(testtools.TestCase, fixtures.TestWithFixtures):
         return True
     # end test_06_alarmgen_basic
 
-    #@unittest.skip('Skipping Alarm test')
+    @unittest.skip('Skipping Alarm test')
     def test_07_alarm(self):
         '''
         This test starts redis, collectors, analytics-api and
@@ -587,7 +587,7 @@ class AnalyticsUveTest(testtools.TestCase, fixtures.TestWithFixtures):
             alarm_gen1.alarms[BGP_ROUTER_TABLE][keys[0]].data)))
     # end test_07_alarm
 
-    #@unittest.skip('Skipping UVE/Alarm Filter test')
+    @unittest.skip('Skipping UVE/Alarm Filter test')
     def test_08_uve_alarm_filter(self):
         '''
         This test verifies the filter options kfilt, sfilt, mfilt and cfilt
@@ -1901,6 +1901,7 @@ class AnalyticsUveTest(testtools.TestCase, fixtures.TestWithFixtures):
     #             60    (severity x)     80
     #                       |
     #                       |
+    @unittest.skip('Skipping test_09_verify_db_info')
     def test_09_verify_db_info(self):
         logging.info('%%% test_09_verify_db_info %%%')
 
@@ -1962,7 +1963,7 @@ class AnalyticsUveTest(testtools.TestCase, fixtures.TestWithFixtures):
         return True
     # end test_09_verify_db_info
 
-    #@unittest.skip('Skipping AnalyticsApiInfo UVE test')
+    @unittest.skip('Skipping AnalyticsApiInfo UVE test')
     def test_10_analytics_api_info_uve(self):
 
         '''
@@ -1987,7 +1988,7 @@ class AnalyticsUveTest(testtools.TestCase, fixtures.TestWithFixtures):
                     host_ip = '127.0.0.1')
         return True
 
-    #@unittest.skip('Skipping test_11_analytics_generator_timeout')
+    @unittest.skip('Skipping test_11_analytics_generator_timeout')
     def test_11_analytics_generator_timeout(self):
 
         '''
