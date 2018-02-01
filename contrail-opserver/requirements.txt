@@ -1,7 +1,7 @@
 requests
 pycassa
 lxml
-gevent
+gevent=1.2.2
 geventhttpclient
 redis
 xmltodict
