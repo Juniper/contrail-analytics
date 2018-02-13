@@ -181,6 +181,8 @@ extern SandeshTraceBufferPtr QeTraceBuf;
      QE_LOG(ERROR,  "QUERY failed to get rows " << QUERY_FAILURE); \
 }
 
+extern bool oldDataExists;
+
 typedef boost::shared_ptr<GenDb::GenDbIf> GenDbIfPtr;
 
 // flow sample stats which is stored in Cassandra flow index tables
@@ -517,6 +519,7 @@ public:
     std::auto_ptr<WhereResultT> where_result_;
     // Used to store the sub_query(Each DbQueryUnits) results
     std::vector<WhereResultT*> inp;
+    std::vector<WhereResultT*> inp_new_data;
     typedef boost::function<void(void *, QEOpServerProxy::QPerfInfo,
           std::auto_ptr<WhereResultT> )> WhereQueryCbT;
     WhereQueryCbT where_query_cb_;

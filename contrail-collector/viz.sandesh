@@ -163,6 +163,13 @@ const u16 NUM_SESSION_STATS_FIELDS  = 8
 
 const string OVERLAY_TO_UNDERLAY_FLOW_MAP = "OverlayToUnderlayFlowMap"
 
+const string STATS_TABLE_BY_STR_STR_TAG     = "StatsTableByStrStrTagV3"
+const string STATS_TABLE_BY_STR_U64_TAG     = "StatsTableByStrU64TagV3"
+const string STATS_TABLE_BY_U64_STR_TAG     = "StatsTableByU64StrTagV3"
+const string STATS_TABLE_BY_U64_U64_TAG     = "StatsTableByU64U64TagV3"
+const string STATS_TABLE_BY_DBL_TAG         = "StatsTableByDblTagV3"
+const string STATS_TABLE_BY_STR_TAG         = "StatsTableByStrTagV3"
+const string STATS_TABLE_BY_U64_TAG         = "StatsTableByU64TagV3"
 const string STATS_TABLE                    = "StatsTableV4"
 
 const string STATS_NAME_FIELD   = "name"
@@ -203,6 +210,13 @@ const map<TtlType, u64> TtlValuesDefault = {
 }
 
 const list<string> _STATS_TABLES = [
+    STATS_TABLE_BY_STR_STR_TAG,
+    STATS_TABLE_BY_STR_U64_TAG,
+    STATS_TABLE_BY_U64_STR_TAG,
+    STATS_TABLE_BY_U64_U64_TAG,
+    STATS_TABLE_BY_DBL_TAG,
+    STATS_TABLE_BY_STR_TAG,
+    STATS_TABLE_BY_U64_TAG,
     STATS_TABLE
 ]
 

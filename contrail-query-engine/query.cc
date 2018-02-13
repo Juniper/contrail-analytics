@@ -40,6 +40,8 @@ using process::ConnectionStatus;
 
 int QueryEngine::max_slice_ = 100;
 
+bool oldDataExists;
+
 typedef  std::vector< std::pair<std::string, std::string> > spair_vector;
 static spair_vector query_string_to_column_name(0);
 
@@ -956,6 +958,7 @@ QueryEngine::QueryEngine(EventManager *evm,
         }
     max_slice_ = max_slice;
     max_tasks_ = max_tasks;
+    oldDataExists = true;
     init_vizd_tables();
 
     // Initialize database connection
@@ -1000,6 +1003,21 @@ QueryEngine::QueryEngine(EventManager *evm,
                 }
             }
 
+        }
+
+        if (!retry) {
+            for (std::vector<std::string>::const_iterator it = 
+                    g_viz_constants._STATS_TABLES.begin();
+                    it != g_viz_constants._STATS_TABLES.end() - 1; it++) {
+                if (!dbif_->Db_UseColumnfamily(*it)) {
+                    oldDataExists = false;
+                    QE_LOG_NOQID(DEBUG, "Older table does not exist. will query only the new table");
+                    break;
+                }
+            }
+        }
+        if (oldDataExists) {
+            QE_LOG_NOQID(DEBUG, "Older table exists. will query both the tables");
         }
 
         if (!retry) {
