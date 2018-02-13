@@ -517,6 +517,7 @@ public:
     std::auto_ptr<WhereResultT> where_result_;
     // Used to store the sub_query(Each DbQueryUnits) results
     std::vector<WhereResultT*> inp;
+    std::vector<WhereResultT*> inp_new_data;
     typedef boost::function<void(void *, QEOpServerProxy::QPerfInfo,
           std::auto_ptr<WhereResultT> )> WhereQueryCbT;
     WhereQueryCbT where_query_cb_;

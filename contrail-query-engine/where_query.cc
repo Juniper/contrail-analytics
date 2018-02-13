@@ -306,6 +306,128 @@ WhereQuery::StatTermParse(QueryUnit *main_query, const contrail_rapidjson::Value
     return true;
 }
 
+static bool StatSlicer(DbQueryUnit *db_query, match_op op,
+        const GenDb::DbDataValue& val, const GenDb::DbDataValue& val2) {
+    if (val.which() == GenDb::DB_VALUE_STRING) {
+        if (!((op == EQUAL) || (op == PREFIX))) return false;
+    } else {
+        if (!((op == EQUAL) || (op == IN_RANGE))) return false;
+    }
+    db_query->cr.start_.push_back(val);
+    if (op == PREFIX) {
+        std::string str_smpl2(boost::get<std::string>(val) + "\x7f");
+        db_query->cr.finish_.push_back(str_smpl2);
+    } else if (op == IN_RANGE) {
+        db_query->cr.finish_.push_back(val2);
+    } else {
+        db_query->cr.finish_.push_back(val);
+    }
+    return true;
+}
+
+bool WhereQuery::StatTermProcess(const contrail_rapidjson::Value& where_term,
+        QueryUnit* and_node, QueryUnit *main_query) {
+
+    AnalyticsQuery *m_query = (AnalyticsQuery *)main_query;
+    std::string pname,sname,cfname;
+    match_op pop,sop;
+    GenDb::DbDataValue pval, pval2, sval, sval2;
+
+    bool res = StatTermParse(main_query, where_term,
+            pname, pop, pval, pval2, sname, sop, sval, sval2);
+
+    if (!res) return false;
+
+    bool twotag = true;
+    if ((sop==(match_op)0)&&(sname.empty())) {
+        // We need to look at the single-tag stat index tables
+        twotag = false;
+        if (pval.which() == GenDb::DB_VALUE_STRING) {
+            cfname = g_viz_constants.STATS_TABLE_BY_STR_TAG;
+        } else if (pval.which() == GenDb::DB_VALUE_UINT64) {
+            cfname = g_viz_constants.STATS_TABLE_BY_U64_TAG;
+        } else if (pval.which() == GenDb::DB_VALUE_DOUBLE) {
+            cfname = g_viz_constants.STATS_TABLE_BY_DBL_TAG;
+        } else {
+            QE_TRACE(DEBUG, "For single-tag index table, wrong WHERE type " <<
+                    pval.which());
+            return false;
+        }
+    } else {
+        if (pval.which() == GenDb::DB_VALUE_STRING) {
+            if (sval.which() == GenDb::DB_VALUE_STRING) {
+                cfname = g_viz_constants.STATS_TABLE_BY_STR_STR_TAG;
+            } else if (sval.which() == GenDb::DB_VALUE_UINT64) {
+                cfname = g_viz_constants.STATS_TABLE_BY_STR_U64_TAG;
+            } else {
+                QE_TRACE(DEBUG, "For two-tag STR table, wrong WHERE suffix type " <<
+                        sval.which());
+                return false;
+            }
+        } else if (pval.which() == GenDb::DB_VALUE_UINT64) {
+            if (sval.which() == GenDb::DB_VALUE_STRING) {
+                cfname = g_viz_constants.STATS_TABLE_BY_U64_STR_TAG;
+            } else if (sval.which() == GenDb::DB_VALUE_UINT64) {
+                cfname = g_viz_constants.STATS_TABLE_BY_U64_U64_TAG;
+            } else {
+                QE_TRACE(DEBUG, "For two-tag U64 table, wrong WHERE suffix type " <<
+                        sval.which());
+                return false;
+            }
+        } else {
+            QE_TRACE(DEBUG, "For two-tag index table, wrong WHERE prefix type " <<
+                    pval.which());
+            return false;
+        }
+    }
+    QE_TRACE(DEBUG, "Query Stat Index " << cfname <<  " twotag " << twotag);
+    DbQueryUnit *db_query = new DbQueryUnit(and_node, main_query);
+
+    db_query->t_only_col = false;
+    db_query->t_only_row = false;
+    db_query->cfname = cfname;
+
+    size_t tpos,apos;
+    std::string tname = m_query->table();
+    tpos = tname.find('.');
+    apos = tname.find('.', tpos+1);
+
+    std::string tstr = tname.substr(tpos+1, apos-tpos-1);
+    std::string astr = tname.substr(apos+1, std::string::npos);
+
+    db_query->row_key_suffix.push_back(tstr);
+    db_query->row_key_suffix.push_back(astr);
+    db_query->row_key_suffix.push_back(pname);
+
+    if (twotag) {
+        db_query->row_key_suffix.push_back(sname);
+        if (sop==(match_op)0) {
+            // We will only be using the prefix value for querying
+            if (!StatSlicer(db_query, pop, pval, pval2)) return false;
+
+            if (sval.which() == GenDb::DB_VALUE_STRING) {
+                db_query->cr.start_.push_back(std::string("\x00"));
+                db_query->cr.finish_.push_back(std::string("\x7f"));
+            } else {
+                db_query->cr.start_.push_back((uint64_t)0);
+                db_query->cr.finish_.push_back((uint64_t)0xffffffffffffffff);
+            }
+        } else {
+            // We will be using the suffix value for querying
+            if (!(pop == EQUAL)) return false;
+            db_query->cr.start_.push_back(pval);
+            db_query->cr.finish_.push_back(pval);
+
+            if (!StatSlicer(db_query, sop, sval, sval2)) return false;
+        }
+
+    } else {
+        if (!StatSlicer(db_query, pop, pval, pval2)) return false;
+    }
+
+    return true;
+}
+
 void GetStatTableAttrName(const std::string& tname, std::string *tstr, std::string *astr) {
     size_t tpos,apos;
     tpos = tname.find('.');
@@ -844,7 +966,9 @@ WhereQuery::WhereQuery(const std::string& where_json_string, int session_type,
                 }
             }
             if (isStat)
-            {
+            {   // Call StatTermProcess to handle the query into older tables
+                StatTermProcess(json_or_node[j], this, main_query);
+
                 std::string pname, sname;
                 match_op pop,sop;
                 GenDb::DbDataValue pval, pval2, sval, sval2;
@@ -1205,16 +1329,18 @@ void WhereQuery::subquery_processed(QueryUnit *subquery) {
         tbb::mutex::scoped_lock lock(vector_push_mutex_);
         int sub_query_id = ((DbQueryUnit *)subquery)->sub_query_id;
         if (((DbQueryUnit *)subquery)->cfname == g_viz_constants.OBJECT_TABLE) {
-           inp.insert(inp.begin(), sub_queries[sub_query_id]->query_result.get());
+            inp.insert(inp.begin(), sub_queries[sub_query_id]->query_result.get());
+        } else if (((DbQueryUnit *)subquery)->cfname == g_viz_constants.STATS_TABLE) {
+            inp_new_data.push_back((sub_queries[sub_query_id]->query_result.get()));
         } else {
-           inp.push_back((sub_queries[sub_query_id]->query_result.get()));
+            inp.push_back((sub_queries[sub_query_id]->query_result.get()));
         }
         if (subquery->query_status == QUERY_FAILURE) {
             QE_QUERY_FETCH_ERROR();
         }
     }
 
-    if (sub_queries.size() == inp.size()) {
+    if (sub_queries.size() == inp.size() + inp_new_data.size()) {
         // Handle if any of the sub query has failed.
         if (m_query->qperf_.error) {
             m_query->qperf_.chunk_where_time =
@@ -1227,6 +1353,20 @@ void WhereQuery::subquery_processed(QueryUnit *subquery) {
             || m_query->is_object_table_query(m_query->table())
             || m_query->is_flow_query(m_query->table())
             ) {
+            SetOperationUnit::op_or(((AnalyticsQuery *)(this->main_query))->query_id,
+                *where_result_, inp);
+        } else if (m_query->is_stat_table_query(m_query->table())) {
+            std::auto_ptr<WhereResultT>
+                where_result_old(new std::vector<query_result_unit_t>);
+            SetOperationUnit::op_and(((AnalyticsQuery *)(this->main_query))->query_id,
+                *where_result_old, inp);
+            std::auto_ptr<WhereResultT>
+                where_result_new(new std::vector<query_result_unit_t>);
+            SetOperationUnit::op_and(((AnalyticsQuery *)(this->main_query))->query_id,
+                *where_result_new, inp_new_data);
+            std::vector<WhereResultT*> inp_final;
+            inp_final.push_back(where_result_old.get());
+            inp_final.push_back(where_result_new.get());
             SetOperationUnit::op_or(((AnalyticsQuery *)(this->main_query))->query_id,
                 *where_result_, inp);
         } else {
