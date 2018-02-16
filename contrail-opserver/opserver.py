@@ -921,6 +921,10 @@ class OpServer(object):
                         datatype=aln["datatype"], index=aln["index"])
                 scols.append(aln_col)
 
+                sln = stat_query_column(name= "COUNT_DISTINCT(" + aln["name"] + ")",
+                        datatype=aln["datatype"], index=False)
+                scols.append(sln)
+
                 if aln["datatype"] in ['int','double']:
                     sln = stat_query_column(name= "SUM(" + aln["name"] + ")",
                             datatype=aln["datatype"], index=False)

@@ -332,7 +332,7 @@ public:
                 if (inp.map_output) {
                     uint32_t base_rows = res.mresult->size();
                     // TODO: This interface should not be Stats-Specific
-                    StatsSelect::Merge(*(exts[step-1]->mres), *(res.mresult));
+                    StatsSelect::Merge(std::string(""), *(exts[step-1]->mres), *(res.mresult));
                     // Some rows of this chunk will merge into existing results
                     added_rows = res.mresult->size() - base_rows;
                 } else {
@@ -489,6 +489,7 @@ public:
                 }
             }
         }
+
         return true;
     }
 
