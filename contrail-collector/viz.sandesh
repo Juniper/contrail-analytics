@@ -5607,7 +5607,6 @@ const list<query_table> _TABLES = [
                { 'name' : 'reverse_drop_reason', 'datatype' : 'string',
                  'index' : false },
 
-
                { 'name' : 'session_class_id', 'datatype': 'int', 'index': false },
                { 'name' : 'T', 'datatype': 'int', 'index' : false },
                { 'name' : 'T=', 'datatype': 'int', 'index' : false },
@@ -5645,6 +5644,16 @@ const list<query_table> _TABLES = [
                { 'name' : 'SUM(reverse_logged_bytes)', 'datatype': 'int',
                  'index': false },
                { 'name' : 'SUM(reverse_logged_pkts)', 'datatype': 'int',
+                 'index': false },
+
+               { 'name' : 'COUNT_DISTINCT(local_ip)', 'datatype': 'int',
+                 'index': false },
+               { 'name' : 'COUNT_DISTINCT(vn)', 'datatype': 'int',
+                 'index': false },
+               { 'name' : 'COUNT_DISTINCT(remote_vn)', 'datatype': 'int',
+                 'index': false },
+
+               { 'name' : 'COUNT_DISTINCT(remote_ip)', 'datatype': 'int',
                  'index': false },
 
                { 'name' : 'sample_count', 'datatype': 'int', 'index': false}
