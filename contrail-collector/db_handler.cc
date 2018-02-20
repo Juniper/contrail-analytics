@@ -1013,6 +1013,8 @@ static inline unsigned int djb_hash (const char *str, size_t len) {
     return hash;
 }
 
+typedef std::pair<std::string, std::string> MapElem;
+
 // This function writes Stats samples to the DB.
 void
 DbHandler::StatTableInsertTtl(uint64_t ts, 
@@ -1022,6 +1024,9 @@ DbHandler::StatTableInsertTtl(uint64_t ts,
         const AttribMap & attribs, int ttl,
         GenDb::GenDbIf::DbAddColumnCb db_cb) {
 
+    if (statName.compare("EndpointSecurityStatsMock") == 0) {
+        DB_LOG(DEBUG, "EPS Mock message");
+    }
     uint64_t temp_u64 = ts;
     uint32_t temp_u32 = temp_u64 >> g_viz_constants.RowTimeInBits;
     boost::uuids::uuid unm;
@@ -1081,7 +1086,41 @@ DbHandler::StatTableInsertTtl(uint64_t ts,
                     dd.AddMember(vk.SetString(rt.first->first.c_str(),
                                  dd.GetAllocator()), val, dd.GetAllocator());
                 }
-                break;                
+                break;
+            case LIST: {
+                    contrail_rapidjson::Value val_array(contrail_rapidjson::kArrayType);
+                    std::string nm = it->first + std::string("|a");
+                    BOOST_FOREACH(const std::string& elem, it->second.vec) {
+                        contrail_rapidjson::Value val(contrail_rapidjson::kStringType);
+                        val.SetString(elem.c_str(), dd.GetAllocator());
+                        val_array.PushBack(val, dd.GetAllocator());
+                    }
+                    pair<AttribMap::iterator,bool> rt =
+                        attribs_buf.insert(make_pair(nm, it->second));
+                    contrail_rapidjson::Value vk;
+                    dd.AddMember(vk.SetString(rt.first->first.c_str(),
+                                 dd.GetAllocator()), val_array, dd.GetAllocator());
+
+                }
+                break;
+            case MAP: {
+                    contrail_rapidjson::Value val_obj(contrail_rapidjson::kObjectType);
+                    std::string nm = it->first + std::string("|m");
+                    BOOST_FOREACH(const MapElem& pair, it->second.map) {
+                        contrail_rapidjson::Value val(contrail_rapidjson::kStringType);
+                        val.SetString(pair.second.c_str(), dd.GetAllocator());
+                        contrail_rapidjson::Value val_key;
+                        val_obj.AddMember(val_key.SetString(pair.first.c_str(),
+                            dd.GetAllocator()), val, dd.GetAllocator());
+                    }
+                    pair<AttribMap::iterator,bool> rt =
+                        attribs_buf.insert(make_pair(nm, it->second));
+                    contrail_rapidjson::Value vk;
+                    dd.AddMember(vk.SetString(rt.first->first.c_str(),
+                                 dd.GetAllocator()), val_obj, dd.GetAllocator());
+
+                }
+                break;
             default:
                 continue;
         }
@@ -1129,11 +1168,39 @@ DbHandler::StatTableInsertTtl(uint64_t ts,
         } else if (boost::algorithm::ends_with(ptag.first, g_viz_constants.STATS_PROXY_FIELD)) {
             proxy = ptag.second.str;
         } else {
-            std::ostringstream tag_oss;
-            tag_oss << ptag.first << "=" << ptag.second;
-            size_t idx = djb_hash(ptag.first.c_str(), ptag.first.length())
-                % g_viz_constants.NUM_STATS_TAGS_FIELD;
-            tags[idx].push_back(tag_oss.str());
+            switch (ptag.second.type) {
+                case STRING:
+                case UINT64:
+                case DOUBLE: {
+                        std::ostringstream tag_oss;
+                        tag_oss << ptag.first << "=" << ptag.second;
+                        size_t idx = djb_hash(ptag.first.c_str(), ptag.first.length()) % 4;
+                        tags[idx].push_back(tag_oss.str());
+                    }
+                    break;
+                case LIST: {
+                        BOOST_FOREACH(const std::string& elem, ptag.second.vec) {
+                            std::ostringstream tag_oss;
+                            tag_oss << ptag.first << "=" << elem;
+                            size_t idx = djb_hash(ptag.first.c_str(), ptag.first.length()) % 4;
+                            tags[idx].push_back(tag_oss.str());
+                        }
+                    }
+                    break;
+                case MAP: {
+                        BOOST_FOREACH(const MapElem& pair, ptag.second.map) {
+                            std::ostringstream tag_oss;
+                            std::string nm = ptag.first + "." + pair.first;
+                            tag_oss << nm << "=" << pair.second;
+                            size_t idx = djb_hash(nm.c_str(), nm.length()) % 4;
+                            tags[idx].push_back(tag_oss.str());
+                        }
+                    }
+                    break;
+                default: {
+                    continue;
+                }
+            }
         }
 
         if (!it->second.second.empty()) {
@@ -1153,6 +1220,39 @@ DbHandler::StatTableInsertTtl(uint64_t ts,
                     size_t idx = djb_hash(jt->first.c_str(), jt->first.length())
                         % g_viz_constants.NUM_STATS_TAGS_FIELD;
                     tags[idx].push_back(tag_oss.str());
+                    switch (jt->second.type) {
+                    case STRING:
+                    case UINT64:
+                    case DOUBLE: {
+                            std::ostringstream tag_oss;
+                            tag_oss << jt->first << "=" << jt->second;
+                            size_t idx = djb_hash(jt->first.c_str(), jt->first.length()) % 4;
+                            tags[idx].push_back(tag_oss.str());
+                        }
+                        break;
+                    case LIST: {
+                            BOOST_FOREACH(const std::string& elem, jt->second.vec) {
+                                std::ostringstream tag_oss;
+                                tag_oss << jt->first << "=" << elem;
+                                size_t idx = djb_hash(jt->first.c_str(), jt->first.length()) % 4;
+                                tags[idx].push_back(tag_oss.str());
+                            }
+                        }
+                        break;
+                    case MAP: {
+                            BOOST_FOREACH(const MapElem& pair, jt->second.map) {
+                                std::ostringstream tag_oss;
+                                std::string nm = jt->first + "." + pair.first;
+                                tag_oss << nm << "=" << pair.second;
+                                size_t idx = djb_hash(nm.c_str(), nm.length()) % 4;
+                                tags[idx].push_back(tag_oss.str());
+                            }
+                        }
+                        break;
+                    default: {
+                        continue;
+                        }
+                    }
                 }
             }
         }

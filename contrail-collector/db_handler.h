@@ -67,18 +67,35 @@ public:
         UINT64 = 1,
         STRING = 2,
         DOUBLE = 3,
+        LIST = 4,
+        MAP = 5,
         MAXVAL 
     } VarType;
 
     struct Var {
-        Var() : type(INVALID), str(""), num(0), dbl(0) {}
-        Var(const std::string &s) : type(STRING), str(s), num(0), dbl(0) {}
-        Var(uint64_t v) : type(UINT64), str(""), num(v), dbl(0) {}
-        Var(double d) : type(DOUBLE), str(""), num(0), dbl(d) {}
+        Var() : type(INVALID), str(""), num(0), dbl(0), vec(std::vector<std::string>()),
+                map(std::map<std::string, std::string>()) {}
+        Var(const std::string &s) : type(STRING), str(s), num(0), dbl(0),
+                                    vec(std::vector<std::string>()),
+                                    map(std::map<std::string, std::string>()) {}
+        Var(uint64_t v) : type(UINT64), str(""), num(v), dbl(0),
+                          vec(std::vector<std::string>()),
+                          map(std::map<std::string, std::string>()) {}
+        Var(double d) : type(DOUBLE), str(""), num(0), dbl(d),
+                        vec(std::vector<std::string>()),
+                        map(std::map<std::string, std::string>()) {}
+        Var(const std::vector<std::string> &v) : type(LIST), str(""), num(0),
+                                                 dbl(0), vec(v),
+                                                 map(std::map<std::string, std::string>()) {}
+        Var(const std::map<std::string, std::string> &m) : type(MAP), str(""), num(0),
+                                                 dbl(0), vec(std::vector<std::string>()),
+                                                 map(m) {}
         VarType type;
         std::string str;
         uint64_t num;
         double dbl;
+        std::vector<std::string> vec;
+        std::map<std::string, std::string> map;
         bool operator==(const Var &other) const {
             if (type!=other.type) return false;
             switch (type) {
@@ -90,6 +107,12 @@ public:
                     break;
                 case DOUBLE:
                     if (dbl!=other.dbl) return false;
+                    break;
+                case LIST:
+                    if (vec!=other.vec) return false;
+                    break;
+                case MAP:
+                    if (map!=other.map) return false;
                     break;
                 default:
                     break; 
@@ -292,18 +315,27 @@ typedef boost::shared_ptr<DbHandler> DbHandlerPtr;
 
 inline std::ostream& operator<<(std::ostream& out, const DbHandler::Var& value) {
     switch (value.type) {
-      case DbHandler::STRING:
-	out << value.str;
-	break;
-      case DbHandler::UINT64:
-	out << value.num;
-	break;
-      case DbHandler::DOUBLE:
-	out << value.dbl;
-	break;
-      default:
-	out << "Invalid type: " << value.type;
-	break;
+        case DbHandler::STRING:
+	        out << value.str;
+	        break;
+        case DbHandler::UINT64:
+	        out << value.num;
+            break;
+        case DbHandler::DOUBLE:
+	        out << value.dbl;
+	        break;
+        case DbHandler::LIST:
+            out << boost::algorithm::join(value.vec, "; ");
+            break;
+        case DbHandler::MAP:
+            for (std::map<std::string, std::string>::const_iterator itr = value.map.begin();
+                    itr != value.map.end(); itr++) {
+                out << "{" << itr->first << ":" << itr->second << "}, ";
+            }
+            break;
+        default:
+	        out << "Invalid type: " << value.type;
+	        break;
     }
     return out;
 }

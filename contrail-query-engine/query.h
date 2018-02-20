@@ -181,6 +181,8 @@ extern SandeshTraceBufferPtr QeTraceBuf;
      QE_LOG(ERROR,  "QUERY failed to get rows " << QUERY_FAILURE); \
 }
 
+extern bool oldDataExists;
+
 typedef boost::shared_ptr<GenDb::GenDbIf> GenDbIfPtr;
 
 // flow sample stats which is stored in Cassandra flow index tables

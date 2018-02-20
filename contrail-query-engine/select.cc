@@ -772,18 +772,58 @@ query_status_t SelectQuery::process_query() {
                     se.name = fvname.substr(0,fvname.length()-2);
                     if (tname == 's') {
                         se.value = itr->value.GetString();
+                        attribs.push_back(se);
                     } else if (tname == 'n') {
                         if (itr->value.IsUint()) {
                             se.value = (uint64_t)itr->value.GetUint();
                         } else {
                             se.value = (uint64_t)itr->value.GetUint64();
                         }
+                        attribs.push_back(se);
                     } else if (tname == 'd') {
                         se.value = (double) itr->value.GetDouble();
+                        attribs.push_back(se);
+                    } else if (tname == 'a') {
+                        std::ostringstream a_val;
+                        size_t i = 0;
+                        // handle list type
+                        for (contrail_rapidjson::Value::ConstValueIterator it =
+                            itr->value.Begin(); it != itr->value.End(); ++it) {
+                            if (i) {
+                                a_val << "; ";
+                            }
+                            QE_ASSERT(it->IsString());
+                            a_val << it->GetString();
+                            i++;
+                        }
+                        se.value = a_val.str();
+                        attribs.push_back(se);
+                    } else if (tname == 'm') {
+                        // handle map type
+                        std::ostringstream map_oss;
+                        map_oss << "{";
+                        size_t i = 0;
+                        for (contrail_rapidjson::Value::ConstMemberIterator it =
+                            itr->value.MemberBegin(); it != itr->value.MemberEnd();
+                            ++it) {
+                            QE_ASSERT(it->name.IsString() && it->value.IsString());
+                            StatsSelect::StatEntry entry;
+                            entry.name = se.name + "." + it->name.GetString();
+                            entry.value = it->value.GetString();
+                            if (i) {
+                                map_oss << ", ";
+                            }
+                            map_oss << "\"" << it->name.GetString() << "\"" << ":" 
+                                    << "\"" << it->value.GetString() << "\"";
+                            attribs.push_back(entry);
+                            i++;
+                        }
+                        map_oss << "}";
+                        se.value = map_oss.str();
+                        attribs.push_back(se);
                     } else {
                         QE_ASSERT(0);
                     }
-                    attribs.push_back(se);
 
                     //parset += UTCTimestampUsec() - thenp; 
                 }
