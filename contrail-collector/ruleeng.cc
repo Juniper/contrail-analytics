@@ -112,6 +112,33 @@ static bool ParseNodeImpl(DbHandler::Var& sample,
         sample = (double) strtod(node.child_value(), NULL);
     } else if ((attype == "u16") ||  (attype == "u32") || (attype == "u64")) {
         sample = (uint64_t) strtoul(node.child_value(), NULL, 10);
+    } else if (attype == "set" || attype == "list") {
+        pugi::xml_node set;
+        if (attype == "set") {
+            set = node.child("set");
+        } else {
+            set = node.child("list");
+        }
+        std::vector<std::string> set_value;
+        for (pugi::xml_node set_elem = set.first_child(); set_elem;
+                set_elem = set_elem.next_sibling()) {
+            std::string elem_value = set_elem.child_value();
+            TXMLProtocol::unescapeXMLControlChars(elem_value);
+            set_value.push_back(elem_value);
+        }
+        sample = set_value;
+    } else if (attype == "map") {
+        pugi::xml_node map_node = node.child("map");
+        std::map<std::string, std::string> map_value;
+        for (pugi::xml_node map_key = map_node.first_child(); map_key;
+            map_key = map_key.next_sibling().next_sibling()) {
+            std::ostringstream key_val;
+            std::pair<std::string, string> map_elem =
+                std::make_pair(std::string(map_key.child_value()),
+                    std::string(map_key.next_sibling().child_value()));
+            map_value.insert(map_elem);
+        }
+        sample = map_value;
     } else {
         return false;
     }

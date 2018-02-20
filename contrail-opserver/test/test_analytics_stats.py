@@ -444,6 +444,70 @@ class StatsTest(testtools.TestCase, fixtures.TestWithFixtures):
             filt="st.d1 >= 12.5")
     # end test_06_stats_filter
 
+    #@unittest.skip('Get samples using map_elem/list_elem tags')
+    def test_07_container_samples(self):
+        '''
+        This test starts redis,vizd,opserver and qed
+        It uses the test class' cassandra instance
+        Then it sends test stats to the collector
+        and checks if they can be accessed from QE.
+        '''
+        logging.info("%%% test_07_container_samples %%%")
+        if StatsTest._check_skip_test() is True:
+            return True
+
+        vizd_obj = self.useFixture(
+            AnalyticsFixture(logging, builddir,
+                             self.__class__.cassandra_port))
+        assert vizd_obj.verify_on_setup()
+        assert vizd_obj.verify_collector_obj_count()
+        collectors = [vizd_obj.get_collector()]
+
+        generator_obj = self.useFixture(
+            StatsFixture("VRouterAgent", collectors,
+                             logging, vizd_obj.get_opserver_port()))
+        assert generator_obj.verify_on_setup()
+
+        logging.info("Starting stat gen " + str(UTCTimestampUsec()))
+
+        generator_obj.send_test_stat_container("t07", "samp1",
+                {"me1":"val1", "me2":"val2"}, ["le1", "le2"],
+                ["se1","se2"], 2)
+        generator_obj.send_test_stat_container("t07", "samp1",
+                {"me1":"val2", "me3":"val3"}, ["le1", "le2", "le4"],
+                ["se3","se4"], 2)
+        generator_obj.send_test_stat_container("t07", "samp2",
+                {"me3":"val3", "me2":"val2"}, ["le3", "le5"],
+                ["se3","se7"], 2)
+        generator_obj.send_test_stat_container("t07", "samp3",
+                {"me1":"val1", "me2":"val3", "me3":"val3"}, ["le1"],
+                ["se3","se2"], 2)
+        generator_obj.send_test_stat_container("t07", "samp4",
+                {"me4":"val4"}, ["le3", "le7"],
+                ["se3","se5"], 2)
+
+        logging.info("Checking Stats " + str(UTCTimestampUsec()))
+
+        assert generator_obj.verify_test_stat("StatTable.StatTestContainerState.st",
+            "-2m", select_fields = ["UUID", "st.s1", "st.m1", "st.i1"],
+            where_clause = 'name="t07" AND st.l1 CONTAINS le2', num = 2, check_rows =
+            [{ "st.s1":"samp1", "st.m1":"{\"me1\":\"val1\", \"me2\":\"val2\"}", "st.i1":2},
+             { "st.s1":"samp1", "st.m1":"{\"me1\":\"val2\", \"me3\":\"val3\"}", "st.i1":2}])
+        assert generator_obj.verify_test_stat("StatTable.StatTestContainerState.st",
+            "-2m", select_fields = ["UUID", "st.s1", "st.m1.me2", "st.i1"],
+            where_clause = 'name="t07" AND st.l2 CONTAINS se2', num = 2, check_rows =
+            [{ "st.s1":"samp1", "st.m1.me2":"val2", "st.i1":2},
+             { "st.s1":"samp3", "st.m1.me2":"val3", "st.i1":2}])
+        assert generator_obj.verify_test_stat("StatTable.StatTestContainerState.st",
+            "-2m", select_fields = ["UUID", "st.s1", "st.l1", "st.l2", "st.i1"],
+            where_clause = 'name="t07" AND st.m1.me2=val*', num = 3, check_rows =
+            [{ "st.s1":"samp1", "st.l1":"le1; le2", "st.l2":"se1; se2", "st.i1":2},
+             { "st.s1":"samp2", "st.l1":"le3; le5", "st.l2":"se3; se7", "st.i1":2},
+             { "st.s1":"samp3", "st.l1":"le1", "st.l2":"se3; se2", "st.i1":2}])
+
+        return True
+    # end test_07_container_samples
+
     @staticmethod
     def get_free_port():
         cs = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
