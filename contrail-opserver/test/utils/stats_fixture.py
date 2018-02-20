@@ -127,7 +127,21 @@ class StatsFixture(fixtures.Fixture):
             data=tstate,
             sandesh=self._sandesh_instance)
         tdata.send(sandesh=self._sandesh_instance)       
-    
+
+    def send_test_stat_container(self, nm, s1, m1, l1, l2, i1):
+        self._logger.info('Sending Test Stats with Container Tags')
+        tstat = StatTestContainer()
+        tstat.s1 = s1
+        tstat.m1 = m1
+        tstat.l1 = l1
+        tstat.l2 = l2
+        tstat.i1 = i1
+        tstate = StatTestContainerState(st = [tstat])
+        tstate.name = nm
+        tdata = StatTestTraceContainer(data=tstate,
+            sandesh=self._sandesh_instance)
+        tdata.send(sandesh=self._sandesh_instance)
+
     @retry(delay=1, tries=5)
     def verify_test_stat(self, table, stime, select_fields, where_clause, num, 
                          check_rows = None, check_uniq = None, 
