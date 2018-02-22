@@ -920,7 +920,6 @@ class OpServer(object):
                         aln_col = stat_query_column(name=aln["name"], \
                         datatype=aln["datatype"], index=aln["index"])
                 scols.append(aln_col)
-
                 sln = stat_query_column(name= "COUNT_DISTINCT(" + aln["name"] + ")",
                         datatype=aln["datatype"], index=False)
                 scols.append(sln)
@@ -1913,9 +1912,9 @@ class OpServer(object):
         stats = AnalyticsApiStatistics(self._sandesh, table)
 
         uve_name = uve_tbl + ':' + name
-        user_resources = self.get_resource_list_from_uve_type(table)
-        self._logger.error("usr res are %s" %user_resources)
         if name.find('*') != -1:
+            user_resources = self.get_resource_list_from_uve_type(table)
+            self._logger.info("usr res are %s" %user_resources)
             flat = True
             yield u'{"value": ['
             first = True
@@ -1940,10 +1939,25 @@ class OpServer(object):
             stats.sendwith()
             yield u']}'
         else:
-            _, rsp = self._uve_server.get_uve(uve_name, flat, filters,
-                                           base_url=base_url)
-            if user_resources is None or (user_resources and name in \
-                    user_resources):
+	    try:
+                uuid_of_fq_name = None
+                rv_obj_perms = None
+                fq_name = name.split(":")
+                uuid_of_fq_name = self._vnc_api_client._vnc_api_client.fq_name_to_id(
+                    table, fq_name)
+            except Exception as e:
+                self._logger.error("fq_name_to_id: Exception: %s", str(e))
+            else:
+                rv_obj_perms = self._vnc_api_client._vnc_api_client.obj_perms(
+                    self.get_user_token(), uuid_of_fq_name)
+
+            if ((rv_obj_perms is not None and \
+                 rv_obj_perms['permissions'].find('R') != -1) or \
+                (self.is_role_cloud_admin())):
+                self._logger.info("fq_name: %s uuid: %s obj_perms:%s" % (fq_name,
+                    uuid_of_fq_name, rv_obj_perms))
+                _, rsp = self._uve_server.get_uve(uve_name, flat, filters,
+                                               base_url=base_url)
                 dp = json.dumps(rsp)
                 stats.collect(1, len(dp))
                 stats.sendwith()
