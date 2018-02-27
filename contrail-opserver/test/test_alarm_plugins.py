@@ -1915,6 +1915,19 @@ class TestAlarmPlugins(unittest.TestCase):
                     }
                 ),
                 output=TestOutput(or_list=None)
+            ),
+            TestCase(
+                name='XmppPeerInfoData.state_info.state != '
+                    'Established',
+                input=TestInput(uve_key='ObjectXmppPeerInfo:host1',
+                    uve_data={
+                        'XmppPeerInfoData': {
+                            'state_info.state': 'Active',
+                            'close_reason': 'sub cluster name mis-match'
+                        }
+                    }
+                ),
+                output=TestOutput(or_list=None)
             )
         ]
         self._verify(tests, alarm_name="system-defined-xmpp-connectivity")
