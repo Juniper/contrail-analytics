@@ -1920,6 +1920,53 @@ class TestAlarmPlugins(unittest.TestCase):
         self._verify(tests, alarm_name="system-defined-xmpp-connectivity")
     # end test_alarm_xmpp_connectivity
 
+    def test_alarm_xmpp_close_reason(self):
+        tests = [
+            TestCase(
+                name='XmppPeerInfoData.close_reason ',
+                input=TestInput(uve_key='ObjectXmppPeerInfo:host1',
+                    uve_data={
+                        'XmppPeerInfoData': {
+                            'close_reason': 'sub cluster mis-match'
+                        }
+                    }
+                ),
+                output=TestOutput(or_list=[
+                    {
+                        'and_list': [
+                            {
+                                'condition': {
+                                    'operand1': 'XmppPeerInfoData.close_reason',
+                                    'operand2': {
+                                        'json_value': 'null'
+                                    },
+                                    'operation': '!='
+                                },
+                                'match': [
+                                    {
+                                        'json_operand1_val': '"sub cluster mis-match"'
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ])
+            ),
+            TestCase(
+                name='XmppPeerInfoData.close_reason == null',
+                input=TestInput(uve_key='ObjectXmppPeerInfo:host1',
+                    uve_data={
+                        'XmppPeerInfoData': {
+                            'deleted' : 'false'
+                        }
+                    }
+                ),
+                output=TestOutput(or_list=None)
+            )
+        ]
+        self._verify(tests, alarm_name="system-defined-xmpp-close-reason")
+    # end test_alarm_xmpp_close_reason
+
     def test_alarm_phyif_bandwidth(self):
         tests = [
             TestCase(
