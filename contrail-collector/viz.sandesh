@@ -633,18 +633,21 @@ const map<string, objtable_info> _OBJECT_TABLES = {
         'log_query_name'        : "vrouter"
         'is_uve'                : true
         'global_system_object'  : true
+        'config_object_type'    : "virtual_router"
     }
     PROUTER_TABLE          : {
         'objtable_display_name' : PROUTER_DISPLAY_NAME
         'log_query_name'        : "prouter"
         'is_uve'                : true
         'global_system_object'  : true
+        'config_object_type'    : "physical_router"
     }
     BGP_PEER_TABLE         : {
         'objtable_display_name' : BGP_PEER_DISPLAY_NAME
         'log_query_name'        : "bgp-peer"
         'is_uve'                : true
         'global_system_object'  : true
+        'config_object_type'    : "bgp_router"
     }
     BGP_ROUTER_TABLE       : {
         'objtable_display_name' : BGP_ROUTER_DISPLAY_NAME
@@ -675,12 +678,14 @@ const map<string, objtable_info> _OBJECT_TABLES = {
         'log_query_name'        : "analytics-node"
         'is_uve'                : true
         'global_system_object'  : true
+        'config_object_type'    : "analytics_node"
     }
     DATABASE_INFO_TABLE   : {
         'objtable_display_name' : DATABASE_INFO_DISPLAY_NAME
         'log_query_name'        : "database-node"
         'is_uve'                : true
         'global_system_object'  : true
+        'config_object_type'    : "database_node"
     }
     GENERATOR_INFO_TABLE   : {
         'objtable_display_name' : GENERATOR_INFO_DISPLAY_NAME
@@ -693,12 +698,14 @@ const map<string, objtable_info> _OBJECT_TABLES = {
         'log_query_name'        : "config-node"
         'is_uve'                : true
         'global_system_object'  : true
+        'config_object_type'    : "config_node"
     }
     SERVICE_CHAIN          : {
         'objtable_display_name' : SERVICE_CHAIN_DISPLAY_NAME
         'log_query_name'        : "service-chain"
         'is_uve'                : true
         'global_system_object'  : false
+        'config_object_type'    : "service_chain"
     }
     DNS_TABLE       : {
         'objtable_display_name' : DNS_DISPLAY_NAME
@@ -783,42 +790,49 @@ const map<string, objtable_info> _OBJECT_TABLES = {
         'log_query_name'        : "tag"
         'is_uve'                : true
         'global_system_object'  : false
+        'config_object_type'    : "tag"
     }
     PROJECT_TABLE: {
         'objtable_display_name' : PROJECT_DISPLAY_NAME
         'log_query_name'        : "project"
         'is_uve'                : true
         'global_system_object'  : false
+        'config_object_type'    : "project"
     }
     FIREWALL_POLICY_TABLE: {
         'objtable_display_name' : FIREWALL_POLICY_DISPLAY_NAME
         'log_query_name'        : "firewall-policy"
         'is_uve'                : true
         'global_system_object'  : false
+        'config_object_type'    : "firewall_policy"
     }
     FIREWALL_RULE_TABLE: {
         'objtable_display_name' : FIREWALL_RULE_DISPLAY_NAME
         'log_query_name'        : "firewall-rule"
         'is_uve'                : true
         'global_system_object'  : false
+        'config_object_type'    : "firewall_rule"
     }
     ADDRESS_GROUP_TABLE: {
         'objtable_display_name' : ADDRESS_GROUP_DISPLAY_NAME
         'log_query_name'        : "address-group"
         'is_uve'                : true
         'global_system_object'  : false
+        'config_object_type'    : "address_group"
     }
     SERVICE_GROUP_TABLE: {
         'objtable_display_name' : SERVICE_GROUP_DISPLAY_NAME
         'log_query_name'        : "service-group"
         'is_uve'                : true
         'global_system_object'  : false
+        'config_object_type'    : "service_group"
     }
     APPLICATION_POLICY_SET_TABLE: {
         'objtable_display_name' : APPLICATION_POLICY_SET_DISPLAY_NAME
         'log_query_name'        : "application-policy-set"
         'is_uve'                : true
         'global_system_object'  : false
+        'config_object_type'    : "application_policy_set"
     }
 }
 
