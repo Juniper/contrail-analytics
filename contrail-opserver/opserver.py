@@ -518,9 +518,10 @@ class OpServer(object):
             if tabl in self.ObjectLogTypeToConfigObjectType:
                 # update where clause for specific objectlog table
                 cfg_type = self.ObjectLogTypeToConfigObjectType[tabl]
-                cfg_obj_list = self.get_resource_list(cfg_type)
-                if cfg_obj_list is not None:
-                    self.update_where_clause(request, cfg_obj_list, 'ObjectId')
+		if tabl in self.ObjectLogTypeToUveType:
+	 	    uve_type= self.ObjectLogTypeToUveType[tabl]	
+                self.update_where_clause_for_equal(request, cfg_type, \
+                    'ObjectId', uve_type)
                 return
             elif tabl == 'StatTable.FieldNames.fields':
                 # update where clause for list of object tables
@@ -547,7 +548,7 @@ class OpServer(object):
                                 if column.uve_type in self.UveTypeToConfigObjectType:
                                     cfg_obj_list.append(table.name)
                                     continue
-                    self.update_where_clause(request, cfg_obj_list, \
+                    self.update_where_clause_for_range(request, cfg_obj_list, \
                                 'name', 'STAT:')
                     return
             elif tabl is not None and tabl.startswith("StatTable."):
@@ -558,13 +559,8 @@ class OpServer(object):
                         if column.uve_type in self.UveTypeToConfigObjectType:
                             found_uve_type = True
                             cfg_type = self.UveTypeToConfigObjectType[column.uve_type]
-                            cfg_obj_list = self.get_resource_list(cfg_type)
-                            if cfg_obj_list is not None:
-                                if len(cfg_obj_list) == 0:
-                                    request.json['where'] = []
-                                    break
-                                self.update_where_clause(request, cfg_obj_list,\
-                                    column.name)
+                            self.update_where_clause_for_equal(request, cfg_type,\
+                                column.name, column.uve_type)
                 if found_uve_type:
                     return
         if not self.is_role_cloud_admin():
@@ -572,8 +568,9 @@ class OpServer(object):
                         body = 'Operation Forbidden',
                         headers = self._reject_auth_headers())
     #end check_perms_and_update_where_clause
-
-    def update_where_clause(self, request, obj_list, name, prefix=None):
+    
+    def update_where_clause_for_range(self, request, obj_list, name, prefix=None):
+        """ update for a list of object and stat tables """
         where_clause_list = []
         if 'where' in request.json:
             where_clause_list = request.json['where']
@@ -587,9 +584,11 @@ class OpServer(object):
             for and_query in where_clause:
                 if and_query['name'] == name:
                     name_where_clause.append((where_clause, and_query))
+
         new_clause_list = []
         if prefix:
             obj_list = [prefix + obj for obj in obj_list]
+
         for obj_value in obj_list:
             new_clause =  [{
                 'name'  : name,
@@ -618,6 +617,84 @@ class OpServer(object):
                                 new_clause_list.append(new_clause)
                             if and_query in clause:
                                 clause.remove(and_query)
+
+        if len(where_clause_list) == 0:
+            request.json['where'] = new_clause_list
+        elif len(new_clause_list) > 0:
+            final_clause_list = []
+            for existing_clause in where_clause_list:
+                for new_clause in new_clause_list:
+                    if existing_clause == []:
+                        final_clause_list.append([new_clause[0]])
+                    elif ([existing_clause[0], new_clause[0]]) not in \
+                            final_clause_list:
+                        final_clause_list.append([existing_clause[0], new_clause[0]])
+            request.json['where'] = final_clause_list
+    #end update_where_clause
+     
+    def update_where_clause_for_equal(self, request, cfg_type, name, uve_type):
+        """ update for a specific object table or stat table with tags """
+        obj_list = None 
+        where_clause_list = []
+        if 'where' in request.json:
+            where_clause_list = request.json['where']
+            if len(where_clause_list) == 0:
+                return
+        else:
+            request.json['where'] = []
+         
+        name_where_clause = []
+        for where_clause in where_clause_list:
+            for and_query in where_clause:
+                if and_query['name'] == name:
+                    name_where_clause.append((where_clause, and_query))
+ 
+        new_clause_list = []
+        for (clause, and_query) in name_where_clause:
+            self._logger.info(' clause: %s, and_query:%s name:%s' % \
+                (clause, and_query, name))
+            if and_query["name"] == name and and_query["op"] == \
+                       OpServerUtils.MatchOp.PREFIX:
+                if obj_list is None:
+                    obj_list = self.get_resource_list(cfg_type)
+                for obj_value in obj_list:
+		    if obj_value.startswith(and_query["value"]):
+		        if new_clause not in new_clause_list:
+                            new_clause_list.append(new_clause)
+                        if and_query in clause:
+                            clause.remove(and_query)
+                self._logger.info("PREFIX RANGE query ")
+            else:
+                fq_name_test = and_query["value"].split(":");
+                self._logger.info(' and_query[value]:%s fq_name_value:%s' % \
+	            (and_query["value"], fq_name_test))
+                try:
+                    uuid_of_fq_name = None
+                    rv_obj_perms = None
+                    fq_name = name.split(":")
+                    uuid_of_fq_name = self._vnc_api_client._vnc_api_client.fq_name_to_id(
+                        uve_type, fq_name_test)
+                except Exception as e:
+                    self._logger.error("fq_name_to_id: Exception: %s", str(e))
+                else:
+                    rv_obj_perms = self._vnc_api_client._vnc_api_client.obj_perms(
+                        self.get_user_token(), uuid_of_fq_name)
+
+                if ((rv_obj_perms is not None and \
+                    rv_obj_perms['permissions'].find('R') != -1) or \
+                    (self.is_role_cloud_admin())):
+                    self._logger.info("fq_name: %s uuid: %s obj_perms:%s" % (fq_name,
+                        uuid_of_fq_name, rv_obj_perms))
+                    new_clause =  [{
+                        'name'  : name,
+                        'value' : and_query["value"],
+                        'op'    : OpServerUtils.MatchOp.EQUAL
+                    }]
+                    if new_clause not in new_clause_list:
+                        new_clause_list.append(new_clause)
+                    if and_query in clause:
+                        clause.remove(and_query)
+
         if len(where_clause_list) == 0:
             request.json['where'] = new_clause_list
         elif len(new_clause_list) > 0:
@@ -870,6 +947,7 @@ class OpServer(object):
                     if table not in stat_tables:
                         stat_tables.append(table)
 
+        stat_row_count = 0
         for table in stat_tables:
             stat_id = table["stat_type"] + "." + table["stat_attr"]
             scols = []
@@ -920,9 +998,6 @@ class OpServer(object):
                         aln_col = stat_query_column(name=aln["name"], \
                         datatype=aln["datatype"], index=aln["index"])
                 scols.append(aln_col)
-                sln = stat_query_column(name= "COUNT_DISTINCT(" + aln["name"] + ")",
-                        datatype=aln["datatype"], index=False)
-                scols.append(sln)
 
                 if aln["datatype"] in ['int','double']:
                     sln = stat_query_column(name= "SUM(" + aln["name"] + ")",
@@ -961,6 +1036,7 @@ class OpServer(object):
                 display_name = table["display_name"],
                 schema = sch,
                 columnvalues = [STAT_OBJECTID_FIELD, SOURCE])
+            stat_row_count = stat_row_count + 1
             self._VIRTUAL_TABLES.append(stt)
 
         self._analytics_db = AnalyticsDb(self._logger,
@@ -1943,28 +2019,28 @@ class OpServer(object):
                 uuid_of_fq_name = None
                 rv_obj_perms = None
                 fq_name = name.split(":")
+                self._logger.info("name: %s fq_name:%s " % (name, fq_name))
                 uuid_of_fq_name = self._vnc_api_client._vnc_api_client.fq_name_to_id(
                     table, fq_name)
             except Exception as e:
                 self._logger.error("fq_name_to_id: Exception: %s", str(e))
             else:
                 rv_obj_perms = self._vnc_api_client._vnc_api_client.obj_perms(
-                    self.get_user_token(), uuid_of_fq_name)
+                    self.get_user_token(), uuid_of_fq_name)  
 
+            
             if ((rv_obj_perms is not None and \
                  rv_obj_perms['permissions'].find('R') != -1) or \
                 (self.is_role_cloud_admin())):
-                self._logger.info("fq_name: %s uuid: %s obj_perms:%s" % (fq_name,
-                    uuid_of_fq_name, rv_obj_perms))
                 _, rsp = self._uve_server.get_uve(uve_name, flat, filters,
-                                               base_url=base_url)
+                                           base_url=base_url)
                 dp = json.dumps(rsp)
                 stats.collect(1, len(dp))
                 stats.sendwith()
                 yield dp
             else:
-                yield bottle.HTTPResponse(status = 401,
-                        body = 'Authentication required',
+                yield bottle.HTTPResponse(status = 403,
+                        body = 'Operation Forbidden',
                         headers = self._reject_auth_headers())
     # end dyn_http_get
 
@@ -2031,9 +2107,8 @@ class OpServer(object):
         if uve_type in UVE_MAP:
             uve_tbl = UVE_MAP[uve_type]
 
-        self._logger.error("before res list is %s" %uve_type)
         res_list = self.get_resource_list_from_uve_type(uve_type)
-        self._logger.error("res list is %s" %res_list)
+        self._logger.error("res list is: %s" %res_list)
         req = bottle.request.query
         try:
             filters = OpServer._uve_filter_set(req)
@@ -2534,7 +2609,6 @@ class OpServer(object):
         finally:
             self._logger.error('stopping everything')
             self.stop()
-            exit(2)
 
     def stop(self):
         self._sandesh._client._connection.set_admin_state(down=True)
