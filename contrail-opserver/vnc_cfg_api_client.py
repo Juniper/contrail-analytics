@@ -79,6 +79,21 @@ class VncCfgApiClient(object):
                 time.sleep(3)
     # end connect
 
+    def get_obj_perms_from_name(self, name, uve_type, token):
+        try:
+            uuid = None
+            rv_obj_perms = None
+            fq_name = name.split(":")
+            self._logger.info("name: %s fq_name:%s " % (name, fq_name))
+            uuid = self._vnc_api_client.fq_name_to_id(uve_type, fq_name)
+        except Exception as e:
+            self._logger.error("fq_name_to_id: Exception: %s", str(e))
+        else:
+            rv_obj_perms = self._vnc_api_client.obj_perms(token, uuid)
+        return rv_obj_perms
+    # end get_obj_perms_from_name
+
+
     def get_resource_list(self, obj_type, token):
         try:
             res_list = self._get_resource_list(obj_type, token)
