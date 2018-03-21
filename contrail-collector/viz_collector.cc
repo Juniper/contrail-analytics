@@ -102,7 +102,7 @@ VizCollector::VizCollector(EventManager *evm, unsigned short listen_port,
             structured_syslog_kafka_broker,
             structured_syslog_kafka_topic,
             structured_syslog_kafka_partitions,
-            db_initializer_->GetDbHandler(), gp_.get(), grok_enabled));
+            db_initializer_->GetDbHandler()));
     }
 }
 
