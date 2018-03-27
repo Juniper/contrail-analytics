@@ -13,6 +13,19 @@ from functools import wraps
 
 class VncCfgApiClient(object):
 
+    config_obj_to_fq_name_prefix_map = {
+        'analytics_node': 'default-global-system-config',
+        'bgp_router': 'default-domain:default-project:ip-fabric:__default__',
+        'config_node': 'default-global-system-config',
+        'database_node': 'default-global-system-config',
+        'firewall_policy': 'default-policy-management',
+        'global_qos_config': 'default-global-system-config',
+        'physical_router': 'default-global-system-config',
+        'route_target': 'target',
+        'virtual_machine': 'uuid',
+        'virtual_router': 'default-global-system-config'
+    }
+
     def __init__(self, conf_info, sandesh_instance, logger):
         self._conf_info = conf_info
         self._sandesh_instance = sandesh_instance
@@ -78,6 +91,33 @@ class VncCfgApiClient(object):
                 self._update_connection_state(ConnectionStatus.DOWN, str(e))
                 time.sleep(3)
     # end connect
+
+    def get_obj_perms_from_name(self, name, cfg_type, token):
+        try:
+            rv_obj_perms = None
+            uuid = None
+            if cfg_type is None:
+                if self.is_role_cloud_admin(token):
+                    rv_obj_Perms = {'permissions':'RWX'}
+                return rv_obj_Perms
+            if name.count(":") == 0:
+                if cfg_type in self.config_obj_to_fq_name_prefix_map:
+                    fq_name = [self.config_obj_to_fq_name_prefix_map[cfg_type], name]
+                    if fq_name[0] == 'uuid':
+                        uuid = name
+                else:
+                    fq_name = [name]
+            else:
+                fq_name = name.split(":")
+            if uuid is None:
+                uuid = self._vnc_api_client.fq_name_to_id(cfg_type, fq_name)
+            self._logger.info("name:%s fq_name:%s uuid:%s" % (name, fq_name, uuid))
+        except Exception as e:
+            self._logger.error("fq_name_to_id: Exception: %s", str(e))
+        else:
+            rv_obj_perms = self._vnc_api_client.obj_perms(token, uuid)
+        return rv_obj_perms
+    # end get_obj_perms_from_name
 
     def get_resource_list(self, obj_type, token):
         try:

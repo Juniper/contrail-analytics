@@ -61,6 +61,12 @@ class AnalyticsUveTest(testtools.TestCase, fixtures.TestWithFixtures):
         mock_is_role_cloud_admin.return_value = True
         mock_is_role_cloud_admin.start()
         self.addCleanup(mock_is_role_cloud_admin.stop)
+        mock_get_obj_perms_from_name = mock.patch.object(VncCfgApiClient,
+            'get_obj_perms_from_name')
+        rv_uve_perms = {'permissions': 'RWX'}
+        mock_get_obj_perms_from_name.return_value = rv_uve_perms
+        mock_get_obj_perms_from_name.start()
+        self.addCleanup(mock_get_obj_perms_from_name.stop)
 
     #@unittest.skip('Skipping non-cassandra test with vizd')
     def test_00_nocassandra(self):
