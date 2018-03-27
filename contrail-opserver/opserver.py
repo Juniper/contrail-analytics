@@ -1829,7 +1829,8 @@ class OpServer(object):
         if uve_type in UVE_MAP:
             uve_tbl = UVE_MAP[uve_type]
 
-        user_resources = self.get_resource_list_from_uve_type(uve_type)
+        get_resources = True
+        user_resources = None
 
         try:
             req = bottle.request.json
@@ -1845,6 +1846,10 @@ class OpServer(object):
             byt = 0
             for key in filters['kfilt']:
                 if key.find('*') != -1:
+                    if get_resources:
+                        user_resources =
+                            self.get_resource_list_from_uve_type(uve_type)
+                        get_resources = False
                     for gen in self._uve_server.multi_uve_get(uve_tbl, True,
                                                               filters,
                                                               base_url):
@@ -1866,21 +1871,26 @@ class OpServer(object):
             first = True
             for key in filters['kfilt']:
                 uve_name = uve_tbl + ':' + key
-                _, rsp = self._uve_server.get_uve(uve_name, True, filters,
-                                               base_url=base_url)
-                num += 1
-                if rsp != {}:
-                    if user_resources is not None:
-                        if not key in user_resources:
-                            continue
-                    data = {'name': key, 'value': rsp}
-                    dp = json.dumps(data)
-                    byt += len(dp)
-                    if first:
-                        yield u'' + dp
-                        first = False
-                    else:
-                        yield u', ' + dp
+                if uve_type in self.UveTypeToConfigObjectType:
+                    cfg_type = self.UveTypeToConfigObjectType[uve_type]
+                else:
+                    cfg_type = ''
+                rv_obj_perms = self._vnc_api_client.get_obj_perms_from_name(
+                                    key, cfg_type, self.get_user_token())
+                if ((rv_obj_perms is not None and \
+                    rv_obj_perms['permissions'].find('W') != -1) ):
+                    _, rsp = self._uve_server.get_uve(uve_name, True, filters,
+                                  base_url=base_url)
+                    num += 1
+                    if rsp != {}:
+                        data = {'name': key, 'value': rsp}
+                        dp = json.dumps(data)
+                        byt += len(dp)
+                        if first:
+                            yield u'' + dp
+                            first = False
+                        else:
+                            yield u', ' + dp
             stats.collect(num,byt)
             stats.sendwith()
             yield u']}'
@@ -1913,9 +1923,9 @@ class OpServer(object):
         stats = AnalyticsApiStatistics(self._sandesh, table)
 
         uve_name = uve_tbl + ':' + name
-        user_resources = self.get_resource_list_from_uve_type(table)
-        self._logger.error("usr res are %s" %user_resources)
         if name.find('*') != -1:
+            user_resources = self.get_resource_list_from_uve_type(table)
+            self._logger.error("usr res are %s" %user_resources)
             flat = True
             yield u'{"value": ['
             first = True
@@ -1940,10 +1950,16 @@ class OpServer(object):
             stats.sendwith()
             yield u']}'
         else:
-            _, rsp = self._uve_server.get_uve(uve_name, flat, filters,
+            if table in self.UveTypeToConfigObjectType:
+                cfg_type = self.UveTypeToConfigObjectType[table]
+            else:
+                cfg_type = ''
+            rv_obj_perms = self._vnc_api_client.get_obj_perms_from_name(
+                               name, cfg_type, self.get_user_token())
+            if ((rv_obj_perms is not None and \
+                rv_obj_perms['permissions'].find('R') != -1)):
+                _, rsp = self._uve_server.get_uve(uve_name, flat, filters,
                                            base_url=base_url)
-            if user_resources is None or (user_resources and name in \
-                    user_resources):
                 dp = json.dumps(rsp)
                 stats.collect(1, len(dp))
                 stats.sendwith()
