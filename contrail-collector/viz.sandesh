@@ -647,12 +647,14 @@ const map<string, objtable_info> _OBJECT_TABLES = {
         'log_query_name'        : "vrouter"
         'is_uve'                : true
         'global_system_object'  : true
+        'config_object_type'    : "virtual_router"
     }
     PROUTER_TABLE          : {
         'objtable_display_name' : PROUTER_DISPLAY_NAME
         'log_query_name'        : "prouter"
         'is_uve'                : true
         'global_system_object'  : true
+        'config_object_type'    : "physical_router"
     }
     BGP_PEER_TABLE         : {
         'objtable_display_name' : BGP_PEER_DISPLAY_NAME
@@ -665,6 +667,7 @@ const map<string, objtable_info> _OBJECT_TABLES = {
         'log_query_name'        : "control-node"
         'is_uve'                : true
         'global_system_object'  : true
+        'config_object_type'    : "bgp_router"
     }
     ROUTING_INSTANCE_TABLE : {
         'objtable_display_name' : ROUTING_INSTANCE_DISPLAY_NAME
