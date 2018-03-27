@@ -105,6 +105,8 @@ const string FIREWALL_RULE_TABLE = "ObjectFirewallRuleTable"
 const string ADDRESS_GROUP_TABLE = "ObjectAddressGroupTable"
 const string SERVICE_GROUP_TABLE = "ObjectServiceGroupTable"
 const string APPLICATION_POLICY_SET_TABLE = "ObjectApplicationPolicySetTable"
+const string JOB_EXECUTION_TABLE = "ObjectJobExecutionTable"
+const string JOB_TEMPLATE_TABLE = "ObjectJobTemplateTable"
 
 const string VN_DISPLAY_NAME        = "Virtual Network"
 const string VM_DISPLAY_NAME        = "Virtual Machine"
@@ -144,6 +146,8 @@ const string FIREWALL_RULE_DISPLAY_NAME    = "firewall rule"
 const string ADDRESS_GROUP_DISPLAY_NAME    = "address group"
 const string SERVICE_GROUP_DISPLAY_NAME    = "service group"
 const string APPLICATION_POLICY_SET_DISPLAY_NAME = "application policy set"
+const string JOB_EXECUTION_DISPLAY_NAME = "job execution"
+const string JOB_TEMPLATE_DISPLAY_NAME = "job template"
 
 const string SYSTEM_LOG             = "SystemLog"
 const string OBJECT_LOG             = "ObjectLog"
@@ -591,6 +595,7 @@ const map<string, string> UVE_MAP = {
     "address-group" : ADDRESS_GROUP_TABLE,
     "service-group" : SERVICE_GROUP_TABLE,
     "application-policy-set" : APPLICATION_POLICY_SET_TABLE
+    "job-execution" : JOB_EXECUTION_TABLE
 }
 
 struct objtable_info {
@@ -833,6 +838,18 @@ const map<string, objtable_info> _OBJECT_TABLES = {
         'log_query_name'        : "application-policy-set"
         'is_uve'                : true
         'global_system_object'  : false
+    }
+    JOB_EXECUTION_TABLE: {
+        'objtable_display_name' : JOB_EXECUTION_DISPLAY_NAME
+        'log_query_name'        : "job-execution"
+        'is_uve'                : true
+        'global_system_object'  : false
+    }
+    JOB_TEMPLATE_TABLE: {
+        'objtable_display_name' : JOB_TEMPLATE_DISPLAY_NAME
+        'log_query_name'        : "job-template"
+        'is_uve'                : false
+        'global_system_object'  : true
     }
 }
 
