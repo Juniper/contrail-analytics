@@ -484,9 +484,8 @@ class OpServer(object):
     def get_resource_list_from_uve_type(self, uve_type, raise_exp=True):
         if self.is_role_cloud_admin():
             return None
-        if uve_type in self.UveTypeToConfigObjectType and \
-                self._args.aaa_mode == AAA_MODE_RBAC:
-            cfg_type = self.UveTypeToConfigObjectType[uve_type]
+        if self._args.aaa_mode == AAA_MODE_RBAC:
+            cfg_type = self.get_uve_cfg_type(uve_type)
             return self.get_resource_list(cfg_type)
         if raise_exp:
             raise bottle.HTTPResponse(status = 403,
@@ -557,7 +556,7 @@ class OpServer(object):
                     if column.index and column.uve_type:
                         if column.uve_type in self.UveTypeToConfigObjectType:
                             found_uve_type = True
-                            cfg_type = self.UveTypeToConfigObjectType[column.uve_type]
+                            cfg_type = self.get_uve_cfg_type(column.uve_type)
                             cfg_obj_list = self.get_resource_list(cfg_type)
                             if cfg_obj_list is not None:
                                 if len(cfg_obj_list) == 0:
@@ -830,12 +829,19 @@ class OpServer(object):
                 columnvalues=_OBJECT_TABLE_COLUMN_VALUES)
             self._VIRTUAL_TABLES.append(obj)
             if _OBJECT_TABLES[t].config_object_type:
-                self.UveTypeToConfigObjectType[_OBJECT_TABLES[t].\
-                        log_query_name] = _OBJECT_TABLES[t].config_object_type
-                self.ObjectLogTypeToConfigObjectType[t] = \
-                        _OBJECT_TABLES[t].config_object_type
-                self.ObjectLogTypeToUveType[t] = \
-                        _OBJECT_TABLES[t].log_query_name
+                config_obj_type = _OBJECT_TABLES[t].config_object_type
+            else:
+                if _OBJECT_TABLES[t].log_query_name.find("-") != -1:
+                    config_obj_type = _OBJECT_TABLES[t].log_query_name
+                    config_obj_type = config_obj_type.replace("-", "_")
+                else:
+                    config_obj_type = None
+
+            self.UveTypeToConfigObjectType[_OBJECT_TABLES[t].\
+                    log_query_name] = config_obj_type
+            self.ObjectLogTypeToConfigObjectType[t] = config_obj_type
+            self.ObjectLogTypeToUveType[t] = \
+                    _OBJECT_TABLES[t].log_query_name
 
         stat_tables = []
         # read the stat table schemas from vizd first
@@ -1239,6 +1245,13 @@ class OpServer(object):
     def get_uve_server(self):
         return self._uve_server
     # end get_uve_server
+
+    def get_uve_cfg_type(self, uve_type):
+        if uve_type in self.UveTypeToConfigObjectType:
+            cfg_type = self.UveTypeToConfigObjectType[uve_type]
+        else:
+            cfg_type = None
+        return cfg_type
 
     def homepage_http_get(self):
         json_body = {}
@@ -1829,7 +1842,8 @@ class OpServer(object):
         if uve_type in UVE_MAP:
             uve_tbl = UVE_MAP[uve_type]
 
-        user_resources = self.get_resource_list_from_uve_type(uve_type)
+        get_resources = True
+        user_resources = None
 
         try:
             req = bottle.request.json
@@ -1845,6 +1859,11 @@ class OpServer(object):
             byt = 0
             for key in filters['kfilt']:
                 if key.find('*') != -1:
+                    if get_resources:
+                        user_resources = \
+                            self.get_resource_list_from_uve_type(uve_type)
+                        self._logger.debug("usr res are %s" %user_resources)
+                        get_resources = False
                     for gen in self._uve_server.multi_uve_get(uve_tbl, True,
                                                               filters,
                                                               base_url):
@@ -1866,21 +1885,23 @@ class OpServer(object):
             first = True
             for key in filters['kfilt']:
                 uve_name = uve_tbl + ':' + key
-                _, rsp = self._uve_server.get_uve(uve_name, True, filters,
-                                               base_url=base_url)
-                num += 1
-                if rsp != {}:
-                    if user_resources is not None:
-                        if not key in user_resources:
-                            continue
-                    data = {'name': key, 'value': rsp}
-                    dp = json.dumps(data)
-                    byt += len(dp)
-                    if first:
-                        yield u'' + dp
-                        first = False
-                    else:
-                        yield u', ' + dp
+                cfg_type = self.get_uve_cfg_type(uve_type)
+                rv_obj_perms = self._vnc_api_client.get_obj_perms_from_name(
+                                    key, cfg_type, self.get_user_token())
+                if ((rv_obj_perms is not None and \
+                    rv_obj_perms['permissions'].find('R') != -1) ):
+                    _, rsp = self._uve_server.get_uve(uve_name, True, filters,
+                                  base_url=base_url)
+                    num += 1
+                    if rsp != {}:
+                        data = {'name': key, 'value': rsp}
+                        dp = json.dumps(data)
+                        byt += len(dp)
+                        if first:
+                            yield u'' + dp
+                            first = False
+                        else:
+                            yield u', ' + dp
             stats.collect(num,byt)
             stats.sendwith()
             yield u']}'
@@ -1913,9 +1934,9 @@ class OpServer(object):
         stats = AnalyticsApiStatistics(self._sandesh, table)
 
         uve_name = uve_tbl + ':' + name
-        user_resources = self.get_resource_list_from_uve_type(table)
-        self._logger.error("usr res are %s" %user_resources)
         if name.find('*') != -1:
+            user_resources = self.get_resource_list_from_uve_type(table)
+            self._logger.debug("usr res are %s" %user_resources)
             flat = True
             yield u'{"value": ['
             first = True
@@ -1940,10 +1961,13 @@ class OpServer(object):
             stats.sendwith()
             yield u']}'
         else:
-            _, rsp = self._uve_server.get_uve(uve_name, flat, filters,
+            cfg_type = self.get_uve_cfg_type(table)
+            rv_obj_perms = self._vnc_api_client.get_obj_perms_from_name(
+                               name, cfg_type, self.get_user_token())
+            if ((rv_obj_perms is not None and \
+                rv_obj_perms['permissions'].find('R') != -1)):
+                _, rsp = self._uve_server.get_uve(uve_name, flat, filters,
                                            base_url=base_url)
-            if user_resources is None or (user_resources and name in \
-                    user_resources):
                 dp = json.dumps(rsp)
                 stats.collect(1, len(dp))
                 stats.sendwith()
