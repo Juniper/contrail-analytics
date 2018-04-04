@@ -83,7 +83,9 @@ public:
         DOUBLE=3,
         UUID=4,
         TDIGEST=5,
-	CENTROID=6,
+        CENTROID=6,
+        MAP_ELEM=7,
+        LIST=8,
     };
     enum AggOper {
         INVALID = 0,

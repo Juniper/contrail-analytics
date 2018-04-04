@@ -54,7 +54,9 @@ static std::string ToString(const contrail_rapidjson::Value& value_value) {
 
 static GenDb::DbDataValue ToDbDataValue(const std::string& value, QEOpServerProxy::VarType desc) {
     GenDb::DbDataValue smpl;
-    if (desc == QEOpServerProxy::STRING) {
+    if (desc == QEOpServerProxy::STRING ||
+        desc == QEOpServerProxy::MAP_ELEM ||
+        desc == QEOpServerProxy::LIST) {
         smpl = value;
     } else if (desc == QEOpServerProxy::UINT64) {
         smpl = (uint64_t) strtoul(value.c_str(), NULL, 10);
@@ -88,6 +90,10 @@ static QEOpServerProxy::VarType ToDbDataType(string val) {
         ret = QEOpServerProxy::UUID;
     } else if (val == "double") {
         ret = QEOpServerProxy::DOUBLE;
+    } else if (val == "map") {
+        ret = QEOpServerProxy::MAP_ELEM;
+    } else if (val == "set" || val == "list") {
+        ret = QEOpServerProxy::LIST;
     }
     return ret;
 }
@@ -99,9 +105,16 @@ static StatsQuery::column_t get_column_desc(std::map<std::string,StatsQuery::col
     if (st!=table_schema.end()) {
         cdesc = st->second;
     } else {
-        cdesc.datatype = QEOpServerProxy::BLANK;
-        cdesc.index = false;
-        cdesc.output = false;
+        size_t pos = pname.find_last_of(".");
+        std::string mapstr(pname.substr(0,pos) + ".*");
+        st = table_schema.find(mapstr);
+        if (st != table_schema.end()) {
+            cdesc = st->second;
+        } else  {
+            cdesc.datatype = QEOpServerProxy::BLANK;
+            cdesc.index = false;
+            cdesc.output = false;
+        }
     }
     return cdesc;
 }
@@ -242,6 +255,7 @@ WhereQuery::StatTermParse(QueryUnit *main_query, const contrail_rapidjson::Value
 
     if (cdesc.datatype == QEOpServerProxy::BLANK) return false;
     if (!cdesc.index) return false;
+    if (cdesc.datatype == QEOpServerProxy::LIST && pop != CONTAINS) return false;
 
     QE_TRACE(DEBUG, "StatTable Where prefix Schema match " << cdesc.datatype);
     // Now fill in the prefix value and value2 based on types in schema
@@ -981,7 +995,6 @@ WhereQuery::WhereQuery(const std::string& where_json_string, int session_type,
                     QE_INVALIDARG_ERROR(false);
                 }
 
-                QE_INVALIDARG_ERROR(pop == EQUAL || pop == PREFIX);
                 if (pname == g_viz_constants.STATS_NAME_FIELD) {
                     name_match = true;
                     sname_val = pval;
@@ -995,6 +1008,7 @@ WhereQuery::WhereQuery(const std::string& where_json_string, int session_type,
                     if (boost::algorithm::ends_with(pname, g_viz_constants.STATS_PROXY_FIELD)) {
                         pname = g_viz_constants.STATS_PROXY_FIELD;
                     }
+                    QE_INVALIDARG_ERROR(pop == EQUAL || pop == PREFIX);
                     GenDb::Op::type db_op;
                     if (pop == EQUAL) {
                         db_op = GenDb::Op::EQ;
