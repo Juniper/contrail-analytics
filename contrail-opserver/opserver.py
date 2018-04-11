@@ -1469,7 +1469,10 @@ class OpServer(object):
                                 else:
                                     field_found = False
                                     for column in self._VIRTUAL_TABLES[tabn].schema.columns:
-                                        if column.name == field:
+                                        column_name = column.name
+                                        if column.name.endswith('.*'):
+                                            column_name = column.name[:-2]
+                                        if column_name == field or column_name in field:
                                             if column.datatype != "":
                                                 field_found = True
                                     if field_found == False:
@@ -1484,7 +1487,10 @@ class OpServer(object):
                         elif len(agg_field) == 1:
                             field_found = False
                             for column in self._VIRTUAL_TABLES[tabn].schema.columns:
-                                if column.name == select_field:
+                                column_name = column.name
+                                if column.name.endswith('.*'):
+                                    column_name = column.name[:-2]
+                                if column_name == select_field or column_name in select_field:
                                     if column.datatype != "":
                                         field_found = True
                             if field_found == False:
