@@ -5,7 +5,7 @@ monkey.patch_all()
 import logging
 import gevent
 from gevent.lock import BoundedSemaphore
-from kafka import KeyedProducer, KafkaConsumer, common
+from kafka import KafkaClient, KeyedProducer, KafkaConsumer, common
 from uveserver import UVEServer
 import os
 import ast
