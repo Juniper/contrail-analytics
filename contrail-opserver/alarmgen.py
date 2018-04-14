@@ -44,7 +44,7 @@ from sandesh_common.vns.constants import ModuleNames, CategoryNames,\
      INSTANCE_ID_DEFAULT, ALARM_GENERATOR_SERVICE_NAME
 from alarmgen_cfg import CfgParser
 from uveserver import UVEServer
-from partition_handler import PartitionHandler, UveStreamProc
+from partition_handler import PartitionHandler, UveStreamProc, UveStreamHealthCheck
 from alarmgen_config_handler import AlarmGenConfigHandler, _INVERSE_UVE_MAP
 from sandesh.alarmgen_ctrl.ttypes import PartitionOwnershipReq, \
     PartitionOwnershipResp, PartitionStatusReq, UVECollInfo, UVEGenInfo, \
@@ -1362,6 +1362,20 @@ class Controller(object):
                 rows)
             rows[:] = []
 
+    def run_kafka_liveness_check(self):
+        """
+        This function runs in its own gevent, and does health check
+        on kafka brokers
+        """
+        hc = UveStreamHealthCheck(','.join(self._conf.kafka_broker_list()),
+            self._logger)
+        hc.start()
+        while True:
+            gevent.sleep(60)
+            if hc.failed() is True:
+                self._logger.error('AlarmGen: Kafka health check failed')
+                raise SystemExit(1)
+
     def run_uve_processing(self):
         """
         This function runs in its own gevent, and provides state compression
@@ -2409,6 +2423,7 @@ class Controller(object):
         self.gevs = [ gevent.spawn(self._config_handler.start),
                       gevent.spawn(self.run_process_stats),
                       gevent.spawn(self.run_uve_processing),
+                      gevent.spawn(self.run_kafka_liveness_check),
                       gevent.spawn(self._us.run)]
         if self._ad is not None:
             self._ad.start()

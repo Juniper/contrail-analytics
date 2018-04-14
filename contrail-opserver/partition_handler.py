@@ -5,7 +5,7 @@ monkey.patch_all()
 import logging
 import gevent
 from gevent.lock import BoundedSemaphore
-from kafka import KeyedProducer, KafkaConsumer, common
+from kafka import KafkaClient, KeyedProducer, KafkaConsumer, common, KafkaProducer
 from uveserver import UVEServer
 import os
 import ast
@@ -687,6 +687,50 @@ class UveStreamer(gevent.Greenlet):
         self._logger.error("Stopping agguve part %d" % partno)
         self._parts[partno].kill()
         del self._parts[partno]
+
+class HealthCheckHandler(gevent.Greenlet):
+    def __init__(self, brokers, logger):
+        gevent.Greenlet.__init__(self)
+        self._brokers = brokers
+        self._logger = logger
+        self._failed = False
+
+    def failed(self):
+        return self._failed
+
+    def _run(self):
+        gevent.sleep(180)
+        try:
+            producer = KafkaProducer(
+                bootstrap_servers=self._brokers.split(','))
+            self._logger.info("Initialized health-check KafkaProducer")
+        except Exception as ex:
+            self._logger.error('Failed to init health-check \
+                KafkaProducer:%s' % (ex))
+        finally:
+            self._logger.info("helth-check KafkaProducer call returned")
+        while True:
+            gevent.sleep(60)
+            future = producer.send("HEALTH_CHECK_TOPIC", 'live.....')
+            self._logger.info("AlarmGen health-check msg sent to KafkaBrokers")
+            try:
+                record_metadata = future.get(timeout=10)
+                self._logger.info("AlarmGen can reach KafkaBrokers")
+            except Exception as ex:
+                self._logger.error('AlarmGen CANNOT reach KafkaBrokers! \
+                     error:%s' % (ex))
+                self._failed = True
+                raise SystemExit(1)
+#end class HealthCheckHandler
+
+class UveStreamHealthCheck(HealthCheckHandler):
+    # Arguments:
+    #
+    # brokers   : broker list for kafka bootstrap
+    def __init__(self, brokers, logger):
+        self._brokers = brokers
+        super(UveStreamHealthCheck, self).__init__(brokers, logger)
+#end class UveStreamHealthCheck
 
 class PartitionHandler(gevent.Greenlet):
     def __init__(self, brokers, group, topic, logger, limit):
