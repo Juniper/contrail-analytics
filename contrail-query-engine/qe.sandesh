@@ -108,18 +108,18 @@ struct QEDbStats {
     5: optional cql.DbStats                    cql_stats (tags="")
 
    10: optional map<string, gendb.DbTableStat_P_>
-         table_info_1h   (mstats="60-table_info:DSSum:", hidden="yes")
+         table_info_1h
    11: optional map<string, gendb.DbTableStat_P_>
-         table_info_10m  (mstats="10-table_info:DSSum:")
+         table_info_10m
    12: optional map<string, derived_stats_results.AnomalyResult>
-         table_reads_anomaly (mstats="0-table_info.reads:DSAnomaly:EWM:0.2")
+         table_reads_anomaly
 
    20: optional map<string, gendb.DbTableStat_P_>
-           stats_info_1h (mstats="60-stats_info:DSSum:", hidden="yes")
+           stats_info_1h
    21: optional map<string, gendb.DbTableStat_P_>
-         stats_info_10m  (mstats="10-stats_info:DSSum:")
+         stats_info_10m
    22: optional map<string, derived_stats_results.AnomalyResult>
-         stats_reads_anomaly (mstats="0-stats_info.reads:DSAnomaly:EWM:0.2")
+         stats_reads_anomaly
 
 } (period="60")
 

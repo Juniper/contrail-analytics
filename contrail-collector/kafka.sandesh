@@ -22,7 +22,7 @@ struct KafkaAggStatus {
     3: optional map<string, KafkaAggTopicOffsets> assign_offsets
     4: optional map<string, KafkaAggTopicOffsets> commit_offsets
     5: optional map<string, u64> message_counts_1m
-    6: optional map<string, u64> message_counts_10m (mstats="message_counts_1m:DSSum:600")
+    6: optional map<string, u64> message_counts_10m
 }
 
 uve sandesh KafkaAggStatusTrace {
