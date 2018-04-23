@@ -701,7 +701,6 @@ class OpServer(object):
             self._instance_id,
             staticmethod(ConnectionState.get_process_state_cb),
             NodeStatusUVE, NodeStatus, self.table)
-        self._uvepartitions_state = None
         # Trace buffer list
         self.trace_buf = [
             {'name':'DiscoveryMsg', 'size':1000}
@@ -726,26 +725,6 @@ class OpServer(object):
         if self._args.auth_conf_info.get('aaa_auth_enabled'):
             self._vnc_api_client = VncCfgApiClient(self._args.auth_conf_info,
                 self._sandesh, self._logger)
-        self._uvedbstream = UveStreamer(self._logger, None, None,
-                self.get_agp, self._args.redis_password)
-
-        # On olders version of linux, kafka cannot be
-        # relied upon. DO NOT use it to serve UVEs
-        self._usecache = True
-        (PLATFORM, VERSION, EXTRA) = platform.linux_distribution()
-        if PLATFORM.lower() == 'ubuntu':
-            if VERSION.find('12.') == 0:
-                self._usecache = False
-        if PLATFORM.lower() == 'centos':
-            if VERSION.find('6.') == 0:
-                self._usecache = False
-        if self._args.partitions == 0:
-            self._usecache = False
-
-        if not self._usecache:
-            self._logger.error("NOT using UVE Cache")
-        else:
-            self._logger.error("Initializing UVE Cache")
 
         self._LEVEL_LIST = []
         for k in SandeshLevel._VALUES_TO_NAMES:
@@ -758,14 +737,8 @@ class OpServer(object):
                  for k, v in ModuleCategoryMap.iteritems())
 
         self.agp = {}
-        if self._usecache:
-            ConnectionState.update(conn_type = ConnectionType.UVEPARTITIONS,
-                name = 'UVE-Aggregation', status = ConnectionStatus.INIT)
-            self._uvepartitions_state = ConnectionStatus.INIT
-        else:
-            ConnectionState.update(conn_type = ConnectionType.UVEPARTITIONS,
-                name = 'UVE-Aggregation', status = ConnectionStatus.UP)
-            self._uvepartitions_state = ConnectionStatus.UP
+        ConnectionState.update(conn_type = ConnectionType.UVEPARTITIONS,
+            name = 'UVE-Aggregation', status = ConnectionStatus.UP)
 
         self.redis_uve_list = []
         if type(self._args.redis_uve_list) is str:
@@ -805,11 +778,10 @@ class OpServer(object):
                                   port = int(redis_ip_port[1]))
                     self.agp[part] = pi
 
-
         self._uve_server = UVEServer(self.redis_uve_list,
                                  self._logger,
                                  self._args.redis_password,
-                                 self._uvedbstream, self._usecache,
+                                 None, False,
                                  freq = us_freq)
         self._state_server.update_redis_list(self.redis_uve_list)
 
@@ -2024,10 +1996,7 @@ class OpServer(object):
                        ulist.append({'name':uk, 'value':uv})
                 if ulist:
                     alms[alm_type] = ulist
-            if self._uvepartitions_state == ConnectionStatus.UP:
-                return json.dumps(alms)
-            else:
-                return bottle.HTTPError(_ERRORS[errno.EIO],json.dumps(alms))
+            return json.dumps(alms)
     # end alarms_http_get
 
     @validate_user_token(only_cloud_admin=False)
@@ -2124,10 +2093,7 @@ class OpServer(object):
                 uvetype_links.append(entry)
 
         bottle.response.set_header('Content-Type', 'application/json')
-        if self._uvepartitions_state == ConnectionStatus.UP:
-            return json.dumps(uvetype_links)
-        else:
-            return bottle.HTTPError(_ERRORS[errno.EIO],json.dumps(uvetype_links))
+        return json.dumps(uvetype_links)
     # end _uves_http_get
 
     @validate_user_token
@@ -2518,23 +2484,15 @@ class OpServer(object):
             ConnectionState.update(conn_type = ConnectionType.UVEPARTITIONS,
                 name = 'UVE-Aggregation', status = ConnectionStatus.UP,
                 message = 'Partitions:%d' % len(new_agp))
-            self._uvepartitions_state = ConnectionStatus.UP
-        if self._usecache and len(new_agp) != self._args.partitions:
-            ConnectionState.update(conn_type = ConnectionType.UVEPARTITIONS,
-                name = 'UVE-Aggregation', status = ConnectionStatus.DOWN,
-                message = 'Partitions:%d' % len(new_agp))
-            self._uvepartitions_state = ConnectionStatus.DOWN
         self.agp = new_agp        
 
     def get_agp(self):
         return self.agp
 
     def run(self):
-        self._uvedbstream.start()
         self.send_analytics_api_info_uve()
 
         self.gevs += [
-            self._uvedbstream,
             gevent.spawn(self.start_webserver),
             gevent.spawn(self.start_uve_server),
             gevent.spawn(self.monitor_analytics_db)
