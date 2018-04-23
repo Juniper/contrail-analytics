@@ -368,7 +368,6 @@ class UVEServer(object):
             patterns = set()
             for filt in kfilter:
                 patterns.add(self.get_uve_regex(filt))
-
         rsp = self._uvedbcache.get_uve_list(tables, filters, patterns, False)
         return rsp
     # end get_alarms
