@@ -66,7 +66,7 @@ RedisProcessorExec::UVEUpdate(RedisAsyncConnection * rac, RedisProcessorIf *rpi,
                 source)(node_type)(module)(instance_id)(type)(attr)(key)
                 (seqstr.str())(msg)(integerToString(REDIS_DB_UVE))
                 (integerToString(part))(integerToString(is_alarm))(
-                ngen_inst));
+                ngen_inst)(tsstr.str()));
     }
     return ret;
 }
