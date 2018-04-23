@@ -219,7 +219,7 @@ class UVEServer(object):
         mfilter = filters.get('mfilt')
         tfilter = filters.get('cfilt')
         ackfilter = filters.get('ackfilt')
-        if flat and not sfilter and not mfilter and self._usecache:
+        if flat and not sfilter and not mfilter:
             return self._uvedbcache.get_uve(key, filters)
 
         is_alarm = False
@@ -479,20 +479,14 @@ class UVEServer(object):
     # end get_uve_list
 
     def get_uvedb_cache_tables(self):
-        if not self._usecache:
-            return []
         return self._uvedbcache.get_uvedb_cache_tables()
     # end get_uvedb_cache_tables
 
     def get_uvedb_cache_table_keys(self, table):
-        if not self._usecache:
-            return []
         return self._uvedbcache.get_uvedb_cache_table_keys(table)
     # end get_uvedb_cache_table_keys
 
     def get_uvedb_cache_uve(self, table, uve_key):
-        if not self._usecache:
-            return None
         return self._uvedbcache.get_uvedb_cache_uve(table, uve_key)
     # end get_uvedb_cache_uve
 
