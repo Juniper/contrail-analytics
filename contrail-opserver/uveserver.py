@@ -368,8 +368,42 @@ class UVEServer(object):
             patterns = set()
             for filt in kfilter:
                 patterns.add(self.get_uve_regex(filt))
-
-        rsp = self._uvedbcache.get_uve_list(tables, filters, patterns, False)
+        if self._usecache:
+            rsp = self._uvedbcache.get_uve_list(tables, filters, patterns, False)
+        else:
+            rsp = {}
+            uve_list = {}
+            for table in tables:
+                uve_keys = self.get_uve_list(table, filters, False)
+                for uve_key in uve_keys:
+                    _,uve_val = self.get_uve(
+                        table + ':' + uve_key, False, filters)
+                    if uve_val == {}:
+                        continue
+                    else:
+                        if 'UVEAlarms' in uve_val and \
+                            'alarms' in uve_val['UVEAlarms'] and \
+                            'list' in uve_val['UVEAlarms']['alarms'] and \
+                            'UVEAlarmInfo' in uve_val['UVEAlarms']['alarms']['list']:
+                            alarms = []
+                            uve_alarm_info = \
+                                uve_val['UVEAlarms']['alarms']['list']['UVEAlarmInfo']
+                            for info in uve_alarm_info:
+                                alarm = {}
+                                if 'type' not in info:
+                                    continue
+                                else:
+                                    alarm['type'] = info['type']['#text']
+                                if 'ack' in info:
+                                    if info['ack']['#text'] == 'true':
+                                        alarm['ack'] = True
+                                    else:
+                                        alarm['ack'] = False
+                                alarms.append(alarm)
+                            if len(alarms) != 0:
+                                uve_val['UVEAlarms']['alarms'] = alarms
+                                uve_list[uve_key] = uve_val
+            rsp[table] = uve_list
         return rsp
     # end get_alarms
 
