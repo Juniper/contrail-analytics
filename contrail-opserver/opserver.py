@@ -643,6 +643,7 @@ class OpServer(object):
     def __init__(self, args_str=' '.join(sys.argv[1:])):
         self.gevs = []
         self._args = None
+        self._usecache = False
         self._parse_args(args_str)
         print args_str
  
@@ -726,26 +727,11 @@ class OpServer(object):
         if self._args.auth_conf_info.get('aaa_auth_enabled'):
             self._vnc_api_client = VncCfgApiClient(self._args.auth_conf_info,
                 self._sandesh, self._logger)
-        self._uvedbstream = UveStreamer(self._logger, None, None,
-                self.get_agp, self._args.redis_password)
-
-        # On olders version of linux, kafka cannot be
-        # relied upon. DO NOT use it to serve UVEs
-        self._usecache = True
-        (PLATFORM, VERSION, EXTRA) = platform.linux_distribution()
-        if PLATFORM.lower() == 'ubuntu':
-            if VERSION.find('12.') == 0:
-                self._usecache = False
-        if PLATFORM.lower() == 'centos':
-            if VERSION.find('6.') == 0:
-                self._usecache = False
-        if self._args.partitions == 0:
-            self._usecache = False
-
-        if not self._usecache:
-            self._logger.error("NOT using UVE Cache")
+        if self._usecache:
+            self._uvedbstream = UveStreamer(self._logger, None, None,
+                    self.get_agp, self._args.redis_password)
         else:
-            self._logger.error("Initializing UVE Cache")
+            self._uvedbstream = None
 
         self._LEVEL_LIST = []
         for k in SandeshLevel._VALUES_TO_NAMES:
@@ -783,27 +769,28 @@ class OpServer(object):
             ad_freq = 2
             us_freq = 2 
 
-        if self._args.zk_list:
-            self._ad = AnalyticsDiscovery(self._logger,
-                ','.join(self._args.zk_list),
-                ANALYTICS_API_SERVER_DISCOVERY_SERVICE_NAME,
-                self._hostname + "-" + self._instance_id,
-                {ALARM_GENERATOR_SERVICE_NAME:self.disc_agp},
-                self._args.zk_prefix,
-                ad_freq)
-        else:
-            self._ad = None
-            if self._args.partitions != 0:
-                # Assume all partitions are on the 1st redis server
-                # and there is only one redis server
-                redis_ip_port = self._args.redis_uve_list[0].split(':')
-                assert(len(self._args.redis_uve_list) == 1)
-                for part in range(0,self._args.partitions):
-                    pi = PartInfo(ip_address = redis_ip_port[0],
-                                  acq_time = UTCTimestampUsec(),
-                                  instance_id = "0",
-                                  port = int(redis_ip_port[1]))
-                    self.agp[part] = pi
+        if slef._usecache:
+            if self._args.zk_list:
+                self._ad = AnalyticsDiscovery(self._logger,
+                    ','.join(self._args.zk_list),
+                    ANALYTICS_API_SERVER_DISCOVERY_SERVICE_NAME,
+                    self._hostname + "-" + self._instance_id,
+                    {ALARM_GENERATOR_SERVICE_NAME:self.disc_agp},
+                    self._args.zk_prefix,
+                    ad_freq)
+            else:
+                self._ad = None
+                if self._args.partitions != 0:
+                    # Assume all partitions are on the 1st redis server
+                    # and there is only one redis server
+                    redis_ip_port = self._args.redis_uve_list[0].split(':')
+                    assert(len(self._args.redis_uve_list) == 1)
+                    for part in range(0,self._args.partitions):
+                        pi = PartInfo(ip_address = redis_ip_port[0],
+                                      acq_time = UTCTimestampUsec(),
+                                      instance_id = "0",
+                                      port = int(redis_ip_port[1]))
+                        self.agp[part] = pi
 
 
         self._uve_server = UVEServer(self.redis_uve_list,
@@ -813,8 +800,12 @@ class OpServer(object):
                                  freq = us_freq)
         self._state_server.update_redis_list(self.redis_uve_list)
 
-        self._analytics_links = ['uves', 'uve-types', 'tables',
-            'queries', 'alarms', 'uve-stream', 'alarm-stream']
+        if slef._usecache:
+            self._analytics_links = ['uves', 'uve-types', 'tables',
+                'queries', 'alarms', 'uve-stream', 'alarm-stream']
+        else:
+            self._analytics_links = ['uves', 'uve-types', 'tables',
+                'queries', 'alarms']
 
         self._VIRTUAL_TABLES = copy.deepcopy(_TABLES)
 
@@ -1007,8 +998,9 @@ class OpServer(object):
                      'GET', self.documentation_messages_http_get)
         bottle.route('/documentation/<filename:path>',
                      'GET', self.documentation_http_get)
-        bottle.route('/analytics/uve-stream', 'GET', self.uve_stream)
-        bottle.route('/analytics/alarm-stream', 'GET', self.alarm_stream)
+        if self._usecache:
+            bottle.route('/analytics/uve-stream', 'GET', self.uve_stream)
+            bottle.route('/analytics/alarm-stream', 'GET', self.alarm_stream)
 
         bottle.route('/analytics/uves/<tables>', 'GET', self.dyn_list_http_get)
         bottle.route('/analytics/uves/<table>/<name:path>', 'GET', self.dyn_http_get)
@@ -2520,18 +2512,15 @@ class OpServer(object):
                 name = 'UVE-Aggregation', status = ConnectionStatus.UP,
                 message = 'Partitions:%d' % len(new_agp))
             self._uvepartitions_state = ConnectionStatus.UP
-        if self._usecache and len(new_agp) != self._args.partitions:
-            ConnectionState.update(conn_type = ConnectionType.UVEPARTITIONS,
-                name = 'UVE-Aggregation', status = ConnectionStatus.DOWN,
-                message = 'Partitions:%d' % len(new_agp))
-            self._uvepartitions_state = ConnectionStatus.DOWN
         self.agp = new_agp        
 
     def get_agp(self):
         return self.agp
 
     def run(self):
-        self._uvedbstream.start()
+        if self._uvedbstream != None:
+            self._uvedbstream.start()
+            self.gevs.append(_uvedbstream)
         self.send_analytics_api_info_uve()
 
         self.gevs += [
