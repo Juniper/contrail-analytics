@@ -35,6 +35,10 @@ logging.basicConfig(level=logging.INFO,
 builddir = find_buildroot(os.getcwd())
 
 class cd:
+    #
+    # License: CC-BY-SA-3.0
+    # https://stackoverflow.com/questions/431684/how-do-i-cd-in-python
+    #
     """Context manager for changing the current working directory"""
     def __init__(self, newPath):
         self.newPath = newPath
