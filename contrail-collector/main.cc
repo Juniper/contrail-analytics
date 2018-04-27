@@ -339,11 +339,14 @@ int main(int argc, char *argv[])
                              ConnectionType::DATABASE)->second,
                              hostname+":Global"))
          (ConnectionTypeName(g_process_info_constants.ConnectionTypeNames.find(
-                             ConnectionType::KAFKA_PUB)->second, kstr))
-         (ConnectionTypeName(g_process_info_constants.ConnectionTypeNames.find(
                              ConnectionType::DATABASE)->second, "Cassandra"))
          (ConnectionTypeName(g_process_info_constants.ConnectionTypeNames.find(
                              ConnectionType::DATABASE)->second, "RabbitMQ"));
+    if (kstr != "") {
+        expected_connections.push_back(ConnectionTypeName(
+                             g_process_info_constants.ConnectionTypeNames.find(
+                             ConnectionType::KAFKA_PUB)->second, kstr));
+    }
 
     ConnectionStateManager::
         GetInstance()->Init(*a_evm->io_service(),

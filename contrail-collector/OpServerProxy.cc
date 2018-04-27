@@ -90,15 +90,17 @@ class OpServerProxy::OpServerImpl {
                           const string& skey,
                           const string& gen,
                           const string& value) {
-            assert(kafka_proc_);
-            kafka_proc_->KafkaPub(pt, skey, gen, value);
+            if (kafka_proc_) {
+                kafka_proc_->KafkaPub(pt, skey, gen, value);
+            }
         }
 
         void KafkaPub(const string& astream,
                 const string& skey,
                 const string& value) {
-            assert(kafka_proc_);
-            kafka_proc_->KafkaPub(astream, skey, value);
+            if (kafka_proc_) {
+                kafka_proc_->KafkaPub(astream, skey, value);
+            }
         }
 
         struct RedisInfo {
@@ -185,7 +187,9 @@ class OpServerProxy::OpServerImpl {
             }
             if (collector_) {
                 collector_->RedisUpdate(true);
-                kafka_proc_->SetRedisState(true);
+                if (kafka_proc_) {
+                    kafka_proc_->SetRedisState(true);
+                }
             }
         }
 
@@ -295,7 +299,9 @@ class OpServerProxy::OpServerImpl {
             }
             started_ = false;
             collector_->RedisUpdate(false);
-            kafka_proc_->SetRedisState(false);
+            if (kafka_proc_) {
+                kafka_proc_->SetRedisState(false);
+            }
 
             // Update connection info
             ConnectionState::GetInstance()->Update(ConnectionType::REDIS_UVE,
@@ -437,9 +443,10 @@ class OpServerProxy::OpServerImpl {
                 analytics_cb_proc_fn(NULL),
                 processor_cb_proc_fn(NULL),
                 redis_password_(redis_password) {
-
-            kafka_proc_.reset(new KafkaProcessor(evm_, collector,
-                aggconf, brokers, topic, partitions));
+            if (brokers != "") {
+                kafka_proc_.reset(new KafkaProcessor(evm_, collector,
+                    aggconf, brokers, topic, partitions));
+            }
 
             to_ops_conn_.reset(new RedisAsyncConnection(evm_, 
                 redis_uve_ip, redis_uve_port, 
