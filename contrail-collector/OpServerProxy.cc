@@ -564,18 +564,6 @@ OpServerProxy::UVENotif(const std::string &type,
         dd.SetObject();
         for (map<string, pair<string, pugi::xml_node> >::iterator it =
                 value.begin(); it != value.end(); it++) {
-            // Send the attribute out on a Aggregated Topic if needed
-            std::string astream(type + std::string("-") + it->first);
-            if (impl_->aggconf_.find(astream) != impl_->aggconf_.end()) {
-                // Add timestamp to the attribute before publishing proxy UVE
-                std::ostringstream ostr;
-                std::ostringstream tstr;
-                tstr << UTCTimestampUsec();
-                it->second.second.append_attribute("timestamp") = tstr.str().c_str();
-                it->second.second.print(ostr, "",
-                        pugi::format_raw | pugi::format_no_escapes);
-                impl_->KafkaPub(astream, key, ostr.str());
-            }
             // TODO: don't sent attribute on UVE topic if it goes on Aggregate topic
             if (type == "UVEAlarms") {
                 contrail_rapidjson::Value sval(contrail_rapidjson::kStringType);
