@@ -208,7 +208,6 @@ public:
     const uint64_t analytics_statistics_ttl() const { return analytics_statistics_ttl_; }
     const uint64_t analytics_config_audit_ttl() const { return analytics_config_audit_ttl_; }
     const int syslog_port() const { return syslog_port_; }
-    const int sflow_port() const { return sflow_port_; }
     const int ipfix_port() const { return ipfix_port_; }
     const bool test_mode() const { return test_mode_; }
     const bool disable_flow_collection() const { return disable_flow_collection_; }
@@ -281,7 +280,6 @@ private:
     std::string syslog_facility_;
     std::string kafka_prefix_;
     int syslog_port_;
-    int sflow_port_;
     int ipfix_port_;
     bool test_mode_;
     bool dup_;
