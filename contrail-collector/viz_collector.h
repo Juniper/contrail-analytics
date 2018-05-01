@@ -25,8 +25,6 @@
 class Ruleeng;
 class ProtobufCollector;
 class StructuredSyslogCollector;
-class SFlowCollector;
-class IpfixCollector;
 class Options;
 
 class VizCollector {
@@ -45,7 +43,7 @@ public:
             const std::string &redis_password,
             const std::map<std::string, std::string>& aggconf,
             const std::string &brokers,
-            int syslog_port, int sflow_port, int ipfix_port,
+            int syslog_port,
             uint16_t partitions, bool dup,
             const std::string &kafka_prefix,
             const Options::Cassandra &cassandra_options,
@@ -146,8 +144,6 @@ private:
     Collector *collector_;
     boost::scoped_ptr<GrokParser> gp_;
     SyslogListeners *syslog_listener_;
-    SFlowCollector *sflow_collector_;
-    IpfixCollector *ipfix_collector_;
     boost::scoped_ptr<ProtobufCollector> protobuf_collector_;
     boost::scoped_ptr<StructuredSyslogCollector> structured_syslog_collector_;
     std::string name_;
