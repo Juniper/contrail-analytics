@@ -19,7 +19,6 @@
 #include "ruleeng.h"
 #include "protobuf_collector.h"
 #include "structured_syslog_collector.h"
-#include "sflow_collector.h"
 #include "ipfix_collector.h"
 #include "viz_sandesh.h"
 
@@ -43,7 +42,7 @@ VizCollector::VizCollector(EventManager *evm, unsigned short listen_port,
             const std::string &redis_password,
             const std::map<std::string, std::string>& aggconf,
             const std::string &brokers,
-            int syslog_port, int sflow_port, int ipfix_port,
+            int syslog_port, int ipfix_port,
             uint16_t partitions, bool dup,
             const std::string &kafka_prefix,
             const Options::Cassandra &cassandra_options,
@@ -71,8 +70,6 @@ VizCollector::VizCollector(EventManager *evm, unsigned short listen_port,
     syslog_listener_(new SyslogListeners(evm,
             boost::bind(&Ruleeng::rule_execute, ruleeng_.get(), _1, _2, _3, _4),
             db_initializer_->GetDbHandler(), syslog_port)),
-    sflow_collector_(new SFlowCollector(evm, db_initializer_->GetDbHandler(),
-        std::string(), sflow_port)),
     ipfix_collector_(new IpfixCollector(evm, db_initializer_->GetDbHandler(),
         string(), ipfix_port)),
     redis_gen_(0), partitions_(partitions) {
@@ -118,7 +115,7 @@ VizCollector::VizCollector(EventManager *evm, DbHandlerPtr db_handler,
     syslog_listener_(new SyslogListeners (evm,
             boost::bind(&Ruleeng::rule_execute, ruleeng, _1, _2, _3, _4),
             db_handler)),
-    sflow_collector_(NULL), ipfix_collector_(NULL), redis_gen_(0), partitions_(0) {
+     ipfix_collector_(NULL), redis_gen_(0), partitions_(0) {
     error_code error;
     name_ = boost::asio::ip::host_name(error);
 }
@@ -174,11 +171,6 @@ void VizCollector::Shutdown() {
         structured_syslog_collector_->Shutdown();
         WaitForIdle();
     }
-    if (sflow_collector_) {
-        sflow_collector_->Shutdown();
-        WaitForIdle();
-        UdpServerManager::DeleteServer(sflow_collector_);
-    }
     if (ipfix_collector_) {
         ipfix_collector_->Shutdown();
         WaitForIdle();
@@ -200,9 +192,6 @@ void VizCollector::DbInitializeCb() {
     }
     if (structured_syslog_collector_) {
         structured_syslog_collector_->Initialize();
-    }
-    if (sflow_collector_) {
-        sflow_collector_->Start();
     }
     if (ipfix_collector_) {
         ipfix_collector_->Start();

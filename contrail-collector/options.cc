@@ -374,8 +374,6 @@ void Options::Initialize(EventManager &evm,
              "Syslog facility to receive log lines")
         ("DEFAULT.syslog_port", opt::value<int>()->default_value(-1),
              "Syslog listener port (< 0 will disable the syslog)")
-        ("DEFAULT.sflow_port", opt::value<int>()->default_value(6343),
-             "sFlow listener UDP port (< 0 will disable sFlow Collector)")
         ("DEFAULT.ipfix_port", opt::value<int>()->default_value(4739),
              "ipfix listener UDP port (< 0 will disable ipfix Collector)")
         ("DEFAULT.test_mode", opt::bool_switch(&test_mode_),
@@ -704,7 +702,6 @@ void Options::Process(int argc, char *argv[],
     GetOptValue<string>(var_map, syslog_facility_, "DEFAULT.syslog_facility");
     GetOptValue<string>(var_map, kafka_prefix_, "DATABASE.cluster_id");
     GetOptValue<int>(var_map, syslog_port_, "DEFAULT.syslog_port");
-    GetOptValue<int>(var_map, sflow_port_, "DEFAULT.sflow_port");
     GetOptValue<int>(var_map, ipfix_port_, "DEFAULT.ipfix_port");
     GetOptValue< vector<string> >(var_map, grok_key_list_, "DEFAULT.grok_key_list");
     GetOptValue< vector<string> >(var_map, grok_attrib_list_, "DEFAULT.grok_attrib_list");
