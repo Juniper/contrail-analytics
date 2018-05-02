@@ -107,21 +107,7 @@ struct QEDbStats {
     4: optional map<string, gendb.DbTableStat> stats_info (tags=".__key", metric="diff")
     5: optional cql.DbStats                    cql_stats (tags="")
 
-   10: optional map<string, gendb.DbTableStat_P_>
-         table_info_1h   (mstats="60-table_info:DSSum:", hidden="yes")
-   11: optional map<string, gendb.DbTableStat_P_>
-         table_info_10m  (mstats="10-table_info:DSSum:")
-   12: optional map<string, derived_stats_results.AnomalyResult>
-         table_reads_anomaly (mstats="0-table_info.reads:DSAnomaly:EWM:0.2")
-
-   20: optional map<string, gendb.DbTableStat_P_>
-           stats_info_1h (mstats="60-stats_info:DSSum:", hidden="yes")
-   21: optional map<string, gendb.DbTableStat_P_>
-         stats_info_10m  (mstats="10-stats_info:DSSum:")
-   22: optional map<string, derived_stats_results.AnomalyResult>
-         stats_reads_anomaly (mstats="0-stats_info.reads:DSAnomaly:EWM:0.2")
-
-} (period="60")
+}
 
 /**
  * @description: Statistics for database operations in contrail-query-engine
