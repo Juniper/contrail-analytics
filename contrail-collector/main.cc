@@ -255,8 +255,6 @@ int main(int argc, char *argv[])
     LOG(INFO, "COLLECTOR ZOOKEEPER SERVERS: " <<
         options.zookeeper_server_list());
     LOG(INFO, "COLLECTOR SYSLOG LISTEN PORT: " << options.syslog_port());
-    LOG(INFO, "COLLECTOR SFLOW LISTEN PORT: " << options.sflow_port());
-    LOG(INFO, "COLLECTOR IPFIX LISTEN PORT: " << options.ipfix_port());
     uint16_t protobuf_port(0);
     std::string schema_file_directory = "";
     bool protobuf_server_enabled =
@@ -400,8 +398,6 @@ int main(int argc, char *argv[])
             aggconf,
             kstr,
             options.syslog_port(),
-            options.sflow_port(),
-            options.ipfix_port(),
             options.partitions(),
             options.dup(),
             options.kafka_prefix(),
