@@ -85,7 +85,7 @@ from sandesh.analytics_api_info.ttypes import AnalyticsApiInfoUVE, \
     UVEDbCacheTableKey, UVEDbCacheTableKeysResponse, \
     UVEDbCacheUveRequest, UVEDbCacheUveResponse
 from cfgm_common.exceptions import BadRequest, HttpError, PermissionDenied, AuthFailed
-
+from policy_generator import PolicyGenerator
 
 _ERRORS = {
     errno.EBADMSG: 400,
@@ -406,6 +406,7 @@ class OpServer(object):
     The supported **POST** APIs are:
         * ``/analytics/query``:
         * ``/analytics/operation/database-purge``:
+    * ``/analytics/policy-gen``:
     """
 
     def validate_user_token(func=None, only_cloud_admin=True,
@@ -723,9 +724,9 @@ class OpServer(object):
 
         self._vnc_api_client = None
         self._vnc_api_client_connect = None
-        if self._args.auth_conf_info.get('aaa_auth_enabled'):
-            self._vnc_api_client = VncCfgApiClient(self._args.auth_conf_info,
-                self._sandesh, self._logger)
+#        if self._args.auth_conf_info.get('aaa_auth_enabled'):
+        self._vnc_api_client = VncCfgApiClient(self._args.auth_conf_info,
+            self._sandesh, self._logger)
         self._uvedbstream = UveStreamer(self._logger, None, None,
                 self.get_agp, self._args.redis_password)
 
@@ -815,6 +816,15 @@ class OpServer(object):
 
         self._analytics_links = ['uves', 'uve-types', 'tables',
             'queries', 'alarms', 'uve-stream', 'alarm-stream']
+
+        # policy generator
+        self._policy_generator = PolicyGenerator(
+            'localhost',
+            self._args.auth_conf_info['admin_port'],
+            self._args.auth_conf_info['admin_user'],
+            self._args.auth_conf_info['admin_password'],
+            self._vnc_api_client,
+            self._logger)
 
         self._VIRTUAL_TABLES = copy.deepcopy(_TABLES)
 
@@ -1014,6 +1024,7 @@ class OpServer(object):
         bottle.route('/analytics/uves/<table>/<name:path>', 'GET', self.dyn_http_get)
         bottle.route('/analytics/uves/<tables>', 'POST', self.dyn_http_post)
         bottle.route('/analytics/alarms', 'GET', self.alarms_http_get)
+        bottle.route('/analytics/policy-gen', 'POST', self.policy_gen)
 
     # end __init__
 
@@ -2029,6 +2040,21 @@ class OpServer(object):
             else:
                 return bottle.HTTPError(_ERRORS[errno.EIO],json.dumps(alms))
     # end alarms_http_get
+
+    def _policy_gen(self, request_json, token):
+        try:
+            self._logger.error('request json: {}'.format(str(request_json)))
+            return self._policy_generator.process_request(request_json, token)
+        except Exception as e:
+            return bottle.HTTPError(_ERRORS[errno.EIO], str(e))
+        return
+
+    @validate_user_token(only_cloud_admin=True)
+    def policy_gen(self):
+        self._post_common(bottle.request, None)
+        result = self._policy_gen(bottle.request.json, self.get_user_token())
+        return result
+    # end policy_gen
 
     @validate_user_token(only_cloud_admin=False)
     def dyn_list_http_get(self, tables):

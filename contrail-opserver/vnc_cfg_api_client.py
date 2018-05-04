@@ -55,8 +55,8 @@ class VncCfgApiClient(object):
     # end _get_user_token_info
 
     @check_client_presence
-    def _get_resource_list(self, obj_type, token):
-        return self._vnc_api_client.resource_list(obj_type, token=token)
+    def _get_resource_list(self, obj_type, token, detail):
+        return self._vnc_api_client.resource_list(obj_type, token=token, detail=detail)
     # end _get_resource_list
 
     def update_api_servers(self, api_servers):
@@ -119,9 +119,9 @@ class VncCfgApiClient(object):
         return rv_obj_perms
     # end get_obj_perms_from_name
 
-    def get_resource_list(self, obj_type, token):
+    def get_resource_list(self, obj_type, token, detail=False):
         try:
-            res_list = self._get_resource_list(obj_type, token)
+            res_list = self._get_resource_list(obj_type, token, detail)
         except Exception as e:
             self._logger.error('VNC Config API Client NOT FOUND: %s' % str(e))
             return dict()
