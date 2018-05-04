@@ -107,6 +107,7 @@ const string SERVICE_GROUP_TABLE = "ObjectServiceGroupTable"
 const string APPLICATION_POLICY_SET_TABLE = "ObjectApplicationPolicySetTable"
 const string JOB_EXECUTION_TABLE = "ObjectJobExecutionTable"
 const string JOB_TEMPLATE_TABLE = "ObjectJobTemplateTable"
+const string FABRIC_NAME_TABLE = "ObjectFabricNameTable"
 
 const string VN_DISPLAY_NAME        = "Virtual Network"
 const string VM_DISPLAY_NAME        = "Virtual Machine"
@@ -148,6 +149,7 @@ const string SERVICE_GROUP_DISPLAY_NAME    = "service group"
 const string APPLICATION_POLICY_SET_DISPLAY_NAME = "application policy set"
 const string JOB_EXECUTION_DISPLAY_NAME = "job execution"
 const string JOB_TEMPLATE_DISPLAY_NAME = "job template"
+const string FABRIC_NAME_DISPLAY_NAME = "fabric name"
 
 const string SYSTEM_LOG             = "SystemLog"
 const string OBJECT_LOG             = "ObjectLog"
@@ -882,6 +884,12 @@ const map<string, objtable_info> _OBJECT_TABLES = {
     JOB_TEMPLATE_TABLE: {
         'objtable_display_name' : JOB_TEMPLATE_DISPLAY_NAME
         'log_query_name'        : "job-template"
+        'is_uve'                : false
+        'global_system_object'  : true
+    }
+    FABRIC_NAME_TABLE: {
+        'objtable_display_name' : FABRIC_NAME_DISPLAY_NAME
+        'log_query_name'        : "fabric-name"
         'is_uve'                : false
         'global_system_object'  : true
     }
