@@ -41,7 +41,6 @@ VizCollector::VizCollector(EventManager *evm, unsigned short listen_port,
             const std::string &redis_password,
             const std::map<std::string, std::string>& aggconf,
             const std::string &brokers,
-            int syslog_port,
             uint16_t partitions, bool dup,
             const std::string &kafka_prefix,
             const Options::Cassandra &cassandra_options,
@@ -49,10 +48,7 @@ VizCollector::VizCollector(EventManager *evm, unsigned short listen_port,
             bool use_zookeeper,
             const DbWriteOptions &db_write_options,
             const SandeshConfig &sandesh_config,
-            ConfigClientCollector *config_client,
-            bool grok_enabled,
-            const std::vector<std::string> &grok_key_list,
-            const std::vector<std::string> &grok_attrib_list) :
+            ConfigClientCollector *config_client) :
     db_initializer_(new DbHandlerInitializer(evm, DbGlobalName(dup),
         std::string("collector:DbIf"),
         boost::bind(&VizCollector::DbInitializeCb, this),
@@ -66,9 +62,6 @@ VizCollector::VizCollector(EventManager *evm, unsigned short listen_port,
                              db_initializer_->GetDbHandler(),
         osp_.get(),
         boost::bind(&Ruleeng::rule_execute, ruleeng_.get(), _1, _2, _3, _4))),
-    syslog_listener_(new SyslogListeners(evm,
-            boost::bind(&Ruleeng::rule_execute, ruleeng_.get(), _1, _2, _3, _4),
-            db_initializer_->GetDbHandler(), syslog_port)),
     redis_gen_(0), partitions_(partitions) {
     error_code error;
     if (dup)
@@ -79,16 +72,6 @@ VizCollector::VizCollector(EventManager *evm, unsigned short listen_port,
         protobuf_collector_.reset(new ProtobufCollector(evm,
             protobuf_listen_port, protobuf_schema_file_directory,
             db_initializer_->GetDbHandler()));
-    }
-    if (grok_enabled) {
-        gp_.reset(new GrokParser());
-        gp_.get()->init();
-        gp_.get()->msg_type_add("APPTRACK_SESSION_CLOSE");
-        gp_.get()->set_key_list(grok_key_list);
-        gp_.get()->set_attrib_list(grok_attrib_list);
-    }
-    else {
-        gp_.reset();
     }
     if (structured_syslog_collector_enabled) {
         structured_syslog_collector_.reset(new StructuredSyslogCollector(evm,
@@ -109,9 +92,6 @@ VizCollector::VizCollector(EventManager *evm, DbHandlerPtr db_handler,
     osp_(osp),
     ruleeng_(ruleeng),
     collector_(collector),
-    syslog_listener_(new SyslogListeners (evm,
-            boost::bind(&Ruleeng::rule_execute, ruleeng, _1, _2, _3, _4),
-            db_handler)),
     redis_gen_(0), partitions_(0) {
     error_code error;
     name_ = boost::asio::ip::host_name(error);
@@ -157,7 +137,6 @@ void VizCollector::Shutdown() {
     TcpServerManager::DeleteServer(collector_);
 
     osp_->Shutdown();
-    syslog_listener_->Shutdown();
     WaitForIdle();
 
     if (protobuf_collector_) {
@@ -175,10 +154,6 @@ void VizCollector::Shutdown() {
 
 void VizCollector::DbInitializeCb() {
     ruleeng_->Init();
-    if (!syslog_listener_->IsRunning()) {
-        syslog_listener_->Start();
-        LOG(DEBUG, __func__ << " Initialization of syslog listener done!");
-    }
     if (protobuf_collector_) {
         protobuf_collector_->Initialize();
     }
