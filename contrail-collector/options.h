@@ -151,12 +151,6 @@ public:
     const std::vector<std::string> collector_structured_syslog_kafka_broker_list() const {
         return collector_structured_syslog_kafka_broker_list_;
     }
-    const std::vector<std::string> grok_key_list() const {
-        return grok_key_list_;
-    }
-    const std::vector<std::string> grok_attrib_list() const {
-        return grok_attrib_list_;
-    }
     const std::string collector_structured_syslog_kafka_topic() const {
         return collector_structured_syslog_kafka_topic_;
     }
@@ -199,7 +193,6 @@ public:
     const std::string log_level() const { return log_level_; }
     const bool log_local() const { return log_local_; }
     const bool use_syslog() const { return use_syslog_; }
-    const bool use_grok() const { return use_grok_; }
     const std::string syslog_facility() const { return syslog_facility_; }
     const std::string kafka_prefix() const { return kafka_prefix_; }
     const bool dup() const { return dup_; }
@@ -207,7 +200,6 @@ public:
     const uint64_t analytics_flow_ttl() const { return analytics_flow_ttl_; }
     const uint64_t analytics_statistics_ttl() const { return analytics_statistics_ttl_; }
     const uint64_t analytics_config_audit_ttl() const { return analytics_config_audit_ttl_; }
-    const int syslog_port() const { return syslog_port_; }
     const bool test_mode() const { return test_mode_; }
     const bool disable_flow_collection() const { return disable_flow_collection_; }
     const bool disable_all_db_writes() const { return cassandra_options_.disable_all_db_writes_; }
@@ -275,10 +267,8 @@ private:
     std::string log_level_;
     bool log_local_;
     bool use_syslog_;
-    bool use_grok_;
     std::string syslog_facility_;
     std::string kafka_prefix_;
-    int syslog_port_;
     bool test_mode_;
     bool dup_;
     uint64_t analytics_data_ttl_;
@@ -308,8 +298,6 @@ private:
     uint32_t api_server_checksum_;
     std::vector<std::string> api_server_list_;
     bool api_server_use_ssl_;
-    std::vector<std::string> grok_key_list_;
-    std::vector<std::string> grok_attrib_list_;
 
     boost::program_options::options_description config_file_options_;
     DbWriteOptions db_write_options_;

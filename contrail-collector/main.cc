@@ -254,7 +254,6 @@ int main(int argc, char *argv[])
     LOG(INFO, "COLLECTOR CASSANDRA SERVERS: " << css.str());
     LOG(INFO, "COLLECTOR ZOOKEEPER SERVERS: " <<
         options.zookeeper_server_list());
-    LOG(INFO, "COLLECTOR SYSLOG LISTEN PORT: " << options.syslog_port());
     uint16_t protobuf_port(0);
     std::string schema_file_directory = "";
     bool protobuf_server_enabled =
@@ -397,7 +396,6 @@ int main(int argc, char *argv[])
             options.redis_password(),
             aggconf,
             kstr,
-            options.syslog_port(),
             options.partitions(),
             options.dup(),
             options.kafka_prefix(),
@@ -406,10 +404,7 @@ int main(int argc, char *argv[])
             use_zookeeper,
             options.get_db_write_options(),
             options.sandesh_config(),
-            config_client,
-            options.use_grok(),
-            options.grok_key_list(),
-            options.grok_attrib_list());
+            config_client);
 
     config_client->Init();
     analytics->Init();

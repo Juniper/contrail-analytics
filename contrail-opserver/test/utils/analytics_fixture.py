@@ -64,7 +64,7 @@ class Query(object):
 class Collector(object):
     def __init__(self, analytics_fixture, redis_uve,
                  logger,
-                 syslog_port = False, protobuf_port = True,
+                 protobuf_port = True,
                  kafka = None, is_dup = False,
                  cassandra_user = None, cassandra_password = None,
                  zookeeper = None, cluster_id='', sandesh_config=None):
@@ -74,7 +74,6 @@ class Collector(object):
         else:
             self.kafka_port = kafka.port
         # If these ports are needed, "start" should allocate them
-        self.syslog_port = 0 if syslog_port else -1
 
         self.protobuf_port = protobuf_port
         self.http_port = 0
@@ -105,10 +104,6 @@ class Collector(object):
         return '127.0.0.1:'+str(self.listen_port)
     # end get_addr
 
-    def get_syslog_port(self):
-        return self.syslog_port
-    # end get_syslog_port
-
     def get_protobuf_port(self):
         return self.protobuf_port
     # end get_protobuf_port
@@ -126,8 +121,6 @@ class Collector(object):
         self._log_file = '/tmp/vizd.messages.%s.%d' % \
                 (os.getenv('USER', 'None'), self._redis_uve.port)
         subprocess.call(['rm', '-rf', self._log_file])
-        if (self.syslog_port == 0):
-            self.syslog_port = AnalyticsFixture.get_free_port()
         args = [self.analytics_fixture.builddir + '/analytics/vizd',
             '--DEFAULT.cassandra_server_list', '127.0.0.1:' +
             str(self.analytics_fixture.cassandra_port),
@@ -136,7 +129,6 @@ class Collector(object):
             '--COLLECTOR.port', str(self.listen_port),
             '--DEFAULT.hostip', '127.0.0.1',
             '--DEFAULT.http_server_port', str(self.http_port),
-            '--DEFAULT.syslog_port', str(self.syslog_port),
             '--DEFAULT.log_level', 'SYS_DEBUG',
             '--DEFAULT.log_file', self._log_file]
         if self.analytics_fixture.cassandra_port == 0:
@@ -637,7 +629,6 @@ class AnalyticsFixture(fixtures.Fixture):
     # end set_sandesh_config
 
     def __init__(self, logger, builddir, cassandra_port,
-                 syslog_port = False,
                  protobuf_port = False, noqed=False, collector_ha_test=False,
                  redis_password=None, start_kafka=False,
                  cassandra_user=None, cassandra_password=None, cluster_id="",
@@ -645,7 +636,6 @@ class AnalyticsFixture(fixtures.Fixture):
 
         self.builddir = builddir
         self.cassandra_port = cassandra_port
-        self.syslog_port = syslog_port
         self.protobuf_port = protobuf_port
         self.logger = logger
         self.noqed = noqed
@@ -681,7 +671,6 @@ class AnalyticsFixture(fixtures.Fixture):
             self.kafka.start()
 
         self.collectors = [Collector(self, self.redis_uves[0], self.logger,
-                           syslog_port = self.syslog_port,
                            protobuf_port = self.protobuf_port,
                            kafka = self.kafka,
                            zookeeper = self.zookeeper,
