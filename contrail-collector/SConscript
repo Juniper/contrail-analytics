@@ -171,7 +171,7 @@ vizd_sources = ['viz_collector.cc', 'ruleeng.cc', 'collector.cc',
                 'sflow.cc',
                 'usrdef_counters.cc',
                 'kafka_processor.cc',
-                'uve_aggregator.cc', 'grok_parser.cc', 'config_client_collector.cc']
+                'uve_aggregator.cc', 'config_client_collector.cc']
 
 RedisLuaBuild(AnalyticsEnv, 'seqnum')
 RedisLuaBuild(AnalyticsEnv, 'delrequest')

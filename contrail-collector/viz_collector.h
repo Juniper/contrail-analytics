@@ -20,7 +20,6 @@
 #include "syslog_collector.h"
 #include "db_handler.h"
 #include "options.h"
-#include "grok_parser.h"
 
 class Ruleeng;
 class ProtobufCollector;
@@ -43,7 +42,6 @@ public:
             const std::string &redis_password,
             const std::map<std::string, std::string>& aggconf,
             const std::string &brokers,
-            int syslog_port,
             uint16_t partitions, bool dup,
             const std::string &kafka_prefix,
             const Options::Cassandra &cassandra_options,
@@ -51,10 +49,7 @@ public:
             bool use_zookeeper,
             const DbWriteOptions &db_write_options,
             const SandeshConfig &sandesh_config,
-            ConfigClientCollector *config_client,
-            bool grok_enabled,
-            const std::vector<std::string> &grok_key_list,
-            const std::vector<std::string> &grok_attrib_list);
+            ConfigClientCollector *config_client);
     VizCollector(EventManager *evm, DbHandlerPtr db_handler,
                  Ruleeng *ruleeng,
                  Collector *collector, OpServerProxy *osp);
@@ -65,9 +60,6 @@ public:
     void Shutdown();
     static void WaitForIdle();
 
-    SyslogListeners *GetSyslogListener() const {
-        return syslog_listener_;
-    }
     Collector *GetCollector() const {
         return collector_;
     }
@@ -142,8 +134,6 @@ private:
     boost::scoped_ptr<OpServerProxy> osp_;
     boost::scoped_ptr<Ruleeng> ruleeng_;
     Collector *collector_;
-    boost::scoped_ptr<GrokParser> gp_;
-    SyslogListeners *syslog_listener_;
     boost::scoped_ptr<ProtobufCollector> protobuf_collector_;
     boost::scoped_ptr<StructuredSyslogCollector> structured_syslog_collector_;
     std::string name_;
