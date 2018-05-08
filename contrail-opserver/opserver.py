@@ -2057,9 +2057,8 @@ class OpServer(object):
         if uve_type in UVE_MAP:
             uve_tbl = UVE_MAP[uve_type]
 
-        self._logger.error("before res list is %s" %uve_type)
         res_list = self.get_resource_list_from_uve_type(uve_type)
-        self._logger.error("res list is %s" %res_list)
+        self._logger.debug("resource list for %s is %s" %(uve_type, res_list))
         req = bottle.request.query
         try:
             filters = OpServer._uve_filter_set(req)
