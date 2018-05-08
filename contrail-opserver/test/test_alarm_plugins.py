@@ -2008,6 +2008,7 @@ class TestAlarmPlugins(unittest.TestCase):
         self._verify(tests, alarm_name="system-defined-xmpp-close-reason")
     # end test_alarm_xmpp_close_reason
 
+    @unittest.skip('skip test_alarm_phyif_bandwidth')
     def test_alarm_phyif_bandwidth(self):
         tests = [
             TestCase(
