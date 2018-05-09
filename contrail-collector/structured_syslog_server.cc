@@ -344,8 +344,9 @@ void StructuredSyslogUVESummarizeData(SyslogParser::syslog_m_t v, bool summarize
     const std::string department(SyslogParser::GetMapVals(v, "source-zone-name", "UNKNOWN"));
     const std::string device_id(SyslogParser::GetMapVals(v, "device", "UNKNOWN"));
     const std::string region(SyslogParser::GetMapVals(v, "region", "DEFAULT"));
+    const std::string opco(SyslogParser::GetMapVals(v, "OPCO", "DEFAULT"));
     const std::string uvename = tenant + "::" + location + "::" + device_id;
-    const std::string tenantuvename = region + "::" + tenant;
+    const std::string tenantuvename = region + "::" + opco + "::" + tenant;
     const std::string traffic_type(SyslogParser::GetMapVals(v, "active-probe-params", "UNKNOWN"));
     const std::string nested_appname(SyslogParser::GetMapVals(v, "nested-application", "UNKNOWN"));
     const std::string appname(SyslogParser::GetMapVals(v, "application", "UNKNOWN"));
@@ -629,8 +630,9 @@ void StructuredSyslogUVESummarizeAppQoeBPS(SyslogParser::syslog_m_t v, bool summ
     const std::string department(SyslogParser::GetMapVals(v, "source-zone-name", "UNKNOWN"));
     const std::string device_id(SyslogParser::GetMapVals(v, "device", "UNKNOWN"));
     const std::string region(SyslogParser::GetMapVals(v, "region", "DEFAULT"));
+    const std::string opco(SyslogParser::GetMapVals(v, "OPCO", "DEFAULT"));
     const std::string uvename = tenant + "::" + location + "::" + device_id;
-    const std::string tenantuvename = region + "::" + tenant;
+    const std::string tenantuvename = region + "::" + opco + "::" + tenant;
     const std::string traffic_type(SyslogParser::GetMapVals(v, "active-probe-params", "UNKNOWN"));
     const std::string nested_appname(SyslogParser::GetMapVals(v, "nested-application", "UNKNOWN"));
     const std::string appname(SyslogParser::GetMapVals(v, "application", "UNKNOWN"));
@@ -705,8 +707,9 @@ void StructuredSyslogUVESummarizeAppQoeSMV(SyslogParser::syslog_m_t v, bool summ
     const std::string department(SyslogParser::GetMapVals(v, "source-zone-name", "UNKNOWN"));
     const std::string device_id(SyslogParser::GetMapVals(v, "device", "UNKNOWN"));
     const std::string region(SyslogParser::GetMapVals(v, "region", "DEFAULT"));
+    const std::string opco(SyslogParser::GetMapVals(v, "OPCO", "DEFAULT"));
     const std::string uvename = tenant + "::" + location + "::" + device_id;
-    const std::string tenantuvename = region + "::" + tenant;
+    const std::string tenantuvename = region + "::" + opco + "::" + tenant;
     const std::string traffic_type(SyslogParser::GetMapVals(v, "active-probe-params", "UNKNOWN"));
     const std::string nested_appname(SyslogParser::GetMapVals(v, "nested-application", "UNKNOWN"));
     const std::string appname(SyslogParser::GetMapVals(v, "application", "UNKNOWN"));
@@ -853,14 +856,19 @@ float calculate_link_score(int64_t latency, int64_t packet_loss, int64_t jitter,
 
 void StructuredSyslogUVESummarizeAppQoeASMR(SyslogParser::syslog_m_t v, bool summarize_user) {
     SDWANMetricsRecord sdwanmetricrecord;
+    SDWANTenantMetricsRecord sdwantenantmetricrecord;
     const std::string location(SyslogParser::GetMapVals(v, "location", "UNKNOWN"));
     const std::string tenant(SyslogParser::GetMapVals(v, "tenant", "UNKNOWN"));
     const std::string link(SyslogParser::GetMapVals(v, "destination-interface-name", "UNKNOWN"));
     const std::string sla_profile(SyslogParser::GetMapVals(v, "sla-profile", "UNKNOWN"));
     const std::string device_id(SyslogParser::GetMapVals(v, "device", "UNKNOWN"));
+    const std::string region(SyslogParser::GetMapVals(v, "region", "DEFAULT"));
+    const std::string opco(SyslogParser::GetMapVals(v, "OPCO", "DEFAULT"));
     const std::string uvename = tenant + "::" + location + "::" + device_id;
+    const std::string tenantuvename = region + "::" + opco + "::" + tenant;
     const std::string traffic_type(SyslogParser::GetMapVals(v, "active-probe-params", "UNKNOWN"));
     sdwanmetricrecord.set_name(uvename);
+    sdwantenantmetricrecord.set_name(tenantuvename);
     SDWANMetrics_dial sdwanmetric;
     int64_t pkt_loss = SyslogParser::GetMapVal(v, "pkt-loss", -1);
     int64_t rtt = SyslogParser::GetMapVal(v, "rtt", -1);
@@ -883,7 +891,7 @@ void StructuredSyslogUVESummarizeAppQoeASMR(SyslogParser::syslog_m_t v, bool sum
         sdwanmetric.set_pkt_loss(pkt_loss);
     }
     if ((rtt != -1) && (rtt_jitter != -1) && (pkt_loss != -1)) {
-       sdwanmetric.set_score((int64_t)calculate_link_score(rtt/2, pkt_loss, rtt_jitter,
+        sdwanmetric.set_score((int64_t)calculate_link_score(rtt/2, pkt_loss, rtt_jitter,
                              SyslogParser::GetMapVal(v,"effective-latency-threshold",0),
                              SyslogParser::GetMapVal(v,"latency-factor",0),
                              SyslogParser::GetMapVal(v,"jitter-factor",0),
@@ -896,7 +904,15 @@ void StructuredSyslogUVESummarizeAppQoeASMR(SyslogParser::syslog_m_t v, bool sum
     link_metrics_dial_traffic_type.insert(std::make_pair(linkmap_key, sdwanmetric));
     sdwanmetricrecord.set_link_metrics_dial_traffic_type(link_metrics_dial_traffic_type);
 
+      // Map: tenant_metrics_dial_sla
+    std::map<std::string, SDWANMetrics_dial> tenant_metrics_dial_sla;
+    std::string tenantmetric_key(location + "::" + sla_profile + "::" + traffic_type);
+    LOG(DEBUG,"UVE: tenant_metrics_dial_sla key :" << tenantmetric_key);
+    tenant_metrics_dial_sla.insert(std::make_pair(tenantmetric_key, sdwanmetric));
+    sdwantenantmetricrecord.set_tenant_metrics_dial_sla(tenant_metrics_dial_sla);
+
     SDWANMetrics::Send(sdwanmetricrecord, "ObjectCPETable");
+    SDWANTenantMetrics::Send(sdwantenantmetricrecord, "ObjectCPETable");
     return;
 }
 
