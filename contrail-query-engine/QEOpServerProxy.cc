@@ -708,6 +708,7 @@ public:
         if (c->err) {
             QE_LOG_NOQID(ERROR, "Cannot report query error for " << qid <<
                 " . No Redis Connection");
+            redisFree(c);
             return;
         }
         //Authenticate the context with password
@@ -752,6 +753,7 @@ public:
         if (c->err) {
             QE_LOG_NOQID(ERROR, "Cannot start Pipleline for " << qid <<
                 " . No Redis Connection");
+            redisFree(c);
             qs.set_error("No Redis Connection");
             QUERY_PERF_INFO_SEND(Sandesh::source(), // name
                                  "__UNKNOWN__",     // table
