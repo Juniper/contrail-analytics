@@ -636,6 +636,8 @@ void StructuredSyslogUVESummarizeAppQoeBPS(SyslogParser::syslog_m_t v, bool summ
     const std::string appname(SyslogParser::GetMapVals(v, "application", "UNKNOWN"));
     const std::string tt_app_dept_info = traffic_type + "(" + nested_appname + ":" + appname
                                          + "/" + app_category +  ")" + "::" + department + "::";
+    int64_t elapsed_time = SyslogParser::GetMapVal(v, "elapsed-time", 0);
+    const std::string reason = SyslogParser::GetMapVals(v, "reason", "UNKNOWN");
     //username => syslog.username or syslog.source-address
     std::string username(SyslogParser::GetMapVals(v, "username", "UNKNOWN"));
     if (boost::iequals(username, "unknown")) {
@@ -645,7 +647,9 @@ void StructuredSyslogUVESummarizeAppQoeBPS(SyslogParser::syslog_m_t v, bool summ
     sdwantenantmetricrecord.set_name(tenantuvename);
 
     SDWANMetrics_diff sdwanmetric;
-    sdwanmetric.set_session_switch_count(1);
+    if ((elapsed_time > 2) && (!(boost::iequals(reason, "session close")))){
+        sdwanmetric.set_session_switch_count(1);
+    }
 
     // Map: app_metrics_diff_sla
     std::map<std::string, SDWANMetrics_diff> app_metrics_diff_sla;
