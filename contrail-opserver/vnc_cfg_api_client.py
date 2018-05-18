@@ -115,7 +115,13 @@ class VncCfgApiClient(object):
             self._logger.error("fq_name_to_id: fq_name:%s cfg_type:%s Exception: %s", \
                     (fq_name, cfg_type, str(e)) )
         else:
-            rv_obj_perms = self._vnc_api_client.obj_perms(token, uuid)
+            obj_get_method = cfg_type+"_read"
+            try:
+                obj = getattr(self._vnc_api_client, obj_get_method) (id = uuid)
+                rv_obj_perms = {'permissions':'R'}
+            except Exception as e:
+                self._logger.error("fq_name:%s cfg_type:%s uuid:%s Exception: %s", \
+                    (fq_name, cfg_type, uuid, str(e)) )
         return rv_obj_perms
     # end get_obj_perms_from_name
 
