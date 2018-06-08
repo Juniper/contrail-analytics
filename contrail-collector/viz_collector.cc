@@ -101,7 +101,7 @@ VizCollector::~VizCollector() {
 }
 
 std::string VizCollector::DbGlobalName(bool dup) {
-    return collector_->DbGlobalName(dup);
+    return Collector::DbGlobalName(dup);
 }
 
 bool VizCollector::SendRemote(const string& destination,
