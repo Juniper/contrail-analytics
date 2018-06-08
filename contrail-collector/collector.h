@@ -113,7 +113,7 @@ public:
     const CollectorStats &GetStats() const { return stats_; }
     void SendGeneratorStatistics();
 
-    std::string DbGlobalName(bool dup=false);
+    static std::string DbGlobalName(bool dup=false);
     void CloseGeneratorSession(std::string source, std::string module,
                          std::string instance, std::string node_type);
 protected:
