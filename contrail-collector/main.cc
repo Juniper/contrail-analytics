@@ -103,7 +103,6 @@ bool CollectorInfoLogger(VizSandeshContext &ctx) {
     CollectorSummaryLogger(analytics->GetCollector(), analytics->name(),
             analytics->GetOsp());
     analytics->SendDbStatistics();
-    analytics->SendProtobufCollectorStatistics();
 
     vector<ModuleServerState> sinfos;
     analytics->GetCollector()->GetGeneratorUVEInfo(sinfos);
@@ -254,14 +253,6 @@ int main(int argc, char *argv[])
     LOG(INFO, "COLLECTOR CASSANDRA SERVERS: " << css.str());
     LOG(INFO, "COLLECTOR ZOOKEEPER SERVERS: " <<
         options.zookeeper_server_list());
-    uint16_t protobuf_port(0);
-    std::string schema_file_directory = "";
-    bool protobuf_server_enabled =
-        options.collector_protobuf_port(&protobuf_port);
-    if (protobuf_server_enabled) {
-        LOG(INFO, "COLLECTOR PROTOBUF LISTEN PORT: " << protobuf_port);
-        LOG(INFO, "COLLECTOR SCHEMA FILE DIRECTORY: " <<schema_file_directory);
-    }
     uint16_t structured_syslog_port(0);
     bool structured_syslog_server_enabled =
         options.collector_structured_syslog_port(&structured_syslog_port);
@@ -320,7 +311,6 @@ int main(int argc, char *argv[])
     // 3. Redis To
     // 4. Database global
     // 5. Kafka Pub
-    // 6. Database protobuf if enabled
     // 7. Cassandra Server
     // 8. AMQP Server
 
@@ -382,9 +372,6 @@ int main(int argc, char *argv[])
         new ConfigClientCollector(a_evm, hostname, module_id, options);
     analytics = new VizCollector(a_evm,
             options.collector_port(),
-            protobuf_server_enabled,
-            protobuf_port,
-            schema_file_directory,
             structured_syslog_server_enabled,
             structured_syslog_port,
             structured_syslog_fwd,

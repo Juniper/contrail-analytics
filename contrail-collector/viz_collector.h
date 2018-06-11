@@ -29,9 +29,6 @@ class Options;
 class VizCollector {
 public:
     VizCollector(EventManager *evm, unsigned short listen_port,
-            bool protobuf_collector_enabled,
-            unsigned short protobuf_listen_port,
-            const std::string protobuf_schema_file_dir,
             bool structured_syslog_collector_enabled,
             unsigned short structured_syslog_listen_port,
             const vector<string> &structured_syslog_tcp_forward_dst,
@@ -80,7 +77,6 @@ public:
         }
     }
     void SendDbStatistics();
-    void SendProtobufCollectorStatistics();
     void SendGeneratorStatistics();
     bool GetCqlMetrics(cass::cql::Metrics *metrics);
 
@@ -134,7 +130,6 @@ private:
     boost::scoped_ptr<OpServerProxy> osp_;
     boost::scoped_ptr<Ruleeng> ruleeng_;
     Collector *collector_;
-    boost::scoped_ptr<ProtobufCollector> protobuf_collector_;
     boost::scoped_ptr<StructuredSyslogCollector> structured_syslog_collector_;
     std::string name_;
     unsigned short listen_port_;
