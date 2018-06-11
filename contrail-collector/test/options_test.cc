@@ -91,8 +91,6 @@ TEST_F(OptionsTest, NoArguments) {
     EXPECT_EQ(options_.disable_all_db_writes(), false);
     EXPECT_FALSE(options_.sandesh_config().disable_object_logs);
     EXPECT_EQ(options_.cluster_id(), "");
-    uint16_t protobuf_port(0);
-    EXPECT_FALSE(options_.collector_protobuf_port(&protobuf_port));
     uint16_t structured_syslog_port(0);
     EXPECT_FALSE(options_.collector_structured_syslog_port(&structured_syslog_port));
 }
@@ -139,8 +137,6 @@ TEST_F(OptionsTest, DefaultConfFile) {
     EXPECT_EQ(options_.disable_all_db_writes(), false);
     EXPECT_FALSE(options_.sandesh_config().disable_object_logs);
     EXPECT_EQ(options_.cluster_id(), "");
-    uint16_t protobuf_port(0);
-    EXPECT_FALSE(options_.collector_protobuf_port(&protobuf_port));
     uint16_t structured_syslog_port(0);
     EXPECT_FALSE(options_.collector_structured_syslog_port(&structured_syslog_port));
 }
@@ -189,8 +185,6 @@ TEST_F(OptionsTest, OverrideStringFromCommandLine) {
     EXPECT_EQ(options_.disable_flow_collection(), false);
     EXPECT_FALSE(options_.sandesh_config().disable_object_logs);
     EXPECT_EQ(options_.cluster_id(), "");
-    uint16_t protobuf_port(0);
-    EXPECT_FALSE(options_.collector_protobuf_port(&protobuf_port));
     uint16_t structured_syslog_port(0);
     EXPECT_FALSE(options_.collector_structured_syslog_port(&structured_syslog_port));
 }
@@ -252,8 +246,6 @@ TEST_F(OptionsTest, OverrideBooleanFromCommandLine) {
     EXPECT_TRUE(options_.sandesh_config().disable_object_logs);
     // Overridden from command line.
     EXPECT_EQ(options_.cluster_id(), "C1");
-    uint16_t protobuf_port(0);
-    EXPECT_FALSE(options_.collector_protobuf_port(&protobuf_port));
     uint16_t structured_syslog_port(0);
     EXPECT_FALSE(options_.collector_structured_syslog_port(&structured_syslog_port));
 }
@@ -282,7 +274,6 @@ TEST_F(OptionsTest, CustomConfigFile) {
         "[COLLECTOR]\n"
         "port=100\n"
         "server=3.4.5.6\n"
-        "protobuf_port=3333\n"
         "\n"
         "[STRUCTURED_SYSLOG_COLLECTOR]\n"
         "port=3514\n"
@@ -358,9 +349,6 @@ TEST_F(OptionsTest, CustomConfigFile) {
     EXPECT_EQ(options_.dup(), true);
     EXPECT_EQ(options_.test_mode(), true);
     EXPECT_EQ(options_.disable_flow_collection(), true);
-    uint16_t protobuf_port(0);
-    EXPECT_TRUE(options_.collector_protobuf_port(&protobuf_port));
-    EXPECT_EQ(protobuf_port, 3333);
     uint16_t structured_syslog_port(0);
     EXPECT_TRUE(options_.collector_structured_syslog_port(&structured_syslog_port));
     EXPECT_EQ(structured_syslog_port, 3514);
@@ -401,7 +389,6 @@ TEST_F(OptionsTest, CustomConfigFileAndOverrideFromCommandLine) {
         "[COLLECTOR]\n"
         "port=100\n"
         "server=3.4.5.6\n"
-        "protobuf_port=3333\n"
         "\n"
         "[STRUCTURED_SYSLOG_COLLECTOR]\n"
         "port=3514\n"
@@ -441,7 +428,6 @@ TEST_F(OptionsTest, CustomConfigFileAndOverrideFromCommandLine) {
     char argv_5[] = "--DEFAULT.cassandra_server_list=11.10.10.1:100";
     char argv_6[] = "--DEFAULT.cassandra_server_list=21.20.20.2:200";
     char argv_7[] = "--DEFAULT.cassandra_server_list=31.30.30.3:300";
-    char argv_8[] = "--COLLECTOR.protobuf_port=3334";
     char argv_9[] = "--CASSANDRA.cassandra_user=cassandra";
     char argv_10[] = "--CASSANDRA.cassandra_password=cassandra";
     char argv_11[] = "--conf_file=./options_test_cassandra_config_file.conf";
@@ -502,9 +488,6 @@ TEST_F(OptionsTest, CustomConfigFileAndOverrideFromCommandLine) {
     EXPECT_EQ(options_.analytics_flow_ttl(), g_viz_constants.TtlValuesDefault.find(TtlType::FLOWDATA_TTL)->second);
     EXPECT_EQ(options_.dup(), true);
     EXPECT_EQ(options_.test_mode(), true);
-    uint16_t protobuf_port(0);
-    EXPECT_TRUE(options_.collector_protobuf_port(&protobuf_port));
-    EXPECT_EQ(protobuf_port, 3334);
     uint16_t structured_syslog_port(0);
     EXPECT_TRUE(options_.collector_structured_syslog_port(&structured_syslog_port));
     EXPECT_EQ(structured_syslog_port, 3515);

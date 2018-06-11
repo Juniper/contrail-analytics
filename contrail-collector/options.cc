@@ -86,8 +86,6 @@ void Options::Initialize(EventManager &evm,
     uint16_t default_redis_port = ContrailPorts::RedisUvePort();
     uint16_t default_ks_port = ContrailPorts::KeystonePort();
     uint16_t default_collector_port = ContrailPorts::CollectorPort();
-    uint16_t default_collector_protobuf_port =
-        ContrailPorts::CollectorProtobufPort();
     uint16_t default_collector_structured_syslog_port =
         ContrailPorts::CollectorStructuredSyslogPort();
     uint16_t default_partitions = 15;
@@ -248,10 +246,6 @@ void Options::Initialize(EventManager &evm,
         ("COLLECTOR.server",
              opt::value<string>()->default_value("0.0.0.0"),
              "IP address of sandesh collector server")
-        ("COLLECTOR.protobuf_port",
-            opt::value<uint16_t>()->default_value(
-                default_collector_protobuf_port),
-         "Listener port of Google Protocol Buffer collector server")
         ("STRUCTURED_SYSLOG_COLLECTOR.port",
             opt::value<uint16_t>()->default_value(
                 default_collector_structured_syslog_port),
@@ -543,12 +537,6 @@ void Options::Process(int argc, char *argv[],
     // Retrieve the options.
     GetOptValue<uint16_t>(var_map, collector_port_, "COLLECTOR.port");
     GetOptValue<string>(var_map, collector_server_, "COLLECTOR.server");
-    if (GetOptValueIfNotDefaulted<uint16_t>(var_map, collector_protobuf_port_,
-            "COLLECTOR.protobuf_port")) {
-        collector_protobuf_port_configured_ = true;
-    } else {
-        collector_protobuf_port_configured_ = false;
-    }
     GetOptValue<uint32_t>(
         var_map, db_write_options_.disk_usage_percentage_high_watermark0_,
         "DATABASE.disk_usage_percentage.high_watermark0");

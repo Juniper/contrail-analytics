@@ -160,12 +160,6 @@ public:
     const uint16_t partitions() const { return partitions_; }
     const std::string collector_server() const { return collector_server_; }
     const uint16_t collector_port() const { return collector_port_; };
-    bool collector_protobuf_port(uint16_t *collector_protobuf_port) const {
-        if (collector_protobuf_port_configured_) {
-            *collector_protobuf_port = collector_protobuf_port_;
-        }
-        return collector_protobuf_port_configured_;
-    }
     bool collector_structured_syslog_port(uint16_t *collector_structured_syslog_port) const {
         if (collector_structured_syslog_port_configured_) {
             *collector_structured_syslog_port = collector_structured_syslog_port_;
@@ -242,8 +236,6 @@ private:
 
     std::string collector_server_;
     uint16_t collector_port_;
-    uint16_t collector_protobuf_port_;
-    bool collector_protobuf_port_configured_;
     uint16_t collector_structured_syslog_port_;
     bool collector_structured_syslog_port_configured_;
     std::vector<std::string> collector_structured_syslog_tcp_forward_destination_;
