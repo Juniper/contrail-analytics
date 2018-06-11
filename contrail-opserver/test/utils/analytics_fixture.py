@@ -3098,6 +3098,32 @@ class AnalyticsFixture(fixtures.Fixture):
     # end verify_multi_uve_get
 
     @retry(delay=1, tries=4)
+    def verify_uve_timestamp(self, table, typ):
+        vns = VerificationOpsSrv('127.0.0.1', self.opserver_port,
+            self.admin_user, self.admin_password)
+        # first step: querry without flat
+        table_query = table
+        raw_uves = vns.uve_query(table_query, None)
+        if typ not in raw_uves:
+            assert(False)
+        if '__T' not in raw_uves[typ]:
+            assert(False)
+        ts_list = raw_uves[typ]['__T']
+        assert(len(ts_list))
+        ts_latest = '0'
+        for ts in ts_list:
+            ts_cur = ts[0]['#text']
+            ts_latest = max(ts, ts_cur)
+        #second step: querry with flat
+        table_query = table + '?flat'
+        agg_uves = vns.uve_query(table_query, None)
+        if typ not in agg_uves:
+            assert(False)
+        if '__T' not in agg_uves[typ]:
+            assert(False)
+        return (ts_latest == agg_uves[typ]['__T'])
+
+    @retry(delay=1, tries=4)
     def verify_uve_post(self, table, filts=None, exp_uves=None):
         vns = VerificationOpsSrv('127.0.0.1', self.opserver_port,
             self.admin_user, self.admin_password)
