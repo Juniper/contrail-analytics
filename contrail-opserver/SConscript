@@ -241,21 +241,18 @@ testr_str = 'bash -c "set -o pipefail && cd ' + Dir(top_dir).path + \
 OpEnv.Append(ENV = {'BUILDTOP': Dir(OpEnv['TOP']).abspath,
                     'COVERAGERUN': str(OpEnv['OPT'] == 'coverage')})
 
-vnc_api_pkg = 'api-lib/dist/vnc_api-%s.tar.gz' % (open(File(
-    '#/controller/src/base/version.info').abspath, 'r').read(
-                 ).strip('\n').strip('\t'))
 test_depends = [
         '/config/common/dist/cfgm_common-0.1dev.tar.gz',
         '/sandesh/common/dist/sandesh-common-0.1dev.tar.gz',
         '/tools/sandesh/library/python/dist/sandesh-0.1dev.tar.gz',
-	'/%s' % (vnc_api_pkg),
+        env.GetVncAPIPkg(),
         '/nodemgr/dist/nodemgr-0.1dev.tar.gz',
         '/libpartition/dist/libpartition-0.1dev.tar.gz',
         '/analytics/vizd',
         '/query_engine/qedt',
         '/opserver/plugins/test/alarm_partial_sysinfo/dist/alarm_partial_sysinfo-0.1dev.tar.gz',
         '/opserver/plugins/test/alarm_process_status/dist/alarm_process_status-0.1dev.tar.gz',
-               ]
+]
 
 if OpEnv['OPT'] == 'coverage':
     run_test_cmd = OpEnv.Command('coveragetest.log', sdist_gen + sandesh_pkgs,
