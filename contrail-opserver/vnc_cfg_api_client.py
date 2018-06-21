@@ -117,11 +117,21 @@ class VncCfgApiClient(object):
         else:
             obj_get_method = cfg_type+"_read"
             try:
+                if 'X-USER-TOKEN' in self._vnc_api_client._headers:
+                    restore_token = self._vnc_api_client._headers['X-USER-TOKEN']
+                else:
+                    restore_token = None
+                self._vnc_api_client._headers['X-USER-TOKEN'] = token
                 obj = getattr(self._vnc_api_client, obj_get_method) (id = uuid)
                 rv_obj_perms = {'permissions':'R'}
             except Exception as e:
                 self._logger.error("fq_name:%s cfg_type:%s uuid:%s Exception: %s", \
                     (fq_name, cfg_type, uuid, str(e)) )
+            finally:
+                if 'X-USER-TOKEN' in self._vnc_api_client._headers:
+                    del self._headers['X-USER-TOKEN']
+                if restore_token is not None:
+                    self._vnc_api_client._headers['X-USER-TOKEN'] = restore_token
         return rv_obj_perms
     # end get_obj_perms_from_name
 
