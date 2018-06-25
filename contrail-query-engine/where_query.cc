@@ -1355,60 +1355,61 @@ void WhereQuery::subquery_processed(QueryUnit *subquery) {
         if (subquery->query_status == QUERY_FAILURE) {
             QE_QUERY_FETCH_ERROR();
         }
-    }
-
-    if (sub_queries.size() == inp.size() + inp_new_data.size()) {
-        // Handle if any of the sub query has failed.
-        if (m_query->qperf_.error) {
-            m_query->qperf_.chunk_where_time =
-            static_cast<uint32_t>((UTCTimestampUsec() - m_query->where_start_)
-            /1000);
-            where_query_cb_(m_query->handle_, m_query->qperf_, where_result_);
+        if (sub_queries.size() != inp.size() + inp_new_data.size()) {
             return;
         }
-        if (m_query->is_message_table_query()
-            || m_query->is_object_table_query(m_query->table())
-            || m_query->is_flow_query(m_query->table())
-            ) {
-            SetOperationUnit::op_or(((AnalyticsQuery *)(this->main_query))->query_id,
-                *where_result_, inp);
-        } else if (m_query->is_stat_table_query(m_query->table())) {
-            std::vector<WhereResultT*> inp_final;
-            if (inp.size() != 0) {
-                std::auto_ptr<WhereResultT>
-                    where_result_old(new std::vector<query_result_unit_t>);
-                SetOperationUnit::op_and(((AnalyticsQuery *)(this->main_query))->query_id,
-                    *where_result_old, inp);
-                inp_final.push_back(where_result_old.get());
-            }
-            std::auto_ptr<WhereResultT>
-                where_result_new(new std::vector<query_result_unit_t>);
-            SetOperationUnit::op_and(((AnalyticsQuery *)(this->main_query))->query_id,
-                *where_result_new, inp_new_data);
-            inp_final.push_back(where_result_new.get());
-            SetOperationUnit::op_or(((AnalyticsQuery *)(this->main_query))->query_id,
-                *where_result_, inp_final);
-        } else {
-            SetOperationUnit::op_and(((AnalyticsQuery *)(this->main_query))->query_id,
-                *where_result_, inp);
-        }
-        m_query->query_status = query_status;
-
-        QE_TRACE(DEBUG, "Set ops returns # of rows:" << where_result_->size());
-
-        // Have the result ready and processing is done
-        QE_TRACE(DEBUG, "WHERE processing done row #s:" <<
-             where_result_->size());
-        QE_TRACE_NOQID(DEBUG, " Finished where processing for QID " << m_query->query_id
-            << " chunk:" << m_query->parallel_batch_num);
-        status_details = 0;
-        parent_query->subquery_processed(this);
-        m_query->status_details = status_details;
-        m_query->qperf_.chunk_where_time =
-            static_cast<uint32_t>((UTCTimestampUsec() - m_query->where_start_)
-            /1000);
-        where_query_cb_(m_query->handle_, m_query->qperf_, where_result_);
     }
+
+    // Handle if any of the sub query has failed.
+    if (m_query->qperf_.error) {
+        m_query->qperf_.chunk_where_time =
+        static_cast<uint32_t>((UTCTimestampUsec() - m_query->where_start_)
+        /1000);
+        where_query_cb_(m_query->handle_, m_query->qperf_, where_result_);
+        return;
+    }
+    if (m_query->is_message_table_query()
+        || m_query->is_object_table_query(m_query->table())
+        || m_query->is_flow_query(m_query->table())
+        ) {
+        SetOperationUnit::op_or(((AnalyticsQuery *)(this->main_query))->query_id,
+            *where_result_, inp);
+    } else if (m_query->is_stat_table_query(m_query->table())) {
+        std::vector<WhereResultT*> inp_final;
+        if (inp.size() != 0) {
+            std::auto_ptr<WhereResultT>
+                where_result_old(new std::vector<query_result_unit_t>);
+            SetOperationUnit::op_and(((AnalyticsQuery *)(this->main_query))->query_id,
+                *where_result_old, inp);
+            inp_final.push_back(where_result_old.get());
+        }
+        std::auto_ptr<WhereResultT>
+            where_result_new(new std::vector<query_result_unit_t>);
+        SetOperationUnit::op_and(((AnalyticsQuery *)(this->main_query))->query_id,
+            *where_result_new, inp_new_data);
+        inp_final.push_back(where_result_new.get());
+        SetOperationUnit::op_or(((AnalyticsQuery *)(this->main_query))->query_id,
+            *where_result_, inp_final);
+    } else {
+        SetOperationUnit::op_and(((AnalyticsQuery *)(this->main_query))->query_id,
+            *where_result_, inp);
+    }
+    m_query->query_status = query_status;
+
+    QE_TRACE(DEBUG, "Set ops returns # of rows:" << where_result_->size());
+
+    // Have the result ready and processing is done
+    QE_TRACE(DEBUG, "WHERE processing done row #s:" <<
+         where_result_->size());
+    QE_TRACE_NOQID(DEBUG, " Finished where processing for QID " << m_query->query_id
+        << " chunk:" << m_query->parallel_batch_num);
+    status_details = 0;
+    parent_query->subquery_processed(this);
+    m_query->status_details = status_details;
+    m_query->qperf_.chunk_where_time =
+        static_cast<uint32_t>((UTCTimestampUsec() - m_query->where_start_)
+        /1000);
+    where_query_cb_(m_query->handle_, m_query->qperf_, where_result_);
 }
 
 query_status_t WhereQuery::process_query()
