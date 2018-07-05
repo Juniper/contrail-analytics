@@ -115,7 +115,7 @@ class AnalyticsDiscovery(gevent.Greenlet):
         else:
             if child in self._wchildren[watcher]:
                 del self._wchildren[watcher][child]
-        if self._watchers[watcher]:
+        if self._data_watchers[watcher]:
             self._pendingcb.add(watcher)
 
     def _zk_watcher(self, watcher, children):
@@ -123,7 +123,8 @@ class AnalyticsDiscovery(gevent.Greenlet):
         self._reconnect = True
 
     def __init__(self, logger, zkservers, svc_name, inst,
-                watchers={}, zpostfix="", freq=10):
+                data_watchers={}, child_watchers={},
+                zpostfix="", freq=10):
         gevent.Greenlet.__init__(self)
         self._svc_name = svc_name
         self._inst = inst
@@ -140,7 +141,8 @@ class AnalyticsDiscovery(gevent.Greenlet):
         self._zk = None
         self._pubinfo = None
         self._publock = Semaphore()
-        self._watchers = watchers
+        self._data_watchers = data_watchers
+        self._child_watchers = child_watchers
         self._wchildren = {}
         self._pendingcb = set()
         self._zpostfix = zpostfix
@@ -224,11 +226,15 @@ class AnalyticsDiscovery(gevent.Greenlet):
             self._reconnect = False
             # Done connecting to ZooKeeper
 
-            for wk in self._watchers.keys():
+            for wk in self._data_watchers.keys():
                 self._zk.ensure_path(self._basepath + "/" + wk)
                 self._wchildren[wk] = {}
                 self._zk.ChildrenWatch(self._basepath + "/" + wk,
                         partial(self._zk_watcher, wk))
+            for wk in self._child_watchers.keys():
+                self._zk.ensure_path(self._basepath + "/" + wk)
+                self._zk.ChildrenWatch(self._basepath + "/" + wk,
+                        self._child_watchers[wk])
 
             # Trigger the initial publish
             self._reconnect = True
@@ -239,8 +245,8 @@ class AnalyticsDiscovery(gevent.Greenlet):
                         pending_list = list(self._pendingcb)
                         self._pendingcb = set()
                         for wk in pending_list:
-                            if self._watchers[wk]:
-                                self._watchers[wk](\
+                            if self._data_watchers[wk]:
+                                self._data_watchers[wk](\
                                         sorted(self._wchildren[wk].values()))
 
                     # If a reconnect happens during processing, don't lose it
@@ -251,7 +257,7 @@ class AnalyticsDiscovery(gevent.Greenlet):
                         self._pendingcb = set()
                         self.publish(self._pubinfo)
 
-                        for wk in self._watchers.keys():
+                        for wk in self._data_watchers.keys():
                             self._zk.ensure_path(self._basepath + "/" + wk)
                             children = self._zk.get_children(self._basepath + "/" + wk)
 
@@ -280,8 +286,8 @@ class AnalyticsDiscovery(gevent.Greenlet):
                                 self._logger.error(\
                                     "Analytics Discovery %s ChildData : child %s, data %s, event %s" % \
                                     (wk, elem, self._wchildren[wk][elem], "GET"))
-                            if self._watchers[wk]:
-                                self._watchers[wk](sorted(self._wchildren[wk].values()))
+                            if self._data_watchers[wk]:
+                                self._data_watchers[wk](sorted(self._wchildren[wk].values()))
 
                     gevent.sleep(self._freq)
                 except gevent.GreenletExit:
