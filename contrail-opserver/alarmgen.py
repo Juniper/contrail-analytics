@@ -987,7 +987,8 @@ class Controller(object):
             us_freq = 2
             ad_freq = 2
         self._us = UVEServer(redis_uve_list, self._logger,
-                self._conf.redis_password(), freq=us_freq)
+                self._conf.redis_password(), freq=us_freq,
+                host=self._conf.host_ip())
 
         # Start AnalyticsDiscovery to monitor AlarmGen instances
         if self._conf.zk_list():
@@ -1004,6 +1005,8 @@ class Controller(object):
             # If there is no discovery service, use fixed alarmgen list
             self._libpart = self.start_libpart(self._conf.alarmgen_list())
             self._ad = None
+
+        self._us.set_ad_handle(self._ad)
 
         self._workers = {}
         self._uvestats = {}
