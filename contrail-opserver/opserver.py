@@ -780,10 +780,12 @@ class OpServer(object):
 
 
         self._uve_server = UVEServer(self.redis_uve_list,
+                                 ','.join(self._args.zk_list),
                                  self._logger,
                                  self._args.redis_password,
                                  None, False,
-                                 freq = us_freq)
+                                 freq = us_freq,
+                                 host=self._args.host_ip)
         self._state_server.update_redis_list(self.redis_uve_list)
 
         self._analytics_links = ['uves', 'uve-types', 'tables',
