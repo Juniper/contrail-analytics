@@ -986,7 +986,7 @@ class Controller(object):
         if is_local:
             us_freq = 2
             ad_freq = 2
-        self._us = UVEServer(redis_uve_list, self._logger,
+        self._us = UVEServer(redis_uve_list, ','.join(self._conf.zk_list()), self._logger,
                 self._conf.redis_password(), freq=us_freq)
 
         # Start AnalyticsDiscovery to monitor AlarmGen instances
