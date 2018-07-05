@@ -404,7 +404,8 @@ int main(int argc, char *argv[])
             use_zookeeper,
             options.get_db_write_options(),
             options.sandesh_config(),
-            config_client);
+            config_client,
+            options.host_ip());
 
     config_client->Init();
     analytics->Init();
