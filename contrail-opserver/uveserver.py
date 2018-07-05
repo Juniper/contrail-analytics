@@ -21,11 +21,14 @@ from gevent.lock import BoundedSemaphore
 from pysandesh.util import UTCTimestampUsec
 from pysandesh.connection_info import ConnectionState
 from sandesh.viz.constants import UVE_MAP
+from sandesh_common.vns.constants import COLLECTOR_DISCOVERY_SERVICE_NAME
 from pysandesh.gen_py.process_info.ttypes import ConnectionType,\
      ConnectionStatus
 import traceback
 from collections import namedtuple
 from strict_redis_wrapper import StrictRedisWrapper
+from kazoo.client import KazooClient
+from kazoo.client import KazooState
 
 RedisInfo = namedtuple("RedisInfo",["ip","port","pid"])
 
@@ -38,16 +41,21 @@ class RedisInst(object):
 
 class UVEServer(object):
 
-    def __init__(self, redis_uve_list, logger,
+    def __init__(self, redis_uve_list, zoo_list, logger,
             redis_password=None, \
             uvedbcache=None, usecache=False, freq=5):
         self._logger = logger
         self._redis = None
         self._uvedbcache = uvedbcache
         self._usecache = usecache
+        self._redis_port = 0
         self._redis_password = redis_password
         self._uve_reverse_map = {}
         self._freq = freq
+        self._active_collectors = []
+        self._zk = None
+        self._zk_list = zoo_list
+        self._zk_connect = False
 
         for h,m in UVE_MAP.iteritems():
             self._uve_reverse_map[m] = h
@@ -56,11 +64,20 @@ class UVEServer(object):
         self._redis_uve_map = {}
         for new_elem in redis_uve_list:
             test_elem = RedisInstKey(ip=new_elem[0], port=new_elem[1])
+            self._redis_port = int(new_elem[1])
             self._redis_uve_map[test_elem] = RedisInst()
             ConnectionState.update(ConnectionType.REDIS_UVE,\
                 test_elem.ip+":"+str(test_elem.port), ConnectionStatus.INIT,
                 [test_elem.ip+":"+str(test_elem.port)])
     #end __init__
+
+    def collectors_change_cb(self, children):
+        self._active_collectors = children
+        redis_uve_list = []
+        for redis_uve in self._active_collectors:
+            redis_elem = (redis_uve, self._redis_port)
+            redis_uve_list.append(redis_elem)
+        self.update_redis_uve_list(redis_uve_list)
 
     def fill_redis_uve_info(self, redis_uve_info):
         try:
@@ -106,6 +123,8 @@ class UVEServer(object):
     # end update_redis_uve_list
 
     def run(self):
+        if len(self._zk_list) > 0:
+            self.start_zookeeper_client()
         exitrun = False
         while not exitrun:
             for rkey in self._redis_uve_map.keys():
@@ -145,20 +164,34 @@ class UVEServer(object):
                     exitrun = True
                     break
                 except Exception as e:
-                    self._logger.error("redis/collector healthcheck failed %s for %s" \
+                    self._logger.debug("redis/collector healthcheck failed %s for %s" \
                                    % (str(e), str(rkey)))
                     rinst.redis_handle = None
                     rinst.collector_pid = None
                 finally:
                     # Update redis/collector health
-                    if old_pid is None and rinst.collector_pid is not None:
-                        ConnectionState.update(ConnectionType.REDIS_UVE,\
+                    '''
+                    when rinst.redis_handle is none, redis down
+                    when rkey.ip not in collectors, collector down
+                    if redis and collector are up or down, state should be up
+                    if redis is up, state should be up
+                    if redis is down but collector is up, the state shoue be down
+                    '''
+                    if rkey in self._redis_uve_map.keys():
+                        if rinst.redis_handle is None:
+                            if self._active_collectors is not None and \
+                                rkey.ip not in self._active_collectors:
+                                ConnectionState.update(ConnectionType.REDIS_UVE,\
+                                    rkey.ip + ":" + str(rkey.port), ConnectionStatus.UP,
+                                    [rkey.ip+":"+str(rkey.port)])
+                            else:
+                                ConnectionState.update(ConnectionType.REDIS_UVE,\
+                                    rkey.ip + ":" + str(rkey.port), ConnectionStatus.DOWN,
+                                    [rkey.ip+":"+str(rkey.port)])
+                        else:
+                            ConnectionState.update(ConnectionType.REDIS_UVE,\
                                 rkey.ip + ":" + str(rkey.port), ConnectionStatus.UP,
-                        [rkey.ip+":"+str(rkey.port)])
-                    if old_pid is not None and rinst.collector_pid is None:
-                        ConnectionState.update(ConnectionType.REDIS_UVE,\
-                                rkey.ip + ":" + str(rkey.port), ConnectionStatus.DOWN,
-                        [rkey.ip+":"+str(rkey.port)])
+                                [rkey.ip+":"+str(rkey.port)])
             if not exitrun:
                 gevent.sleep(self._freq)
 
@@ -525,6 +558,46 @@ class UVEServer(object):
         return self._uvedbcache.get_uvedb_cache_uve(table, uve_key)
     # end get_uvedb_cache_uve
 
+    def start_zookeeper_client(self):
+        while True:
+            self._logger.error("UVE server zk start")
+            self._zk = KazooClient(hosts=self._zk_list)
+            self._zk.add_listener(self._zk_listen)
+            try:
+                self._zk.start()
+                while self._zk_connect == False:
+                    gevent.sleep(1)
+                path = "/analytics-discovery-/" + COLLECTOR_DISCOVERY_SERVICE_NAME
+                self._zk.ensure_path(path)
+                self._zk.ChildrenWatch(path, self.collectors_change_cb)
+                break
+            except Exception as e:
+                # Update connection info
+                self._zk.remove_listener(self._zk_listen)
+                try:
+                    self._zk.stop()
+                    self._zk.close()
+                except Exception as ex:
+                    template = "Exception {0} in UVEServer zk stop/close. Args:\n{1!r}"
+                    messag = template.format(type(ex).__name__, ex.args)
+                    self._logger.error("%s : traceback %s for %s" % \
+                        (messag, traceback.format_exc(), self._svc_name))
+                finally:
+                    self._zk = None
+                gevent.sleep(1)
+    #end start_zookeeper_client
+
+    def _zk_listen(self, state):
+        self._logger.error("UVE server zookeeper listen %s" % str(state))
+        if state == KazooState.CONNECTED:
+            self._zk_connect = True
+        elif state == KazooState.LOST:
+            self._logger.error("UVE server connection LOST")
+            self._zk_connect = False
+        elif state == KazooState.SUSPENDED:
+            self._logger.error("UVE server connection SUSPENDED")
+            self._zk_connect = False
+    #end _zk_listen
 
 # end UVEServer
 
