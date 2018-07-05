@@ -40,7 +40,8 @@ class UVEServer(object):
 
     def __init__(self, redis_uve_list, logger,
             redis_password=None, \
-            uvedbcache=None, usecache=False, freq=5):
+            uvedbcache=None, usecache=False, freq=5, \
+            host="127.0.0.1"):
         self._logger = logger
         self._redis = None
         self._uvedbcache = uvedbcache
@@ -48,6 +49,8 @@ class UVEServer(object):
         self._redis_password = redis_password
         self._uve_reverse_map = {}
         self._freq = freq
+        self._ad = None
+        self._host = host
 
         for h,m in UVE_MAP.iteritems():
             self._uve_reverse_map[m] = h
@@ -61,6 +64,9 @@ class UVEServer(object):
                 test_elem.ip+":"+str(test_elem.port), ConnectionStatus.INIT,
                 [test_elem.ip+":"+str(test_elem.port)])
     #end __init__
+
+    def set_ad_handle(self, ad_handle):
+        self._ad = ad_handle
 
     def fill_redis_uve_info(self, redis_uve_info):
         try:
@@ -145,20 +151,40 @@ class UVEServer(object):
                     exitrun = True
                     break
                 except Exception as e:
-                    self._logger.error("redis/collector healthcheck failed %s for %s" \
+                    self._logger.debug("redis/collector healthcheck failed %s for %s" \
                                    % (str(e), str(rkey)))
                     rinst.redis_handle = None
                     rinst.collector_pid = None
                 finally:
                     # Update redis/collector health
-                    if old_pid is None and rinst.collector_pid is not None:
-                        ConnectionState.update(ConnectionType.REDIS_UVE,\
-                                rkey.ip + ":" + str(rkey.port), ConnectionStatus.UP,
-                        [rkey.ip+":"+str(rkey.port)])
-                    if old_pid is not None and rinst.collector_pid is None:
-                        ConnectionState.update(ConnectionType.REDIS_UVE,\
+                    collectors = None
+                    if self._ad is not None:
+                        collectors = self._ad.get_active_collectors()
+                    '''
+                    when rinst.redis_handle is none, redis down
+                    when rkey.ip not in collectors, collector down
+                    if redis and collector are up or down, state should be up
+                    if redis is up, state should be up
+                    if redis is down but collector is up, the state shoue be down
+                    '''
+                    if rinst.redis_handle is None:
+                        if collectors is not None and rkey.ip not in collectors:
+                            if self._host == rkey.ip:
+                                ConnectionState.update(ConnectionType.REDIS_UVE,\
+                                    rkey.ip + ":" + str(rkey.port), ConnectionStatus.DOWN,
+                                    [rkey.ip+":"+str(rkey.port)])
+                            else:
+                                ConnectionState.update(ConnectionType.REDIS_UVE,\
+                                    rkey.ip + ":" + str(rkey.port), ConnectionStatus.UP,
+                                    [rkey.ip+":"+str(rkey.port)])
+                        else:
+                            ConnectionState.update(ConnectionType.REDIS_UVE,\
                                 rkey.ip + ":" + str(rkey.port), ConnectionStatus.DOWN,
-                        [rkey.ip+":"+str(rkey.port)])
+                                [rkey.ip+":"+str(rkey.port)])
+                    else:
+                        ConnectionState.update(ConnectionType.REDIS_UVE,\
+                            rkey.ip + ":" + str(rkey.port), ConnectionStatus.UP,
+                            [rkey.ip+":"+str(rkey.port)])
             if not exitrun:
                 gevent.sleep(self._freq)
 
