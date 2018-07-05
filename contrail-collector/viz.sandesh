@@ -80,6 +80,7 @@ const string ROUTING_INSTANCE_TABLE = "ObjectRoutingInstance"
 const string XMPP_CONNECTION_TABLE  = "ObjectXmppConnection"
 const string COLLECTOR_INFO_TABLE   = "ObjectCollectorInfo"
 const string DATABASE_INFO_TABLE    = "ObjectDatabaseInfo"
+const string CONFIG_DATABASE_INFO_TABLE = "ObjectConfigDatabaseInfo"
 const string GENERATOR_INFO_TABLE   = "ObjectGeneratorInfo"
 const string CONFIG_NODE_TABLE      = "ObjectConfigNode"
 const string SERVICE_CHAIN          = "ServiceChain"
@@ -122,6 +123,7 @@ const string XMPP_PEER_INFO_DISPLAY_NAME   = "XMPP Peer"
 const string XMPP_CONNECTION_DISPLAY_NAME  = "XMPP Connection"
 const string COLLECTOR_INFO_DISPLAY_NAME   = "Analytics Node"
 const string DATABASE_INFO_DISPLAY_NAME   = "Database Node"
+const string CONFIG_DATABASE_INFO_DISPLAY_NAME   = "Config Database Node"
 const string GENERATOR_INFO_DISPLAY_NAME   = "Generator"
 const string CONFIG_NODE_DISPLAY_NAME      = "Config Node"
 const string SERVICE_CHAIN_DISPLAY_NAME = "Service Chain"
@@ -550,6 +552,7 @@ enum PartType {
 const map<string, PartType> PART_TYPES = {
     COLLECTOR_INFO_TABLE: PartType.PART_TYPE_CNODES,
     DATABASE_INFO_TABLE: PartType.PART_TYPE_CNODES,
+    CONFIG_DATABASE_INFO_TABLE: PartType.PART_TYPE_CNODES,
     BGP_ROUTER_TABLE: PartType.PART_TYPE_CNODES,
     CONFIG_NODE_TABLE: PartType.PART_TYPE_CNODES,
     DNS_TABLE: PartType.PART_TYPE_CNODES,
@@ -576,6 +579,7 @@ const map<string, string> UVE_MAP = {
     "xmpp-peer" : XMPP_PEER_INFO_TABLE,
     "analytics-node" : COLLECTOR_INFO_TABLE,
     "database-node" : DATABASE_INFO_TABLE,
+    "config-database-node": CONFIG_DATABASE_INFO_TABLE,
     "generator" : GENERATOR_INFO_TABLE
     "config-node" : CONFIG_NODE_TABLE,
     "service-chain" : SERVICE_CHAIN,
@@ -713,6 +717,13 @@ const map<string, objtable_info> _OBJECT_TABLES = {
         'is_uve'                : true
         'global_system_object'  : true
         'config_object_type'    : "database_node"
+    }
+    CONFIG_DATABASE_INFO_TABLE : {
+        'objtable_display_name' : CONFIG_DATABASE_INFO_DISPLAY_NAME
+        'log_query_name'        : "config-database-node"
+        'is_uve'                : true
+        'global_system_object'  : true
+        'config_object_type'    : "config_database_node"
     }
     GENERATOR_INFO_TABLE   : {
         'objtable_display_name' : GENERATOR_INFO_DISPLAY_NAME
