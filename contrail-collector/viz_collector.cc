@@ -20,12 +20,14 @@
 #include "protobuf_collector.h"
 #include "structured_syslog_collector.h"
 #include "viz_sandesh.h"
+#include <zookeeper/zookeeper_client.h>
 
 using std::stringstream;
 using std::string;
 using std::map;
 using std::make_pair;
 using boost::system::error_code;
+using namespace zookeeper::client;
 
 VizCollector::VizCollector(EventManager *evm, unsigned short listen_port,
             bool protobuf_collector_enabled,
@@ -48,7 +50,8 @@ VizCollector::VizCollector(EventManager *evm, unsigned short listen_port,
             bool use_zookeeper,
             const DbWriteOptions &db_write_options,
             const SandeshConfig &sandesh_config,
-            ConfigClientCollector *config_client) :
+            ConfigClientCollector *config_client,
+            std::string host_ip) :
     db_initializer_(new DbHandlerInitializer(evm, DbGlobalName(dup),
         std::string("collector:DbIf"),
         boost::bind(&VizCollector::DbInitializeCb, this),
@@ -81,6 +84,23 @@ VizCollector::VizCollector(EventManager *evm, unsigned short listen_port,
             structured_syslog_kafka_partitions,
             db_initializer_->GetDbHandler()));
     }
+
+    std::string hostname_ = boost::asio::ip::host_name(error);
+    Module::type module = Module::COLLECTOR;
+    std::string module_id(g_vns_constants.ModuleNames.find(module)->second);
+    NodeType::type node_type =
+        g_vns_constants.Module2NodeType.find(module)->second;
+    std::string type_name = 
+    g_vns_constants.NodeTypeNames.find(node_type)->second;
+    std::string instance_id(g_vns_constants.INSTANCE_ID_DEFAULT);
+    std::string zoo_val = hostname_ + ":" + type_name + ":"\
+                          + module_id + ":" + instance_id;
+    zoo_collector_disc_.reset(new ZookeeperClient(zoo_val.c_str(),
+            zookeeper_server_list.c_str()));
+    std::string path = "/" + g_vns_constants.SERVICE_COLLECTOR;
+    zoo_collector_disc_->CreateNode(path.c_str(), Z_NODE_TYPE_PERSISTENT);
+    path = "/" + g_vns_constants.SERVICE_COLLECTOR + "/" + host_ip;
+    zoo_collector_disc_->CreateNode(path.c_str(), Z_NODE_TYPE_EPHEMERAL);
 }
 
 VizCollector::VizCollector(EventManager *evm, DbHandlerPtr db_handler,
@@ -128,6 +148,7 @@ void VizCollector::WaitForIdle() {
 void VizCollector::Shutdown() {
     // First shutdown collector
     collector_->Shutdown();
+    zoo_collector_disc_->Shutdown();
     WaitForIdle();
 
     // Wait until all connections are cleaned up.
