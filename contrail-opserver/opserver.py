@@ -780,6 +780,7 @@ class OpServer(object):
 
 
         self._uve_server = UVEServer(self.redis_uve_list,
+                                 ','.join(self._args.zk_list),
                                  self._logger,
                                  self._args.redis_password,
                                  None, False,
