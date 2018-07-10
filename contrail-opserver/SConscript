@@ -33,7 +33,6 @@ local_sources = [
            'uveserver.py',
            'analytics_db.py',
            'log.py',
-           'db.py',
            'stats.py',
            'flow.py',
            'sessions.py',
@@ -71,7 +70,6 @@ cpuinfo_pkg = OpEnv.SandeshGenPy('#src/contrail-common/base/sandesh/cpuinfo.sand
 process_info_pkg = OpEnv.SandeshGenPy('#src/contrail-common/base/sandesh/process_info.sandesh', 'opserver/sandesh/nodeinfo/', False)
 nodeinfo_pkg = OpEnv.SandeshGenPy('#src/contrail-common/base/sandesh/nodeinfo.sandesh', 'opserver/sandesh/', False)
 redis_pkg = OpEnv.SandeshGenPy('#src/contrail-analytics/contrail-collector/redis.sandesh', 'opserver/sandesh/', False)
-analytics_database_pkg = OpEnv.SandeshGenPy('analytics_database.sandesh', 'opserver/sandesh/', False)
 alarmgen_pkg = OpEnv.SandeshGenPy('alarmgen_ctrl.sandesh', 'opserver/sandesh/', False)
 alarm_sandesh_base_pkg = OpEnv.SandeshGenPy('#src/contrail-common/sandesh/library/common/sandesh_alarm_base.sandesh', 'opserver/sandesh/alarmgen_ctrl/', False)
 derived_stats_pkg = OpEnv.SandeshGenPy('#src/contrail-common/sandesh/library/common/derived_stats_results.sandesh', 'opserver/sandesh/analytics/', False)
@@ -82,7 +80,7 @@ OpEnv.Depends(derived_stats_pkg, analytics_pkg)
 
 sdist_depends = [setup_sources_rules, local_sources_rules,
                  viz_pkg, analytics_pkg, cpuinfo_pkg, redis_pkg,
-                 process_info_pkg, analytics_database_pkg,
+                 process_info_pkg,
                  alarmgen_pkg, database_pkg, alarm_sandesh_base_pkg,
                  derived_stats_pkg, nodeinfo_pkg, cpuinfo_pkg2,
                  process_info_pkg2, analytics_api_info_pkg]
@@ -97,7 +95,6 @@ OpEnv.Depends(sdist_gen, sdist_depends)
 opserver_doc_files = []
 #opserver_doc_files += OpEnv['BASE_DOC_FILES']
 opserver_doc_files += OpEnv['ANALYTICS_DOC_FILES']
-opserver_doc_files += OpEnv.SandeshGenDoc('analytics_database.sandesh')
 opserver_doc_files += OpEnv.SandeshGenDoc('analytics_api_info.sandesh')
 
 alarmgen_doc_files = []

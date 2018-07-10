@@ -65,8 +65,6 @@ from sandesh.nodeinfo.process_info.ttypes import *
 from opserver_util import OpServerUtils
 from opserver_util import AnalyticsDiscovery
 from sandesh_req_impl import OpserverSandeshReqImpl
-from sandesh.analytics_database.ttypes import *
-from sandesh.analytics_database.constants import PurgeStatusString
 from sandesh.analytics.ttypes import DbInfoSetRequest, \
      DbInfoGetRequest, DbInfoResponse
 from overlay_to_underlay_mapper import OverlayToUnderlayMapper, \
