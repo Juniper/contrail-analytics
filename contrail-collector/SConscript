@@ -115,7 +115,6 @@ AnalyticsVizSandeshGenFiles = AnalyticsEnv.SandeshGenOnlyCpp('viz.sandesh')
 AnalyticsSandeshGenFiles  = AnalyticsEnv.SandeshGenCpp('collector_uve.sandesh')
 AnalyticsSandeshGenFiles += AnalyticsEnv.SandeshGenCpp('sdwan_uve.sandesh')
 AnalyticsSandeshGenFiles += AnalyticsEnv.SandeshGenCpp('analytics.sandesh')
-AnalyticsSandeshGenFiles += AnalyticsEnv.SandeshGenCpp('uve_aggregator.sandesh')
 AnalyticsSandeshGenFiles += AnalyticsEnv.SandeshGenCpp('kafka.sandesh')
 AnalyticsSandeshGenFiles += AnalyticsEnv.SandeshGenCpp('redis.sandesh')
 AnalyticsSandeshGenFiles += AnalyticsEnv.SandeshGenCpp('uflow.sandesh')
@@ -174,7 +173,7 @@ vizd_sources = ['viz_collector.cc', 'ruleeng.cc', 'collector.cc',
                 'usrdef_counters.cc',
                 'sflow_parser.cc', 'ipfix_collector.cc',
                 'kafka_processor.cc',
-                'uve_aggregator.cc', 'grok_parser.cc', 'config_client_collector.cc']
+                'grok_parser.cc', 'config_client_collector.cc']
 
 RedisLuaBuild(AnalyticsEnv, 'seqnum')
 RedisLuaBuild(AnalyticsEnv, 'delrequest')
