@@ -6,7 +6,6 @@
 #include <sandesh/sandesh_uve.h>
 #include <librdkafka/rdkafkacpp.h>
 #include "uve_aggregator.h"
-#include "uve_aggregator_types.h"
 
 using std::map;
 using std::string;
@@ -41,7 +40,6 @@ UVEAggregator::Update(std::auto_ptr<RdKafka::Message> message,
     const uint64_t offset(message->offset());
 
     const uint64_t mono_ts((ts==0) ? ClockMonotonicUsec() : ts);
-    const uint64_t clock_ts((ts==0) ? UTCTimestampUsec() : ts);
 
     const uint64_t new_period = mono_ts / kCommitPeriod_us;
     {
@@ -78,51 +76,5 @@ UVEAggregator::Update(std::auto_ptr<RdKafka::Message> message,
             }
         }
         offsets_[partition] = offset;
-    }
-    xml_document xdoc;
-    xml_parse_result result = xdoc.load_buffer(value.c_str(), value.size());
-    if (result) {
-        xml_node node  =  xdoc.first_child();
-        
-        // TODO: The message type used should be  based on conf_.
-        //       The type of value should be verified.
-
-        uint64_t sample = (uint64_t) strtoul(node.child_value(), NULL, 10);
-        string tsstr(node.attribute("timestamp").value());
-        if (tsstr.empty()) {
-            return;
-        }
-        uint64_t ts = (uint64_t) strtoul(tsstr.c_str(), NULL, 10);
-        uint64_t age = clock_ts - ts;
-
-        // TODO: The age should be extracted from the Proxy UVE itself.
-        if (conf_.find("AggProxySumAnomalyEWM01") != conf_.end()) {
-            if (age <= 60000000) { 
-                AggProxySumAnomalyEWM01 data;
-                data.set_name(key);
-                data.set_proxy(topic_);
-                data.set_raw(sample);
-                AggProxySumAnomalyEWM01Trace::Send(data, table,
-                        0, partition);
-            } else {
-                LOG(INFO, __func__ << " stale message by " << age/1000000 <<
-                    " sec for " << topic_ << " partition " << partition <<
-                    " type AggProxySumAnomalyEWM01");
-            }
-        }
-        if (conf_.find("AggProxySum") != conf_.end()){
-            if (age <= 60000000) { 
-                AggProxySum data;
-                data.set_name(key);
-                data.set_proxy(topic_);
-                data.set_raw(sample);
-                AggProxySumTrace::Send(data, table,
-                        0, partition);
-            } else {
-                LOG(INFO, __func__ << " stale message by " << age/1000000 <<
-                    " sec for " << topic_ << " partition " << partition <<
-                    " type AggProxySum");
-            }
-        }
     }
 }
