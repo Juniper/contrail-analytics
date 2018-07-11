@@ -46,201 +46,6 @@ using process::ConnectionState;
 using process::ConnectionType;
 using process::ConnectionStatus;
 
-/* This the consumer for Agg Kafka Topics
-  
-   Parse the XML contents and run aggregation
-   using dervied stats
-*/
-class KafkaProcessor::KafkaWorker {
- public:
-    static const uint64_t kPeriod = 300000000;
-    KafkaWorker(shared_ptr<RdKafka::KafkaConsumer> consumer,
-            map<string, shared_ptr<UVEAggregator> > aggs) :
-        thread_id_(pthread_self()),
-        disable_(false),
-        consumer_(consumer),
-        aggs_(aggs) {
-    }
-    static void *ThreadRun(void *objp) {
-        KafkaWorker *obj = reinterpret_cast<KafkaWorker *>(objp);
-    
-        while (!obj->disable_) {
-            /* The consume calls blocks for the timeout
-               if these are no messages to read.
-               Due to this blocking behaviour, pthread is being
-               used instead of a TBB Task */
-            std::auto_ptr<RdKafka::Message> message(obj->consumer_->consume(1000));
-            if (message->err() ==  RdKafka::ERR_NO_ERROR) {
-                const int mpart(message->partition());
-                assert(mpart < SandeshUVETypeMaps::kProxyPartitions);
-                const string payload(reinterpret_cast<char *>(message->payload()),
-                        message->len());
-                const string topic_name(message->topic_name());
-                LOG(DEBUG, "Consuming topic=" << message->topic_name() << 
-                        " partition " << mpart << 
-                        " offset " << message->offset() <<
-                        " key " << *(message->key()) <<
-                        " payload " << payload);
-                obj->aggs_[topic_name]->Update(message);
-
-            } else if (message->err() ==  RdKafka::ERR__TIMED_OUT) {
-                LOG(DEBUG, "Consuming Timeout");
-            } else if (message->err() ==  RdKafka::ERR__PARTITION_EOF) {
-                LOG(DEBUG, "Reached end of partition :" << message->errstr());
-            } else {
-                LOG(ERROR, "Message consume failed : " << message->errstr());
-            }
-        }
-        return NULL;
-    }
-
-    void Start() {
-        int res = pthread_create(&thread_id_, NULL, &ThreadRun, this);
-        assert(res == 0);
-    }
-    void Join() {
-        disable_ = true;
-        int res = pthread_join(thread_id_, NULL);
-        consumer_->close();
-        assert(res == 0);
-    }
- private:
-    pthread_t thread_id_;
-    bool disable_;
-    shared_ptr<RdKafka::KafkaConsumer> consumer_;
-    map<string, shared_ptr<UVEAggregator> > aggs_;
-};
-
-class KafkaRebalanceCb : public RdKafka::RebalanceCb {
-  public: 
-    void rebalance_cb (RdKafka::KafkaConsumer *consumer,
-             RdKafka::ErrorCode err,
-                std::vector<RdKafka::TopicPartition*> &pts) {
-       map<string, map<int32_t,uint64_t> > topics;
-
-       if (NULL == collector_) {
-           return;
-       }
-
-       // Load all topic-partitions into a
-       // map (key topic) of sets of ints (partitions)
-       for (size_t idx=0; idx<pts.size(); idx++) {
-           map<string, map<int32_t,uint64_t> >::iterator ti =
-                   topics.find(pts[idx]->topic());
-           if (ti == topics.end()) {
-               topics.insert(make_pair(pts[idx]->topic(),
-                   map<int32_t,uint64_t>()));
-               topics.at(pts[idx]->topic()).insert(
-                   make_pair(pts[idx]->partition(),
-                             (uint64_t)pts[idx]->offset()));
-           } else {
-               ti->second.insert(
-                   make_pair(pts[idx]->partition(),
-                             (uint64_t)pts[idx]->offset()));
-           }
-           pts[idx]->set_offset(RdKafka::Topic::OFFSET_STORED);
-       }
-       
-       std::stringstream ss;
-       map<string, KafkaAggTopicOffsets> all_offsets;
-       for (map<string, map<int32_t,uint64_t> >::iterator ti = topics.begin();
-               ti != topics.end(); ti++) {
-           ss << ti->first << " : [ ";
-           vector<KafkaAggPartOffset> vec_part_offset;
-           for (map<int32_t,uint64_t>::iterator si = ti->second.begin(); 
-                   si != ti->second.end(); si++) {
-               ss << si->first << ":" << si->second << ", ";
-               KafkaAggPartOffset part_offset;
-               part_offset.set_partition(si->first);
-               part_offset.set_offset(si->second);
-               vec_part_offset.push_back(part_offset);
-           }
-           KafkaAggTopicOffsets topic_offsets;
-           topic_offsets.set_topic_offsets(vec_part_offset);
-           all_offsets.insert(make_pair(ti->first, topic_offsets));
-           ss << " ]" << std::endl;
-       }
-       if (err == RdKafka::ERR__ASSIGN_PARTITIONS) {
-           // application may load offets from arbitrary external
-           // storage here and update \p partitions
-
-           // Get all topic partitions that used to be assigned to us
-           // and are no longer assigned. Then clear the corresponding
-           // Proxy UVEs
-           for (map<string, pair <string, set<int> > >::iterator pti = 
-                   topics_.begin(); pti != topics_.end(); pti++) {
-               set<int> diff;
-               for (set<int>::const_iterator ci = pti->second.second.begin();
-                       ci != pti->second.second.end(); ci++) {
-                   // Store all partitions that exist now but are 
-                   // NOT in the new TopicPartition list
-                   if ((topics.find(pti->first) == topics.end()) ||
-                       (topics.at(pti->first).find(*ci) ==
-                           topics.at(pti->first).end())) {
-                       diff.insert(*ci);
-                   }
-               }
-               for (set<int>::const_iterator di = diff.begin();
-                       di != diff.end(); di++) {
-                   uint32_t clear =
-                           aggs_[pti->first]->Clear(pti->second.first, *di);
-                   if (clear != 0) {
-                       LOG(ERROR, "Clear on Assign " << pti->second.first << " : " 
-                           << *di << " count " << clear);
-                   }
-               }
-               pti->second.second.clear();
-               // If the topic is still present, re-pollulate
-               // the set of partitions
-               if (topics.find(pti->first) != topics.end()) {
-                   for (map<int32_t,uint64_t>::const_iterator mi = 
-                           topics.at(pti->first).begin();
-                           mi != topics.at(pti->first).end(); mi++) {
-                       pti->second.second.insert(mi->first);
-                   }
-               }
-           }
-           consumer->assign(pts);
-           LOG(ERROR, "Assign " << ss.str());
-           {
-               KafkaAggStatus data;
-               data.set_name(collector_->name());
-               data.set_assign_offsets(all_offsets);
-               KafkaAggStatusTrace::Send(data);
-           }
-
-       } else if (err == RdKafka::ERR__REVOKE_PARTITIONS) {
-         // Application may commit offsets manually here
-         // if auto.commit.enable=false
-
-         LOG(ERROR, "UnAssign " << ss.str());
-         consumer->unassign();
-
-       } else {
-         LOG(ERROR, "Rebalancing error " << ss.str());
-         consumer->unassign();
-       }
-    }
-    void Init(VizCollector *collector,
-            const map<string, pair <string, set<int> > > &topics,
-            map<string, shared_ptr<UVEAggregator> > aggs) {
-        collector_ = collector;
-        topics_ = topics;
-        aggs_ = aggs;
-    }
-
-    void Shutdown(){
-        collector_ = NULL;
-    }
-    KafkaRebalanceCb() : collector_(NULL) {}
-  private:
-    VizCollector *collector_;
-    // Key is topic.
-    // Value is pair of proxy name and (empty) set of partitions
-    map<string, pair <string, set<int> > > topics_;
-    map<string, shared_ptr<UVEAggregator> > aggs_;
-};
-
 class KafkaDeliveryReportCb : public RdKafka::DeliveryReportCb {
  public:
   unsigned int count;
@@ -317,8 +122,6 @@ class KafkaPartitionerCb : public RdKafka::PartitionerCb {
 
 KafkaEventCb k_event_cb;
 KafkaDeliveryReportCb k_dr_cb;
-KafkaPartitionerCb k_part_cb;
-KafkaRebalanceCb k_re_cb;
 
 void
 KafkaProcessor::KafkaPub(unsigned int pt,
@@ -339,28 +142,6 @@ KafkaProcessor::KafkaPub(unsigned int pt,
             RdKafka::Producer::MSG_COPY,
             const_cast<char *>(value.c_str()), value.length(),
             &skey, (void *)gn);
-    }
-}
-
-void
-KafkaProcessor::KafkaPub(const string& astream,
-        const string& skey,
-        const string& value) {
-    if (k_event_cb.disableKafka) {
-        LOG(INFO, "Kafka ignoring Agg KafkaPub");
-        return;
-    }
-    if (producer_) {
-        std::map<string, shared_ptr<RdKafka::Topic> >::const_iterator
-                ait = aggtopic_.find(astream);
-        if (ait!=aggtopic_.end()) {
-            int32_t pt = k_part_cb.partitioner_cb(NULL, &skey,
-                    SandeshUVETypeMaps::kProxyPartitions ,NULL); 
-            producer_->produce(ait->second.get(), pt,
-                RdKafka::Producer::MSG_COPY,
-                const_cast<char *>(value.c_str()), value.length(),
-                &skey, 0);
-        }
     }
 }
 
@@ -458,22 +239,11 @@ KafkaProcessor::KafkaProcessor(EventManager *evm, VizCollector *collector,
 
 void
 KafkaProcessor::StopKafka(void) {
-    if (kafkaworker_) {
-        kafkaworker_->Join();
-        kafkaworker_.reset();
-    }
     if (producer_) {
         for (unsigned int i=0; i<partitions_; i++) {
             topic_[i].reset();
         }
         topic_.clear();
-        for (map<string,shared_ptr<RdKafka::Topic> >::iterator
-                it = aggtopic_.begin();
-                it != aggtopic_.end(); it++) {
-            it->second.reset();
-        }
-        aggtopic_.clear();
-
         producer_.reset();
         LOG(ERROR, "Kafka Stopped");
     }
@@ -506,62 +276,7 @@ KafkaProcessor::StartKafka(void) {
         if (!topic_[i])
             return false;
     }
-    vector<string> subs;
 
-    // Key is topic.
-    // Value is pair of proxy name and (empty) set of partitions
-    map<string, pair <string, set<int> > > topic_parts;
-
-    for (map<string,string>::const_iterator it = aggconf_.begin();
-            it != aggconf_.end(); it++) {
-        std::stringstream ss;
-        ss << topicpre_;
-        ss << "agg-";
-        ss << it->first;
-        errstr = string();
-        shared_ptr<RdKafka::Topic> sr(RdKafka::Topic::create(producer_.get(), ss.str(), NULL, errstr));
-        LOG(ERROR,"Kafka new topic " << ss.str() << " Err" << errstr);
-        if (!sr) return false;
-        aggtopic_.insert(make_pair(it->first, sr));
-        topic_parts.insert(make_pair(ss.str(), make_pair(it->first, set<int>())));
-        subs.push_back(ss.str());
-    }
-    RdKafka::Conf *cconf = RdKafka::Conf::create(RdKafka::Conf::CONF_GLOBAL);
-    cconf->set("metadata.broker.list", brokers_, errstr);
-    cconf->set("event_cb", &k_event_cb, errstr);
-    cconf->set("rebalance_cb", &k_re_cb, errstr);
-    cconf->set("group.id", "agg", errstr);
-    cconf->set("enable.auto.commit", "false", errstr);
-    shared_ptr<RdKafka::KafkaConsumer> consumer(
-            RdKafka::KafkaConsumer::create(cconf, errstr));
-    LOG(ERROR,"Kafka consumer Err " << errstr);
-    delete cconf;
-    if (!consumer)
-        return false;
-
-    // Key is topic.
-    // Value is Ptr to Aggregator object
-    map<string, shared_ptr<UVEAggregator> > aggs;
-    for (map<string,string>::const_iterator it = aggconf_.begin();
-            it != aggconf_.end(); it++) {
-        std::stringstream ss;
-        ss << topicpre_;
-        ss << "agg-";
-        ss << it->first;
-        aggs.insert(make_pair(ss.str(),
-                new UVEAggregator(it->first, it->second,
-                        boost::bind(static_cast<
-                            RdKafka::ErrorCode (RdKafka::KafkaConsumer::*)(RdKafka::Message*)>
-                            (&RdKafka::KafkaConsumer::commitSync),
-                                    consumer, _1),
-                        SandeshUVETypeMaps::kProxyPartitions)));
-    }
-
-    k_re_cb.Init(collector_, topic_parts, aggs);
-    consumer->subscribe(subs);
-
-    kafkaworker_.reset(new KafkaWorker(consumer, aggs));
-    kafkaworker_->Start();
     return true;
 }
 
@@ -569,7 +284,6 @@ void
 KafkaProcessor::Shutdown() {
     TimerManager::DeleteTimer(kafka_timer_);
     kafka_timer_ = NULL;
-    k_re_cb.Shutdown();
     StopKafka();
 }
 
