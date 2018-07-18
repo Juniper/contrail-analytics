@@ -12,8 +12,6 @@
 class VizCollector;
 class KafkaProcessor {
     public:
-        class KafkaWorker;
-
         static const int kActivityCheckPeriod_ms_ = 30000;
 
         const unsigned int partitions_;
@@ -26,14 +24,6 @@ class KafkaProcessor {
                           const std::string& skey,
                           const std::string& gen,
                           const std::string& value);
-
-        // This is to publish to the aggregate UVE
-        // topics (used to create proxy UVEs), which
-        // are consumed by contrail-collector
-        void KafkaPub(const std::string& astream,
-                      const std::string& skey,
-                      const std::string& value);
-
 
         void SetRedisState(bool up) {
             redis_up_ = up;
@@ -59,9 +49,7 @@ class KafkaProcessor {
         VizCollector *collector_;
         
         boost::shared_ptr<RdKafka::Producer> producer_;
-        boost::shared_ptr<KafkaWorker> kafkaworker_;
         std::vector<boost::shared_ptr<RdKafka::Topic> > topic_;
-        map<string, boost::shared_ptr<RdKafka::Topic> > aggtopic_;
         std::string brokers_;
         std::string topicpre_;
         bool redis_up_;
