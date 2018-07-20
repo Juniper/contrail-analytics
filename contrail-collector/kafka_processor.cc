@@ -31,7 +31,6 @@
 #include "kafka_types.h"
 #include <base/connection_info.h>
 #include "viz_sandesh.h"
-#include "uve_aggregator.h"
 
 using std::map;
 using std::string;

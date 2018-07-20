@@ -648,8 +648,6 @@ void Options::Process(int argc, char *argv[],
                                   "DEFAULT.cassandra_server_list");
     GetOptValue<string>(var_map, zookeeper_server_list_,
                         "DEFAULT.zookeeper_server_list");
-    GetOptValue< vector<string> >(var_map, uve_proxy_list_,
-                                  "DEFAULT.uve_proxy_list");
     GetOptValue< vector<string> >(var_map, kafka_broker_list_,
                                   "DEFAULT.kafka_broker_list");
     GetOptValue<uint16_t>(var_map, partitions_, "DEFAULT.partitions");
