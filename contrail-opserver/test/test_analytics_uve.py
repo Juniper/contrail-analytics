@@ -2076,6 +2076,103 @@ class AnalyticsUveTest(testtools.TestCase, fixtures.TestWithFixtures):
                                             source+':Test:contrail-vrouter-agent:0', 2)
     # end test_11_verify_generator_timeout
 
+    #@unittest.skip('Skipping UVE/Alarm get test')
+    def test_12_uve_get_alarm(self):
+        logging.info('%%% test_12_uve_get_alarm %%%')
+
+        if AnalyticsUveTest._check_skip_kafka() is True:
+            return True
+
+        vizd_obj = self.useFixture(
+            AnalyticsFixture(logging, builddir, 0, start_kafka = True))
+        assert vizd_obj.verify_on_setup()
+        collector = vizd_obj.collectors[0].get_addr()
+
+        api_server_name = socket.gethostname()+'_1'
+        api_server = self.useFixture(
+            GeneratorFixture('contrail-api', [collector], logging,
+                             None, node_type='Config',
+                             hostname=api_server_name))
+        vr_agent_name = socket.gethostname()+'_1'
+        vr_agent = self.useFixture(
+            GeneratorFixture('contrail-vrouter-agent', [collector],
+                             logging, None, node_type='Compute',
+                             hostname=vr_agent_name))
+        alarm_gen1_name = socket.gethostname()+'_1'
+        alarm_gen1 = self.useFixture(
+            GeneratorFixture('contrail-alarm-gen', [collector], logging,
+                             None, node_type='Analytics',
+                             hostname=alarm_gen1_name))
+        api_server.verify_on_setup()
+        vr_agent.verify_on_setup()
+        alarm_gen1.verify_on_setup()
+
+        vn_list = ['default-domain:project1:vn1',
+                   'default-domain:project1:vn2']
+        # generate UVEs for the filter test
+        api_server.send_vn_config_uve(name=vn_list[0],
+                                      partial_conn_nw=[vn_list[1]],
+                                      num_acl_rules=2)
+        api_server.send_vn_config_uve(name=vn_list[1],
+                                      num_acl_rules=3)
+        vr_agent.send_vn_agent_uve(name=vn_list[1], num_acl_rules=3,
+                                   ipkts=2, ibytes=1024)
+        # generate Alarms for the filter test
+        alarms = alarm_gen1.create_alarm('InPktsThreshold')
+        alarms += alarm_gen1.create_alarm('InBytesThreshold', ack=True)
+        alarm_gen1.send_alarm(vn_list[1], alarms, VN_TABLE)
+        expected_uves = {
+                'analytics-node': [
+                {  'name' : 'ubuntu-build03',
+                   'value': {  'UVEAlarms': {
+                        'alarms': [
+                             {  'severity': 1,
+                                'alarm_rules': {
+                                     'or_list': [
+                                        {  'and_list': [
+                                             {  'condition': {
+                                                   'operation': '==',
+                                                   'operand1' : 'NodeStatus.process_info',
+                                                   'variables': [],
+                                                   'operand2': {
+                                                       'json_value': 'null'
+                                                   }
+                                                 },
+                                                 'match': [
+                                                     {  'json_operand1_value': 'null',
+                                                        'json_variables': {}
+                                                     }
+                                                  ]
+                                             }
+                                          ]
+                                         }
+                                     ]
+                                },
+                                'ack': False,
+                                'type': 'default-global-system-config:process-status',
+                                'description': 'Process Failure. NodeMgr reports abnormal status for process(es) in NodeStatus.process_info'
+                             }
+                        ]}}}
+                ],
+                'virtual-network': [
+                 {  'name' : 'default-domain:project1:vn2',
+                    'value' : { 'UVEAlarms': {
+                        'alarms': [
+                            {
+                                'type': 'InPktsThreshold',
+                            },
+                            {
+                                'type': 'InBytesThreshold',
+                                'ack': True
+                            }
+                        ]
+                    } }
+                 },
+                ]
+        }
+        assert(vizd_obj.verify_get_alarms(None, exp_uves = expected_uves))
+    # end test_12_uve_get_alarm
+
     @staticmethod
     def get_free_port():
         cs = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

@@ -3022,16 +3022,18 @@ class AnalyticsFixture(fixtures.Fixture):
         return actual_uve_list == exp_uve_list
     # end verify_uve_list
 
-    def _remove_alarm_token(self, data):
+    def _remove_alarm_token_and_timestamp(self, data):
         for item in data:
             if 'UVEAlarms' in item['value'] and \
                 'alarms' in item['value']['UVEAlarms']:
                 for alarm in item['value']['UVEAlarms']['alarms']:
                     if 'token' in alarm:
                         del alarm['token']
+                    if 'timestamp' in alarm:
+                        del alarm['timestamp']
             if '__SOURCE__' in item['value']:
                 del item['value']['__SOURCE__']
-    # end _remove_alarm_token
+    # end _remove_alarm_token_and_timestamp
 
     def _verify_uves(self, exp_uves, actual_uves):
         self.logger.info('Expected UVEs: %s' % (str(exp_uves)))
@@ -3039,31 +3041,33 @@ class AnalyticsFixture(fixtures.Fixture):
         if actual_uves is None:
             return False
         etk = exp_uves.keys()
-        atk = actual_uves.keys() 
-        if len(etk):
-            exp_uve_value = exp_uves[etk[0]]
-        else:
-            exp_uve_value = []
-        if len(atk):
-            actual_uve_value = actual_uves[atk[0]]
-        else:
-            actual_uve_value = []
-        self.logger.info('Remove token from alarms')
-        self._remove_alarm_token(exp_uve_value)
-        self._remove_alarm_token(actual_uve_value)
-        self.logger.info('Remove Timestamps from actual')
-        for item in actual_uve_value:
-            for tk in item['value']:
-                if '__T' in item['value'][tk]:
-                    del item['value'][tk]['__T']  
-        exp_uve_value.sort()
-        actual_uve_value.sort()
-        self.logger.info('Expected UVE value: %s' % (str(exp_uve_value)))
-        self.logger.info('Actual UVE value: %s' % (str(actual_uve_value)))
-        return actual_uve_value == exp_uve_value
+        atk = actual_uves.keys()
+        etk.sort()
+        atk.sort()
+        if etk != atk:
+            self.logger.info('Keys mismatch between Expected UVEs and Actual UVEs')
+            return False
+        for key in etk:
+            exp_uve_value = exp_uves[key]
+            actual_uve_value = actual_uves[key]
+            self.logger.info('Remove token from alarms')
+            self._remove_alarm_token_and_timestamp(exp_uve_value)
+            self._remove_alarm_token_and_timestamp(actual_uve_value)
+            self.logger.info('Remove Timestamps from actual')
+            for item in actual_uve_value:
+                for tk in item['value']:
+                    if '__T' in item['value'][tk]:
+                        del item['value'][tk]['__T']
+            exp_uve_value.sort()
+            actual_uve_value.sort()
+            self.logger.info('Expected UVE value: %s' % (str(exp_uve_value)))
+            self.logger.info('Actual UVE value: %s' % (str(actual_uve_value)))
+            if actual_uve_value != exp_uve_value:
+                return False
+        return True
     # end _verify_uves
 
-    @retry(delay=1, tries=4)
+    @retry(delay=1, tries=6)
     def verify_get_alarms(self, table, filts=None, exp_uves=None):
         vns = VerificationOpsSrv('127.0.0.1', self.opserver_port,
             self.admin_user, self.admin_password)
