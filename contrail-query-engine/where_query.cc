@@ -1534,6 +1534,9 @@ bool WhereQuery::populate_where_vec(AnalyticsQuery *m_query,
         default:
             break;
     }
+    if (val.empty()) {
+        return true;
+    }
     GenDb::WhereIndexInfo where_info =
             boost::make_tuple(columnN, db_op, val);
     where_vec->push_back(where_info);
