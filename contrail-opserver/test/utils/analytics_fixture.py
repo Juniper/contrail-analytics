@@ -121,6 +121,9 @@ class Collector(object):
         self._log_file = '/tmp/vizd.messages.%s.%d' % \
                 (os.getenv('USER', 'None'), self._redis_uve.port)
         subprocess.call(['rm', '-rf', self._log_file])
+        server_list = '127.0.0.1:'
+        if self.analytics_fixture.cassandra_port == '0':
+            server_list = ''
         args = [self.analytics_fixture.builddir + '/analytics/vizd',
             '--DEFAULT.cassandra_server_list', '127.0.0.1:' +
             str(self.analytics_fixture.cassandra_port),

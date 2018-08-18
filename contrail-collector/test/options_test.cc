@@ -32,7 +32,6 @@ protected:
         boost::system::error_code error;
         hostname_ = host_name(error);
         host_ip_ = GetHostIp(evm_.io_service(), hostname_);
-        default_cassandra_server_list_.push_back("127.0.0.1:9042");
     }
 
     virtual void TearDown() {
