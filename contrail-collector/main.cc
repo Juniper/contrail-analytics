@@ -245,6 +245,7 @@ int main(int argc, char *argv[])
         stringToInteger(port, cassandra_port);
         options.add_cassandra_port(cassandra_port);
     }
+    const Options::Cassandra &cass_options(options.get_cassandra_options());
 
     LOG(INFO, "COLLECTOR LISTEN PORT: " << options.collector_port());
     LOG(INFO, "COLLECTOR REDIS UVE PORT: " << options.redis_port());
@@ -333,12 +334,15 @@ int main(int argc, char *argv[])
          (ConnectionTypeName(g_process_info_constants.ConnectionTypeNames.find(
                              ConnectionType::REDIS_UVE)->second, "From"))
          (ConnectionTypeName(g_process_info_constants.ConnectionTypeNames.find(
-                             ConnectionType::DATABASE)->second,
-                             hostname+":Global"))
-         (ConnectionTypeName(g_process_info_constants.ConnectionTypeNames.find(
                              ConnectionType::DATABASE)->second, "Cassandra"))
          (ConnectionTypeName(g_process_info_constants.ConnectionTypeNames.find(
                              ConnectionType::DATABASE)->second, "RabbitMQ"));
+    if (cass_options.cassandra_ips_.size()) {
+        expected_connections.push_back(ConnectionTypeName(
+                             g_process_info_constants.ConnectionTypeNames.find(
+                             ConnectionType::DATABASE)->second,
+                             hostname+":Global"));
+    }
     if (kstr != "") {
         expected_connections.push_back(ConnectionTypeName(
                              g_process_info_constants.ConnectionTypeNames.find(
@@ -372,7 +376,6 @@ int main(int argc, char *argv[])
     // Do not use zookeeper locks in tests where we are not starting
     // cassandra and launching 2 collectors since that will cause
     // the second collector to not proceed ahead
-    const Options::Cassandra &cass_options(options.get_cassandra_options());
     bool cassandra_absent(cass_options.cassandra_ports_.size() == 1 &&
         cass_options.cassandra_ports_[0] == 0);
     bool use_zookeeper = !zookeeper_server_list.empty() && !(options.dup() &&

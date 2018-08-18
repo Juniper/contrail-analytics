@@ -70,7 +70,10 @@ public:
         return osp_.get();
     }
     DbHandlerPtr GetDbHandler() const {
-        return db_initializer_->GetDbHandler();
+        if (db_initializer_) {
+            return db_initializer_->GetDbHandler();
+        }
+        return DbHandlerPtr();
     }
     bool SendRemote(const std::string& destination, const std::string& dec_sandesh);
     void RedisUpdate(bool rsc) {

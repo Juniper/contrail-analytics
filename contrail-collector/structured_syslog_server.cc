@@ -194,7 +194,9 @@ bool StructuredSyslogPostParsing (SyslogParser::syslog_m_t &v, StructuredSyslogC
         forwarder->Forward(ssqe);
       }
       if (mc->process_and_store() == true) {
-        StructuredSyslogPush(v, stat_db_callback, mc->tags());
+          if (stat_db_callback) {
+              StructuredSyslogPush(v, stat_db_callback, mc->tags());
+          }
       }
   }
   if (forwarder != NULL && mc->forward() == true &&

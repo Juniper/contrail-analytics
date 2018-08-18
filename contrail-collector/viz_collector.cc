@@ -49,20 +49,29 @@ VizCollector::VizCollector(EventManager *evm, unsigned short listen_port,
             const DbWriteOptions &db_write_options,
             const SandeshConfig &sandesh_config,
             ConfigClientCollector *config_client) :
-    db_initializer_(new DbHandlerInitializer(evm, DbGlobalName(dup),
-        std::string("collector:DbIf"),
-        boost::bind(&VizCollector::DbInitializeCb, this),
-        cassandra_options,
-        zookeeper_server_list, use_zookeeper,
-        db_write_options, config_client)),
     osp_(new OpServerProxy(evm, this, redis_uve_ip, redis_uve_port,
          redis_password, aggconf, brokers, partitions, kafka_prefix)),
-    ruleeng_(new Ruleeng(db_initializer_->GetDbHandler(), osp_.get())),
-    collector_(new Collector(evm, listen_port, sandesh_config,
-                             db_initializer_->GetDbHandler(),
-        osp_.get(),
-        boost::bind(&Ruleeng::rule_execute, ruleeng_.get(), _1, _2, _3, _4))),
     redis_gen_(0), partitions_(partitions) {
+    if (cassandra_options.cassandra_ips_.size()) {
+        db_initializer_.reset(new DbHandlerInitializer(evm, DbGlobalName(dup),
+            std::string("collector:DbIf"),
+            boost::bind(&VizCollector::DbInitializeCb, this),
+            cassandra_options,
+            zookeeper_server_list, use_zookeeper,
+            db_write_options, config_client));
+    } else {
+        db_initializer_.reset();
+    }
+
+    ruleeng_.reset(new Ruleeng(
+                        db_initializer_?db_initializer_->GetDbHandler():DbHandlerPtr(),
+                        osp_.get()));
+    collector_ = new Collector(evm, listen_port, sandesh_config,
+                        db_initializer_?db_initializer_->GetDbHandler():DbHandlerPtr(),
+                        osp_.get(),
+                        boost::bind(&Ruleeng::rule_execute,
+                                     ruleeng_.get(), _1, _2, _3, _4));
+
     error_code error;
     if (dup)
         name_ = boost::asio::ip::host_name(error) + "dup";
@@ -71,7 +80,7 @@ VizCollector::VizCollector(EventManager *evm, unsigned short listen_port,
     if (protobuf_collector_enabled) {
         protobuf_collector_.reset(new ProtobufCollector(evm,
             protobuf_listen_port, protobuf_schema_file_directory,
-            db_initializer_->GetDbHandler()));
+            db_initializer_?db_initializer_->GetDbHandler():DbHandlerPtr()));
     }
     if (structured_syslog_collector_enabled) {
         structured_syslog_collector_.reset(new StructuredSyslogCollector(evm,
@@ -79,7 +88,8 @@ VizCollector::VizCollector(EventManager *evm, unsigned short listen_port,
             structured_syslog_kafka_broker,
             structured_syslog_kafka_topic,
             structured_syslog_kafka_partitions,
-            db_initializer_->GetDbHandler()));
+            db_initializer_?db_initializer_->GetDbHandler():DbHandlerPtr(),
+            config_client));
     }
 }
 
@@ -147,9 +157,10 @@ void VizCollector::Shutdown() {
         structured_syslog_collector_->Shutdown();
         WaitForIdle();
     }
-
-    db_initializer_->Shutdown();
-    LOG(DEBUG, __func__ << " viz_collector done");
+    if (db_initializer_) {
+        db_initializer_->Shutdown();
+        LOG(DEBUG, __func__ << " viz_collector done");
+    }
 }
 
 void VizCollector::DbInitializeCb() {
@@ -163,7 +174,10 @@ void VizCollector::DbInitializeCb() {
 }
 
 bool VizCollector::Init() {
-    return db_initializer_->Initialize();
+    if (db_initializer_) {
+        return db_initializer_->Initialize();
+    }
+    return true;
 }
 
 void VizCollector::SendProtobufCollectorStatistics() {
@@ -179,6 +193,9 @@ void VizCollector::SendGeneratorStatistics() {
 }
 
 void VizCollector::SendDbStatistics() {
+    if (!db_initializer_) {
+        return;
+    }
     DbHandlerPtr db_handler(db_initializer_->GetDbHandler());
     // DB stats
     std::vector<GenDb::DbTableInfo> vdbti, vstats_dbti;
@@ -227,6 +244,9 @@ void VizCollector::SendDbStatistics() {
 }
 
 bool VizCollector::GetCqlMetrics(cass::cql::Metrics *metrics) {
+    if (!db_initializer_) {
+        return true;
+    }
     DbHandlerPtr db_handler(db_initializer_->GetDbHandler());
     return db_handler->GetCqlMetrics(metrics);
 }
