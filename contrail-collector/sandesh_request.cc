@@ -181,15 +181,16 @@ static void SendDbInfoResponse(Collector *collector, std::string context) {
     DbInfoResponse *fcsr(new DbInfoResponse);
     DbInfo db_info;
     DbHandlerPtr db_handler = collector->GetDbHandlerPtr();
-
-    db_info.set_disk_usage_percentage(
+    if (db_handler) {
+        db_info.set_disk_usage_percentage(
             db_handler->GetDiskUsagePercentage());
-    db_info.set_pending_compaction_tasks(
+        db_info.set_pending_compaction_tasks(
             db_handler->GetPendingCompactionTasks());
-    db_info.set_disk_usage_percentage_level(
+        db_info.set_disk_usage_percentage_level(
             db_handler->GetDiskUsagePercentageDropLevel());
-    db_info.set_pending_compaction_tasks_level(
+        db_info.set_pending_compaction_tasks_level(
             db_handler->GetPendingCompactionTasksDropLevel());
+    }
 
     fcsr->set_db_info(db_info);
     fcsr->set_context(context);
@@ -214,14 +215,16 @@ void DbInfoSetRequest::HandleRequest() const {
         return;
     }
     DbHandlerPtr db_handler = collector->GetDbHandlerPtr();
-    if (__isset.disk_usage_percentage) {
-        db_handler->ProcessDiskUsagePercentage(get_disk_usage_percentage());
-        db_handler->SetDiskUsagePercentage(get_disk_usage_percentage());
-    }
-    if (__isset.pending_compaction_tasks) {
-        db_handler->ProcessPendingCompactionTasks(
+    if (db_handler) {
+        if (__isset.disk_usage_percentage) {
+            db_handler->ProcessDiskUsagePercentage(get_disk_usage_percentage());
+            db_handler->SetDiskUsagePercentage(get_disk_usage_percentage());
+        }
+        if (__isset.pending_compaction_tasks) {
+            db_handler->ProcessPendingCompactionTasks(
                                          get_pending_compaction_tasks());
-        db_handler->SetPendingCompactionTasks(get_pending_compaction_tasks());
+            db_handler->SetPendingCompactionTasks(get_pending_compaction_tasks());
+        }
     }
 
     // Send response
@@ -296,8 +299,9 @@ static void SendLogStatisticConfigInfoResponse(Collector *collector, std::string
     LogStatisticConfigInfoResponse *fcsr(new LogStatisticConfigInfoResponse);
     std::vector<LogStatisticConfigInfo> config_info;
     DbHandlerPtr db_handler = collector->GetDbHandlerPtr();
-    
-    db_handler->GetUDCConfig(&config_info);
+    if (db_handler) { 
+        db_handler->GetUDCConfig(&config_info);
+    }
     fcsr->set_config_info(config_info);
     fcsr->set_context(context);
     fcsr->Response();

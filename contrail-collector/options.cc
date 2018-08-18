@@ -112,10 +112,8 @@ void Options::Initialize(EventManager &evm,
     std::string default_low_watermark2_message_severity_level = "INVALID";
 
     vector<string> default_cassandra_server_list;
-    string default_cassandra_server("127.0.0.1:9042");
+    string default_cassandra_server;
     default_cassandra_server_list.push_back(default_cassandra_server);
-
-    string default_zookeeper_server("127.0.0.1:2181");
 
     // e.g. "ModuleClientState-max_sm_queue_count:AggProxySumAnomalyEWM01:AggProxySum"
 
