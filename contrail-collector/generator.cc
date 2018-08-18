@@ -328,6 +328,9 @@ void SandeshGenerator::ConnectSession(VizSession *session,
 
 void SandeshGenerator::SetDbQueueWaterMarkInfo(
     Sandesh::QueueWaterMarkInfo &wm) {
+    if (!GetDbHandler()) {
+        return;
+    }
     bool high(boost::get<2>(wm));
     bool defer_undefer(boost::get<3>(wm));
     boost::function<void (void)> cb;
@@ -342,6 +345,9 @@ void SandeshGenerator::SetDbQueueWaterMarkInfo(
 }
 
 void SandeshGenerator::ResetDbQueueWaterMarkInfo() {
+    if (!GetDbHandler()) {
+        return;
+    }
     GetDbHandler()->ResetDbQueueWaterMarkInfo();
 }
 
