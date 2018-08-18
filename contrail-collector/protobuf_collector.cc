@@ -10,10 +10,17 @@
 
 ProtobufCollector::ProtobufCollector(EventManager *evm,
     uint16_t protobuf_udp_port, const std::string schema_file_directory,
-    DbHandlerPtr db_handler) :
-    server_(new protobuf::ProtobufServer(evm, protobuf_udp_port, schema_file_directory,
-        boost::bind(&DbHandler::StatTableInsert, db_handler,
-            _1, _2, _3, _4, _5, GenDb::GenDbIf::DbAddColumnCb()))) {
+    DbHandlerPtr db_handler) {
+    if (db_handler) {
+        server_.reset(new protobuf::ProtobufServer(evm,
+                            protobuf_udp_port, schema_file_directory,
+                            boost::bind(&DbHandler::StatTableInsert, db_handler,
+                                        _1, _2, _3, _4, _5,
+                                        GenDb::GenDbIf::DbAddColumnCb())));
+    } else {
+        server_.reset(new protobuf::ProtobufServer(evm,
+                            protobuf_udp_port, schema_file_directory, NULL));
+    }
 }
 
 ProtobufCollector::~ProtobufCollector() {

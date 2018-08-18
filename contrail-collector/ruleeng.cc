@@ -52,11 +52,13 @@ void Ruleeng::Init() {
     LOG(DEBUG, "Ruleeng::" << __func__ << " Begin");
     DbHandler::RuleMap rulemap;
 
-    db_handler_->GetRuleMap(rulemap);
-    DbHandler::RuleMap::iterator iter;
+    if (db_handler_) {
+        db_handler_->GetRuleMap(rulemap);
+        DbHandler::RuleMap::iterator iter;
 
-    for (iter = rulemap.begin(); iter != rulemap.end(); iter++) {
-        Buildrules((*iter).first, (*iter).second);
+        for (iter = rulemap.begin(); iter != rulemap.end(); iter++) {
+            Buildrules((*iter).first, (*iter).second);
+        }
     }
     LOG(DEBUG, "Ruleeng::" << __func__ << " Done");
 }
@@ -906,20 +908,22 @@ bool Ruleeng::rule_execute(const VizMsg *vmsgp, bool uveproc, DbHandler *db,
     // First publish to redis and kafka
     if (uveproc) handle_uve_publish(parent, vmsgp, db, header, db_cb);
     // Check if the message needs to be dropped
-    if (db->DropMessage(header, vmsgp)) {
+    if (db && db->DropMessage(header, vmsgp)) {
         return true;
     }
 
-    // 1. make entry in OBJECT_VALUE_TABLE if needed
-    // 2. get object-type:name{1-6}
-    handle_object_log(parent, vmsgp, db, header, &object_names, db_cb);
+    if (db) {
+        // 1. make entry in OBJECT_VALUE_TABLE if needed
+        // 2. get object-type:name{1-6}
+        handle_object_log(parent, vmsgp, db, header, &object_names, db_cb);
 
-    // Insert into the message table
-    db->MessageTableInsert(vmsgp, object_names, db_cb);
+        // Insert into the message table
+        db->MessageTableInsert(vmsgp, object_names, db_cb);
 
-    if (uveproc) handle_uve_statistics(parent, vmsgp, db, header, db_cb);
+        if (uveproc) handle_uve_statistics(parent, vmsgp, db, header, db_cb);
 
-    handle_session_object(parent, db, header, db_cb);
+        handle_session_object(parent, db, header, db_cb);
+    }
 
     RuleMsg rmsg(vmsgp); 
     rulelist_->rule_execute(rmsg);
