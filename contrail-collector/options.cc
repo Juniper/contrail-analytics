@@ -38,7 +38,72 @@ bool Options::Parse(EventManager &evm, int argc, char *argv[]) {
     Initialize(evm, cmdline_options);
 
     Process(argc, argv, cmdline_options);
+    ResolveHost(); 
     return true;
+}
+
+void Options::ResolveHost() {
+    //1. cassandra_server_list_
+    int i = 0;
+    int j = 0;
+    while ( i < cassandra_server_list_.size()
+                    && j <  cassandra_server_list_.size()) {
+        std::string cassa_server = ResolveIp(*evm.io_service(),
+                                           cassandra_server_list_[i]);
+        if (cassa_server.empty()) {
+            i++;
+            continue;
+        }
+        if (i != cassandra_server_list_.size()) {
+            cassandra_server_list_[j] = cassandra_server_list_[i];
+            i++;
+        } else {
+            cassandra_server_list_.pop_back();
+        }
+        j++;
+    }
+
+    //2. kafka_broker_list_
+    i = 0;
+    j = 0;
+    while ( i < kafka_broker_list_.size()
+                    && j <  kafka_broker_list_.size()) {
+        std::string zookeeper_server = ResolveIp(*evm.io_service(),
+                                           kafka_broker_list_[i]);
+        if (zookeeper.empty()) {
+            i++;
+            continue;
+        }
+        if (i != kafka_broker_list_.size()) {
+            kafka_broker_list_[j] = kafka_broker_list_[i];
+            i++;
+        } else {
+            kafka_broker_list_.pop_back();
+        }
+        j++;
+    }
+
+    //3. zookeeper_server_list_
+    std::string zookeeper_server_list;
+    boost::char_separator<char> sep(",");
+    tokenizer tokens(zookeeper_server_list_, sep);
+    for (tokenizer::iterator tit = tokens.begin();
+            tit != tokens.end(); tit++) {
+        boost::char_separator<char> sep_i(":");
+        tokenizer tokens_i(*tit, sep);
+        tokenizer::iterator tit_i = tokens_i.begin();
+        string zookeeper_ip(ResolverIp(*evm.io_service(), *tit_i));
+        if (!zookeeper_ip.empty()) {
+            continue;
+        }
+        if (tit != tokens.begin()) {
+            zookeeper_server_list += ",";
+        }
+        ++tit_i;
+        string zookeeper_port(*tit_i);
+        zookeeper_server_list  += zookeeper_ip + ":" + zookeeper_port;
+    }
+    zookeeper_server_list_ = zookeeper_server_list;
 }
 
 // Initialize collector's command line option tags with appropriate default

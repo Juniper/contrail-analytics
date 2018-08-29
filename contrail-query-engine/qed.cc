@@ -274,6 +274,21 @@ main(int argc, char *argv[]) {
     if (use_collector_list) {
         std::vector<std::string> collectors(
             options.randomized_collector_server_list());
+        int i = 0;
+        int j = 0;
+        while ( i < collectors.size() && j <  collectors.size()) {
+             std::string collector = ResolveIp(*evm.io_service(), collectors[i]);
+             if (collector.empty()) {
+                 i++;
+                 continue;
+             }
+             if (i != collectors.size()) {
+                 collectors[j] = collectors[i];
+             } else {
+                 collectors.pop_back();
+             }
+             j++;
+        }
         if (!collectors.size()) {
             collectors = options.default_collector_server_list();
         }
@@ -314,13 +329,15 @@ main(int argc, char *argv[]) {
         boost::char_separator<char> sep(":");
         tokenizer tokens(cassandra_server, sep);
         tokenizer::iterator tit = tokens.begin();
-        string cassandra_ip(*tit);
-        cassandra_ips.push_back(cassandra_ip);
-        ++tit;
-        string port(*tit);
-        int cassandra_port;
-        stringToInteger(port, cassandra_port);
-        cassandra_ports.push_back(cassandra_port);
+        string cassandra_ip = ResolveIp(*evm.io_service(), *tit);
+        if (!cassandra_ip.empty()) {
+            cassandra_ips.push_back(cassandra_ip);
+            ++tit;
+            string port(*tit);
+            int cassandra_port;
+            stringToInteger(port, cassandra_port);
+            cassandra_ports.push_back(cassandra_port);
+        }
     }
     ostringstream css;
     copy(cassandra_servers.begin(), cassandra_servers.end(),
