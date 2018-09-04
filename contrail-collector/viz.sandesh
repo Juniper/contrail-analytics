@@ -79,6 +79,8 @@ const string XMPP_PEER_INFO_TABLE   = "ObjectXmppPeerInfo"
 const string ROUTING_INSTANCE_TABLE = "ObjectRoutingInstance"
 const string XMPP_CONNECTION_TABLE  = "ObjectXmppConnection"
 const string COLLECTOR_INFO_TABLE   = "ObjectCollectorInfo"
+const string ANALYTICS_ALARM_INFO_TABLE = "ObjectAnalyticsAlarmInfo"
+const string ANALYTICS_SNMP_INFO_TABLE  = "ObjectAnalyticsSNMPInfo"
 const string DATABASE_INFO_TABLE    = "ObjectDatabaseInfo"
 const string CONFIG_DATABASE_INFO_TABLE = "ObjectConfigDatabaseInfo"
 const string GENERATOR_INFO_TABLE   = "ObjectGeneratorInfo"
@@ -122,6 +124,8 @@ const string BGP_ROUTER_DISPLAY_NAME       = "Control Node"
 const string XMPP_PEER_INFO_DISPLAY_NAME   = "XMPP Peer"
 const string XMPP_CONNECTION_DISPLAY_NAME  = "XMPP Connection"
 const string COLLECTOR_INFO_DISPLAY_NAME   = "Analytics Node"
+const string ALARM_INFO_DISPLAY_NAME = "Analytics Alarm Node"
+const string SNMP_INFO_DISPLAY_NAME = "Analytics SNMP Node"
 const string DATABASE_INFO_DISPLAY_NAME   = "Database Node"
 const string CONFIG_DATABASE_INFO_DISPLAY_NAME   = "Config Database Node"
 const string GENERATOR_INFO_DISPLAY_NAME   = "Generator"
@@ -551,6 +555,8 @@ enum PartType {
 
 const map<string, PartType> PART_TYPES = {
     COLLECTOR_INFO_TABLE: PartType.PART_TYPE_CNODES,
+    ANALYTICS_ALARM_INFO_TABLE: PartType.PART_TYPE_CNODES,
+    ANALYTICS_SNMP_INFO_TABLE: PartType.PART_TYPE_CNODES,
     DATABASE_INFO_TABLE: PartType.PART_TYPE_CNODES,
     CONFIG_DATABASE_INFO_TABLE: PartType.PART_TYPE_CNODES,
     BGP_ROUTER_TABLE: PartType.PART_TYPE_CNODES,
@@ -578,6 +584,8 @@ const map<string, string> UVE_MAP = {
     "routing-instance" : ROUTING_INSTANCE_TABLE,
     "xmpp-peer" : XMPP_PEER_INFO_TABLE,
     "analytics-node" : COLLECTOR_INFO_TABLE,
+    "analytics-alarm-node" : ANALYTICS_ALARM_INFO_TABLE,
+    "analytics-snmp-node" : ANALYTICS_SNMP_INFO_TABLE,
     "database-node" : DATABASE_INFO_TABLE,
     "config-database-node": CONFIG_DATABASE_INFO_TABLE,
     "generator" : GENERATOR_INFO_TABLE
@@ -710,6 +718,20 @@ const map<string, objtable_info> _OBJECT_TABLES = {
         'is_uve'                : true
         'global_system_object'  : true
         'config_object_type'    : "analytics_node"
+    }
+    ANALYTICS_ALARM_INFO_TABLE   : {
+        'objtable_display_name' : ALARM_INFO_DISPLAY_NAME
+        'log_query_name'        : "analytics-alarm-node"
+        'is_uve'                : true
+        'global_system_object'  : true
+        'config_object_type'    : "analytics_alarm_node"
+    }
+    ANALYTICS_SNMP_INFO_TABLE   : {
+        'objtable_display_name' : SNMP_INFO_DISPLAY_NAME
+        'log_query_name'        : "analytics-snmp-node"
+        'is_uve'                : true
+        'global_system_object'  : true
+        'config_object_type'    : "analytics_snmp_node"
     }
     DATABASE_INFO_TABLE   : {
         'objtable_display_name' : DATABASE_INFO_DISPLAY_NAME
