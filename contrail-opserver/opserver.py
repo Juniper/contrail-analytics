@@ -786,9 +786,13 @@ class OpServer(object):
                                  freq = us_freq)
         self._state_server.update_redis_list(self.redis_uve_list)
 
-        self._analytics_links = ['uves', 'uve-types', 'tables',
-            'queries', 'alarms', 'uve-stream', 'alarm-stream']
-
+        qe_enable = os.getenv('ENABLE_GLOBAL_ANALYTICS_QUERY_ENGINE', 'False')
+        alarm_enable = os.getenv('ENABLE_GLOBAL_ANALYTICS_ALARM', 'False')
+        self._analytics_links = ['uves', 'uve-types']
+        if qe_enable == 'True':
+            self._analytics_links.extend(['tables', 'queries'])
+        if alarm_enable == 'True':
+            self._analytics_links.extend(['alarms', 'uve-stream', 'alarm-stream'])
         self._VIRTUAL_TABLES = copy.deepcopy(_TABLES)
 
         listmgrs = extension.ExtensionManager('contrail.analytics.alarms')
@@ -958,13 +962,14 @@ class OpServer(object):
         bottle.route('/analytics/uve-types', 'GET', self.uve_types_http_get)
         bottle.route('/analytics/alarms/acknowledge', 'POST',
             self.alarms_ack_http_post)
-        bottle.route('/analytics/query', 'POST', self.query_process)
-        bottle.route(
-            '/analytics/query/<queryId>', 'GET', self.query_status_get)
-        bottle.route('/analytics/query/<queryId>/chunk-final/<chunkId>',
-                     'GET', self.query_chunk_get)
-        bottle.route('/analytics/queries', 'GET', self.show_queries)
-        bottle.route('/analytics/tables', 'GET', self.tables_process)
+        if qe_enable == 'True':
+            bottle.route('/analytics/query', 'POST', self.query_process)
+            bottle.route(
+                '/analytics/query/<queryId>', 'GET', self.query_status_get)
+            bottle.route('/analytics/query/<queryId>/chunk-final/<chunkId>',
+                         'GET', self.query_chunk_get)
+            bottle.route('/analytics/queries', 'GET', self.show_queries)
+            bottle.route('/analytics/tables', 'GET', self.tables_process)
         bottle.route('/analytics/operation/analytics-data-start-time',
                      'GET', self._get_analytics_data_start_time)
         bottle.route('/analytics/table/<table>', 'GET', self.table_process)
@@ -980,13 +985,14 @@ class OpServer(object):
                      'GET', self.documentation_messages_http_get)
         bottle.route('/documentation/<filename:path>',
                      'GET', self.documentation_http_get)
-        bottle.route('/analytics/uve-stream', 'GET', self.uve_stream)
-        bottle.route('/analytics/alarm-stream', 'GET', self.alarm_stream)
+        if alarm_enable == 'True':
+            bottle.route('/analytics/uve-stream', 'GET', self.uve_stream)
+            bottle.route('/analytics/alarm-stream', 'GET', self.alarm_stream)
+            bottle.route('/analytics/alarms', 'GET', self.alarms_http_get)
 
         bottle.route('/analytics/uves/<tables>', 'GET', self.dyn_list_http_get)
         bottle.route('/analytics/uves/<table>/<name:path>', 'GET', self.dyn_http_get)
         bottle.route('/analytics/uves/<tables>', 'POST', self.dyn_http_post)
-        bottle.route('/analytics/alarms', 'GET', self.alarms_http_get)
 
     # end __init__
 
