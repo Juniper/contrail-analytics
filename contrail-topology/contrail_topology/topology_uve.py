@@ -19,7 +19,7 @@ class LinkUve(object):
         node_type = Module2NodeType[module]
         self._node_type_name = NodeTypeNames[node_type]
         self._hostname = socket.gethostname()
-        self.table = "ObjectCollectorInfo"
+        self.table = "ObjectAnalyticsSNMPInfo"
         self._instance_id = '0'
         sandesh_global.init_generator(self._moduleid, self._hostname,
                                       self._node_type_name, self._instance_id,

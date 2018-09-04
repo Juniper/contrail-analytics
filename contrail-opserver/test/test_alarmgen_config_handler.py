@@ -235,7 +235,7 @@ class TestAlarmGenConfigHandler(unittest.TestCase):
                         }
                     },
                     alarm_config_db={
-                        'ObjectCollectorInfo': {
+                        'ObjectAnalyticsAlarmInfo': {
                             'global-syscfg-default:alarm1':
                                 AlarmBase(config=alarm_config1)
                         },
@@ -249,7 +249,7 @@ class TestAlarmGenConfigHandler(unittest.TestCase):
                         }
                     },
                     alarm_config_change_map={
-                        'ObjectCollectorInfo': {
+                        'ObjectAnalyticsAlarmInfo': {
                             'global-syscfg-default:alarm1': 'CREATE'
                         },
                         'ObjectBgpRouter': {
@@ -298,7 +298,7 @@ class TestAlarmGenConfigHandler(unittest.TestCase):
                         }
                     },
                     alarm_config_change_map={
-                        'ObjectCollectorInfo': {
+                        'ObjectAnalyticsAlarmInfo': {
                             'global-syscfg-default:alarm1': 'DELETE'
                         },
                         'ObjectBgpRouter': {

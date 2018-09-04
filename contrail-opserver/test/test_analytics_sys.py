@@ -486,7 +486,7 @@ class AnalyticsTest(testtools.TestCase, fixtures.TestWithFixtures):
         exp_genlist = [
             source+':Analytics:contrail-collector:0',
             source+':Analytics:contrail-analytics-api:0',
-            source+':Analytics:contrail-query-engine:0'
+            source+':Database:contrail-query-engine:0'
         ]
         assert vizd_obj.verify_generator_list(vizd_obj.collectors,
                                               exp_genlist)
@@ -537,7 +537,7 @@ class AnalyticsTest(testtools.TestCase, fixtures.TestWithFixtures):
             vizd_obj.opserver.http_port)
         exp_genlist = [
             source+':Analytics:contrail-collector:0',
-            source+':Analytics:contrail-query-engine:0',
+            source+':Database:contrail-query-engine:0',
             source+':Test:contrail-test-generator1:0'
         ]
         assert vizd_obj.verify_generator_list(vizd_obj.collectors,

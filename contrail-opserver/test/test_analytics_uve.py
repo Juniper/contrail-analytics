@@ -207,7 +207,7 @@ class AnalyticsUveTest(testtools.TestCase, fixtures.TestWithFixtures):
         # verify redis-uve list
         host = socket.gethostname()
         gen_list = [host+':Analytics:contrail-collector:0',
-                    host+':Analytics:contrail-query-engine:0',
+                    host+':Database:contrail-query-engine:0',
                     host+':Analytics:contrail-analytics-api:0']
         assert vizd_obj.verify_generator_uve_list(gen_list)
 
@@ -245,7 +245,7 @@ class AnalyticsUveTest(testtools.TestCase, fixtures.TestWithFixtures):
         exp_genlist = [
             source+':Analytics:contrail-collector:0',
             source+':Analytics:contrail-analytics-api:0',
-            source+':Analytics:contrail-query-engine:0',
+            source+':Database:contrail-query-engine:0',
             source+':Test:contrail-vrouter-agent:0',
             source+'dup:Analytics:contrail-collector:0'
         ]
@@ -257,7 +257,7 @@ class AnalyticsUveTest(testtools.TestCase, fixtures.TestWithFixtures):
         exp_genlist = [
             source+'dup:Analytics:contrail-collector:0',
             source+':Analytics:contrail-analytics-api:0',
-            source+':Analytics:contrail-query-engine:0',
+            source+':Database:contrail-query-engine:0',
             source+':Test:contrail-vrouter-agent:0'
         ]
         assert vizd_obj.verify_generator_list([vizd_obj.collectors[1]],
@@ -279,7 +279,7 @@ class AnalyticsUveTest(testtools.TestCase, fixtures.TestWithFixtures):
         exp_genlist = [
             source+':Analytics:contrail-collector:0',
             source+':Analytics:contrail-analytics-api:0',
-            source+':Analytics:contrail-query-engine:0',
+            source+':Database:contrail-query-engine:0',
             source+':Test:contrail-vrouter-agent:0'
         ]
         assert vizd_obj.verify_generator_list([vizd_obj.collectors[0]],
@@ -324,7 +324,7 @@ class AnalyticsUveTest(testtools.TestCase, fixtures.TestWithFixtures):
             source+':Analytics:contrail-collector:0',
             source+':Analytics:contrail-analytics-api:0',
             source+':Test:contrail-vrouter-agent:0',
-            source+':Analytics:contrail-query-engine:0',
+            source+':Database:contrail-query-engine:0',
             source+':Test:contrail-snmp-collector:0'
         ]
         assert vizd_obj.verify_generator_list([vizd_obj.collectors[0]],
@@ -345,7 +345,7 @@ class AnalyticsUveTest(testtools.TestCase, fixtures.TestWithFixtures):
             source+'dup:Analytics:contrail-collector:0',
             source+':Analytics:contrail-analytics-api:0',
             source+':Test:contrail-vrouter-agent:0',
-            source+':Analytics:contrail-query-engine:0',
+            source+':Database:contrail-query-engine:0',
             source+':Test:contrail-snmp-collector:0'
         ]
         assert vizd_obj.verify_generator_list([vizd_obj.collectors[1]],
@@ -371,8 +371,8 @@ class AnalyticsUveTest(testtools.TestCase, fixtures.TestWithFixtures):
             start_kafka = True))
         assert vizd_obj.verify_on_setup()
 
-        assert(vizd_obj.verify_uvetable_alarm("ObjectCollectorInfo",
-            "ObjectCollectorInfo:" + socket.gethostname(),
+        assert(vizd_obj.verify_uvetable_alarm("ObjectAnalyticsAlarmInfo",
+            "ObjectAnalyticsAlarmInfo:" + socket.gethostname(),
             "default-global-system-config:process-status"))
         # setup generator for sending Vrouter build_info
         collector = vizd_obj.collectors[0].get_addr()
@@ -2058,7 +2058,7 @@ class AnalyticsUveTest(testtools.TestCase, fixtures.TestWithFixtures):
         exp_genlist = [
             source+':Analytics:contrail-collector:0',
             source+':Analytics:contrail-analytics-api:0',
-            source+':Analytics:contrail-query-engine:0',
+            source+':Database:contrail-query-engine:0',
             source+':Test:contrail-vrouter-agent:0',
         ]
         assert vizd_obj.verify_generator_list(vizd_obj.collectors,

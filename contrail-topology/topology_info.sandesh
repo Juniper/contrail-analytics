@@ -11,7 +11,7 @@
  * stores topology information
  */
 struct TopologyInfo {
-    1: string name (key="ObjectCollectorInfo")
+    1: string name (key="ObjectAnalyticsSNMPInfo")
     2: optional bool deleted
     3: list<string> members
     4: list<string> partitions

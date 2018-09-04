@@ -267,7 +267,7 @@ main(int argc, char *argv[]) {
             options.hostname(), module_name,
             instance_id,
             boost::bind(&GetProcessStateCb, _1, _2, _3,
-            expected_connections), "ObjectCollectorInfo");
+            expected_connections), "ObjectDatabaseInfo");
     bool success;
     // subscribe to the collector service with discovery only if the
     // collector list is not configured.
