@@ -70,7 +70,7 @@ VizCollector::VizCollector(EventManager *evm, unsigned short listen_port,
                         db_initializer_?db_initializer_->GetDbHandler():DbHandlerPtr(),
                         osp_.get(),
                         boost::bind(&Ruleeng::rule_execute,
-                                     ruleeng_.get(), _1, _2, _3, _4));
+                                     ruleeng_.get(), _1, _2, _3, _4), config_client);
 
     error_code error;
     if (dup)
