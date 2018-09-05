@@ -64,7 +64,8 @@ public:
     Collector(EventManager *evm, short server_port,
               const SandeshConfig &sandesh_config,
               DbHandlerPtr db_handler, OpServerProxy *osp,
-              VizCallback cb);
+              VizCallback cb,
+              ConfigClientCollector *config_client);
     virtual ~Collector();
     virtual void Shutdown();
     virtual void SessionShutdown();
@@ -116,6 +117,8 @@ public:
     static std::string DbGlobalName(bool dup=false);
     void CloseGeneratorSession(std::string source, std::string module,
                          std::string instance, std::string node_type);
+    void ReceiveConfig(const contrail_rapidjson::Document &jdoc,
+                             bool add_change);
 protected:
     virtual SslSession *AllocSession(SslSocket *socket);
     virtual void DisconnectSession(SandeshSession *session);
@@ -163,6 +166,7 @@ private:
     static bool task_policy_set_;
     static const std::vector<Sandesh::QueueWaterMarkInfo> kDbQueueWaterMarkInfo;
     static const std::vector<Sandesh::QueueWaterMarkInfo> kSmQueueWaterMarkInfo;
+    int config_version;
 
     DISALLOW_COPY_AND_ASSIGN(Collector);
 };

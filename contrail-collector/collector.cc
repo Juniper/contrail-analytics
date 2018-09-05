@@ -58,9 +58,16 @@ const std::vector<Sandesh::QueueWaterMarkInfo> Collector::kSmQueueWaterMarkInfo 
         (Collector::kQSizeHighWaterMark, SandeshLevel::INVALID, true, true)
         (Collector::kQSizeLowWaterMark, SandeshLevel::INVALID, false, true);
 
+struct config_info {
+    bool new_config;
+    int  version;
+};
+std::map<std::string, config_info> stats_config_map;
+
 Collector::Collector(EventManager *evm, short server_port,
         const SandeshConfig &sandesh_config, DbHandlerPtr db_handler,
-        OpServerProxy *osp, VizCallback cb) :
+        OpServerProxy *osp, VizCallback cb,
+        ConfigClientCollector *config_client) :
         SandeshServer(evm, sandesh_config),
         db_handler_(db_handler),
         osp_(osp),
@@ -70,6 +77,11 @@ Collector::Collector(EventManager *evm, short server_port,
         sm_queue_wm_info_(kSmQueueWaterMarkInfo) {
     SandeshServer::Initialize(server_port);
 
+    if (config_client) {
+        config_version = 0;
+        config_client->RegisterConfigReceive("stats_config",
+                             boost::bind(&Collector::ReceiveConfig, this, _1, _2));
+    }
     Module::type module = Module::COLLECTOR;
     string module_name = g_vns_constants.ModuleNames.find(module)->second;
     Sandesh::RecordPort("collector", module_name, GetPort());
@@ -119,6 +131,7 @@ bool Collector::ReceiveResourceUpdate(SandeshSession *session,
         }
 
         std::vector<UVETypeInfo> vu;
+        std::vector<UVEStatsInfo> statsInfo;
         std::map<std::string, int32_t> seqReply;
         bool retc = osp_->GetSeq(gen->source(), gen->node_type(),
                         gen->module(), gen->instance_id(), seqReply);
@@ -130,7 +143,7 @@ bool Collector::ReceiveResourceUpdate(SandeshSession *session,
                 uti.set_seq_num(it->second);
                 vu.push_back(uti);
             }
-            SandeshCtrlServerToClient::Request(vu, retc, "ctrl", vsession->connection());
+            SandeshCtrlServerToClient::Request(vu, retc, statsInfo, "ctrl", vsession->connection());
         } else {
             increment_redis_error();
             LOG(ERROR, "Resource OSP GetSeq FAILED: " << gen->ToString() <<
@@ -220,6 +233,20 @@ bool Collector::ReceiveSandeshCtrlMsg(SandeshStateMachine *state_machine,
         gen = new SandeshGenerator(this, vsession, state_machine, id.get<0>(),
                 id.get<1>(), id.get<2>(), id.get<3>(), db_handler_);
         gen_map_.insert(id, gen);
+        // send all stats configuration to this client
+        std::vector<UVETypeInfo> vu;
+        std::vector<UVEStatsInfo> statsList;
+        std::map<std::string, config_info>::iterator it = stats_config_map.begin();
+        while (it != stats_config_map.end()) {
+            UVEStatsInfo info;
+            info.type_name = it->first;
+            statsList.push_back(info);
+            it++;
+        }
+        if (gen->session()) {
+            SandeshCtrlServerToClient::Request(vu, true, statsList,
+                                "ctrl", gen->session()->connection());
+        }
     } else {
         // Update the generator if needed
         gen = gen_it->second;
@@ -244,6 +271,7 @@ bool Collector::ReceiveSandeshCtrlMsg(SandeshStateMachine *state_machine,
     lock.release();
     
     std::vector<UVETypeInfo> vu;
+    std::vector<UVEStatsInfo> statsInfo;
     std::map<std::string, int32_t> seqReply;
     bool retc = osp_->GetSeq(snh->get_source(), snh->get_node_type_name(),
                              snh->get_module_name(), snh->get_instance_id_name(),
@@ -256,7 +284,7 @@ bool Collector::ReceiveSandeshCtrlMsg(SandeshStateMachine *state_machine,
             uti.set_seq_num(0);
             vu.push_back(uti);
         }
-        SandeshCtrlServerToClient::Request(vu, retc, "ctrl", vsession->connection());
+        SandeshCtrlServerToClient::Request(vu, retc, statsInfo, "ctrl", vsession->connection());
     } else {
         increment_redis_error();
         LOG(ERROR, "OSP GetSeq FAILED: " << gen->ToString() <<
@@ -518,3 +546,89 @@ void Collector::CloseGeneratorSession(string source, string module,
 DbHandlerPtr Collector::GetDbHandlerPtr() {
     return db_handler_;
 }
+void Collector::ReceiveConfig(const contrail_rapidjson::Document &jdoc,
+                             bool add_change) {
+    if (!add_change) {
+        return;
+    }
+    config_version++;
+ 
+    if (!jdoc.IsObject()) {
+        return;
+    }
+
+    if (!jdoc.HasMember("global_system_config")) {
+        return;
+    }
+
+    if (jdoc["global_system_config"].HasMember(
+                  "stats_control")) {
+        if (!jdoc["global_system_config"]
+                 ["stats_control"].IsObject()) {
+            return;
+        }
+
+        if (!jdoc["global_system_config"]
+                 ["stats_control"].HasMember("statlist")) {
+            return;
+        }
+        const contrail_rapidjson::Value& gsc = jdoc
+                 ["global_system_config"]["stats_control"]["statlist"];
+        if (!gsc.IsArray()) {
+            return;
+        }
+
+        for (contrail_rapidjson::SizeType i = 0; i < gsc.Size(); i++) {
+            if (!gsc[i].IsObject() || !gsc[i].HasMember("name")) {
+                continue;
+            }
+            /* The implement of config server:
+               1. if configuration list changed(add/update/delete),
+                  send newest list to client with add_change setting to true
+               2. if customer triggger delete, send deleted list
+                  after newest list with add_change seeting to false.
+               We only need consider newest list and drop delete list.
+               Local cache is used to identify item is new, delete or
+               no change.
+            */ 
+            std::string name = gsc[i]["name"].GetString();
+            if (stats_config_map.find(name) == stats_config_map.end()) {
+                stats_config_map[name].new_config = true;
+                stats_config_map[name].version = config_version;
+            } else {
+                stats_config_map[name].new_config = false;
+                stats_config_map[name].version = config_version;
+            }
+        }
+    }
+    std::vector<UVETypeInfo> vu;
+    std::vector<UVEStatsInfo> statsList;
+    std::map<std::string, config_info>::iterator it = stats_config_map.begin();
+    while (it != stats_config_map.end()) {
+        UVEStatsInfo info;
+        info.type_name = it->first;
+        if(it->second.version != config_version) {
+            info.deleted = true;
+            statsList.push_back(info);
+            it++;
+            stats_config_map.erase(info.type_name);
+        } else {
+            if (it->second.new_config == true) {
+                info.deleted = false;
+                statsList.push_back(info);
+            }
+            it++;
+        }
+    }
+    tbb::mutex::scoped_lock lock(gen_map_mutex_);
+    for (GeneratorMap::iterator gen_it = gen_map_.begin();
+            gen_it != gen_map_.end(); gen_it++) {
+        SandeshGenerator *gen = gen_it->second;
+        if (gen->session()) {
+            SandeshCtrlServerToClient::Request(vu, true, statsList,
+                                "ctrl", gen->session()->connection());
+        }
+    }
+    return;
+}
+
