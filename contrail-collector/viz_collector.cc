@@ -61,7 +61,8 @@ VizCollector::VizCollector(EventManager *evm, unsigned short listen_port,
     collector_(new Collector(evm, listen_port, sandesh_config,
                              db_initializer_->GetDbHandler(),
         osp_.get(),
-        boost::bind(&Ruleeng::rule_execute, ruleeng_.get(), _1, _2, _3, _4))),
+        boost::bind(&Ruleeng::rule_execute, ruleeng_.get(), _1, _2, _3, _4),
+        config_client)),
     redis_gen_(0), partitions_(partitions) {
     error_code error;
     if (dup)
