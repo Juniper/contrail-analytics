@@ -298,8 +298,7 @@ void Options::Initialize(EventManager &evm,
                  TtlType::FLOWDATA_TTL)->second),
              "TTL in hours for analytics flow data")
         ("DEFAULT.cassandra_server_list",
-           opt::value<vector<string> >()->default_value(
-               default_cassandra_server_list, default_cassandra_server),
+           opt::value<vector<string> >()->default_value(""),
              "Cassandra server list")
         ("DEFAULT.zookeeper_server_list",
             opt::value<string>()->default_value(""),
