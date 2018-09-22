@@ -41,7 +41,8 @@ from sandesh.nodeinfo.process_info.ttypes import *
 from sandesh_common.vns.ttypes import Module, NodeType
 from sandesh_common.vns.constants import ModuleNames, CategoryNames,\
      ModuleCategoryMap, Module2NodeType, NodeTypeNames, ModuleIds,\
-     INSTANCE_ID_DEFAULT, ALARM_GENERATOR_SERVICE_NAME
+     INSTANCE_ID_DEFAULT, ALARM_GENERATOR_SERVICE_NAME,\
+     COLLECTOR_DISCOVERY_SERVICE_NAME
 from alarmgen_cfg import CfgParser
 from uveserver import UVEServer
 from partition_handler import PartitionHandler, UveStreamProc
@@ -876,6 +877,11 @@ class Controller(object):
         self._libpart = None
         self._partset = set()
 
+        self._redis_ip_list = []
+        self._alarmgen_disc_list = []
+        self._lredis = None
+        self._alarmgen_disc_list_processed = False
+
         is_collector = True
         if test_logger is not None:
             is_collector = False
@@ -1001,6 +1007,14 @@ class Controller(object):
                 {ALARM_GENERATOR_SERVICE_NAME:self.disc_cb_ag},
                 self._conf.kafka_prefix(),
                 ad_freq)
+            self._ad_collector = AnalyticsDiscovery(self._logger,
+                ','.join(self._conf.zk_list()),
+                COLLECTOR_DISCOVERY_SERVICE_NAME,
+                self._hostname + "-" + self._instance_id,
+                {COLLECTOR_DISCOVERY_SERVICE_NAME: self.disc_collector_cb},
+                self._conf.kafka_prefix(),
+                ad_freq,
+                do_publish=False)
             self._max_out_rows = 20
         else:
             self._max_out_rows = 2
@@ -1413,6 +1427,8 @@ class Controller(object):
 
         lredis = None
         oldworkerset = None
+        redis_changed = False
+        redis_processed_list = []
         while True:
             for part in self._uveqf.keys():
                 self._logger.error("Stop UVE processing for %d:%d" % \
@@ -1434,18 +1450,27 @@ class Controller(object):
             prev = time.time()
             try:
                 if lredis is None:
-                    lredis = StrictRedisWrapper(
-                            host="127.0.0.1",
-                            port=self._conf.redis_server_port(),
-                            password=self._conf.redis_password(),
-                            db=7)
-                    self.reconnect_agg_uve(lredis)
-                    ConnectionState.update(conn_type = ConnectionType.REDIS_UVE,
-                          name = 'AggregateRedis', status = ConnectionStatus.UP,
-                          server_addrs = ['127.0.0.1:'+str(self._conf.redis_server_port())])
+                    lredis = self.get_redis_instance(redis_processed_list)
+                    if lredis is None:
+                        if len(self._redis_ip_list) > 0:
+                            # Use first IP
+                            ConnectionState.update(conn_type=ConnectionType.REDIS_UVE,
+                                name='AggregateRedis',
+                                status=ConnectionStatus.DOWN,
+                                server_addrs=[self._redis_ip_list[0] +
+                                              ':'+str(self._conf.redis_server_port())])
+                    else:
+                        redis_changed = True
+                        self.reconnect_agg_uve(lredis)
+                        redis_ip = lredis.connection_pool.connection_kwargs['host']
+                        ConnectionState.update(conn_type = ConnectionType.REDIS_UVE,
+                            name = 'AggregateRedis', status = ConnectionStatus.UP,
+                            server_addrs = [redis_ip + ":" + str(self._conf.redis_server_port())])
                 else:
-                    if not lredis.exists(self._moduleid+':'+self._instance_id):
+                    redis_changed = False
+                    if not lredis.exists(self._moduleid + ':' + self._instance_id):
                         self._logger.error('Identified redis restart')
+                        redis_changed = True
                         self.reconnect_agg_uve(lredis)
                 gevs = {}
                 pendingset = {}
@@ -1534,12 +1559,21 @@ class Controller(object):
                 else:
                     self._logger.error("%s : traceback %s" % \
                                   (messag, traceback.format_exc()))
-
+                redis_ip = ''
+                if lredis is None:
+                    if len(self._redis_ip_list) > 0:
+                        redis_ip = self._redis_ip_list[0]
+                else:
+                    redis_ip = lredis.connection_pool.connection_kwargs['host']
+                    redis_processed_list.append(redis_ip)
+                ConnectionState.update(conn_type=ConnectionType.REDIS_UVE,
+                    name='AggregateRedis', status=ConnectionStatus.DOWN,
+                    server_addrs=[redis_ip + ':' + \
+                                  str(self._conf.redis_server_port())])
                 lredis = None
-                ConnectionState.update(conn_type = ConnectionType.REDIS_UVE,
-                      name = 'AggregateRedis', status = ConnectionStatus.DOWN,
-                      server_addrs = ['127.0.0.1:'+str(self._conf.redis_server_port())])
-
+                if (len(set(self._redis_ip_list) - set(redis_processed_list))) == 0:
+                    # reset
+                    redis_processed_list = []
                 if self._ad:
                     self._ad.publish(None)
                 oldworkerset = None
@@ -1550,16 +1584,19 @@ class Controller(object):
                 for part in self._workers.keys():
                     if self._workers[part]._up:
                         workerset[part] = self._workers[part].acq_time()
-                if workerset != oldworkerset:
+                if lredis is not None and \
+                  ((workerset != oldworkerset) or (redis_changed is True)):
                     data = {
-                        'ip-address': self._conf.host_ip(),
+                        'ip-address': lredis.connection_pool.connection_kwargs['host'],
                         'instance-id': self._instance_id,
                         'redis-port': str(self._conf.redis_server_port()),
+                        'redis-agg-db': self._conf.get_redis_agg_db(),
                         'partitions': json.dumps(workerset)
                     }
                     if self._ad:
                         self._ad.publish(json.dumps(data))
                     oldworkerset = copy.deepcopy(workerset)
+
 
             curr = time.time()
             try:
@@ -2073,9 +2110,7 @@ class Controller(object):
                 self.partition_log("Dup partitions %s" % \
                     str(parts.intersection(set(self._workers.keys()))))
             else:
-                lredis = StrictRedisWrapper(host="127.0.0.1",
-                            port=self._conf.redis_server_port(),
-                            password=self._conf.redis_password(), db=7)
+                lredis = self._lredis
                 for partno in parts:
                     self.clear_agg_uve(lredis, self._instance_id, partno)
                     ph = UveStreamProc(','.join(self._conf.kafka_broker_list()),
@@ -2390,16 +2425,57 @@ class Controller(object):
             return SandeshAlarmAckResponseCode.SUCCESS
     # end alarm_ack_callback
 
-    def disc_cb_ag(self, alist):
-        '''
-        Analytics node may be brought up/down any time. For partitioning,
-        alarmgen needs to know the list of all Analytics nodes (alarmgens).
-        AnalyticsDiscovery (using zookeeper) will report this.
-        '''
-        if self._disable_cb:
-            self._logger.error("Discovery AG callback IGNORED: %s" % str(alist))
+    def get_redis_instance(self, redis_processed_list=None):
+        redis_ip_list = self._redis_ip_list
+        if len(redis_ip_list) == 0:
+            return None
+        redis_ip = None
+        old_redis_ip = None
+        if self._lredis is not None:
+             redis_ip = self._lredis.connection_pool.connection_kwargs['host']
+             old_redis_ip = redis_ip
+        take_idx = -1
+        if redis_ip not in redis_ip_list:
+            # Select one ip from redis_ip_list
+            take_idx = abs(hash(self._libpart_name)) % len(redis_ip_list)
+            redis_ip = redis_ip_list[take_idx]
+        done_list = []
+        if redis_processed_list is not None:
+            done_list = redis_processed_list + done_list
+        while True:
+            try:
+                if len(done_list) > 0:
+                    hosts = list(set(redis_ip_list) - set(done_list))
+                    if len(hosts) > 0:
+                        redis_ip = hosts[0]
+                        done_list.append(redis_ip)
+                lredis = StrictRedisWrapper(host=redis_ip, port=self._conf.redis_server_port(),
+                                        password=self._conf.redis_password(),
+                                        db=self._conf.get_redis_agg_db())
+                if ((lredis is not None) and (old_redis_ip is not None) and \
+                    (redis_ip != lredis.connection_pool.connection_kwargs['host'])):
+                    # Trigger alarmgen_disc_list processing with the new one
+                    self.process_alarmgen_disc_list()
+                self._lredis = lredis
+                return lredis
+            except Exception as e:
+                if len(set(redis_ip_list) - set(done_list)) == 0:
+                    return None
+
+    def disc_collector_cb(self, alist):
+        collector_ip_list = []
+        for elem in alist:
+            collector_ip_list.append(elem['ip_address'])
+        self._redis_ip_list = collector_ip_list
+        self._logger.info("Got new collector list %s" %(collector_ip_list))
+        self.process_alarmgen_disc_list()
+
+    def process_alarmgen_disc_list(self):
+        if self._alarmgen_disc_list_processed is True:
             return
-        self._logger.error("Discovery AG callback : %s" % str(alist))
+        alist = self._alarmgen_disc_list
+        if len(alist) == 0:
+            return
         newlist = []
         for elem in alist:
             ipaddr = elem["ip-address"]
@@ -2424,6 +2500,21 @@ class Controller(object):
                 self._libpart = self.start_libpart(newlist)
             else:
                 self._libpart.update_cluster_list(newlist)
+        self._alarmgen_disc_list_processed = True
+
+    def disc_cb_ag(self, alist):
+        '''
+        Analytics node may be brought up/down any time. For partitioning,
+        alarmgen needs to know the list of all Analytics nodes (alarmgens).
+        AnalyticsDiscovery (using zookeeper) will report this.
+        '''
+        if self._disable_cb:
+            self._logger.info("Discovery AG callback IGNORED: %s" % str(alist))
+            return
+        self._logger.info("Discovery AG callback : %s" % str(alist))
+        self._alarmgen_disc_list = alist
+        self._alarmgen_disc_list_processed = False
+        self.process_alarmgen_disc_list()
 
     def run_process_stats(self):
         while True:
@@ -2448,7 +2539,8 @@ class Controller(object):
                       gevent.spawn(self._us.run)]
         if self._ad is not None:
             self._ad.start()
-
+        if self._ad_collector is not None:
+            self._ad_collector.start()
         try:
             gevent.joinall(self.gevs)
         except KeyboardInterrupt:
@@ -2470,6 +2562,8 @@ class Controller(object):
             self._config_handler.stop()
         if self._ad is not None:
             self._ad.kill()
+        if self._ad_collector is not None:
+            self._ad_collector.kill()
 
         l = len(self.gevs)
         for idx in range(0,l):
