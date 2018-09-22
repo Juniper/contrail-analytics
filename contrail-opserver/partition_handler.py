@@ -24,7 +24,7 @@ import time
 from collections import namedtuple
 from strict_redis_wrapper import StrictRedisWrapper
 
-PartInfo = namedtuple("PartInfo",["ip_address","instance_id","acq_time","port"])
+PartInfo = namedtuple("PartInfo",["ip_address","instance_id","redis_agg_db","acq_time","port"])
 
 def sse_pack(d):
     """Pack data in SSE format"""
@@ -44,11 +44,11 @@ class UveCacheProcessor(object):
         self._agp = {}
         self._agg_redis_map = {}
 
-    def _get_agg_redis_instance(self, ip, port):
+    def _get_agg_redis_instance(self, ip, port, redis_agg_db):
         agg_redis = self._agg_redis_map.get((ip, port))
         if not agg_redis:
             agg_redis = StrictRedisWrapper(host=ip, port=port,
-                password=self._rpass, db=7, socket_timeout=30)
+                password=self._rpass, db=redis_agg_db, socket_timeout=30)
             self._agg_redis_map[(ip, port)] = agg_redis
         return agg_redis
     # end _get_agg_redis_instance
@@ -119,7 +119,7 @@ class UveCacheProcessor(object):
         
         for pkey,pvalue in uveparts.iteritems():
             pi = self._agp[pkey]
-            lredis = self._get_agg_redis_instance(pi.ip_address, pi.port)
+            lredis = self._get_agg_redis_instance(pi.ip_address, pi.port, pi.redis_agg_db)
             ppe = lredis.pipeline()
             luves = list(uveparts[pkey])
             for elem in luves:
@@ -442,7 +442,7 @@ class UveStreamPart(gevent.Greenlet):
                         host=self._pi.ip_address,
                         port=self._pi.port,
                         password=self._rpass,
-                        db=7, socket_timeout=30)
+                        db=self._pi.redis_agg_db, socket_timeout=30)
                 pb = lredis.pubsub()
                 inst = self._pi.instance_id
                 part = self._partno
