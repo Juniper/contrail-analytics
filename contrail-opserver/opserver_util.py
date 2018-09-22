@@ -119,14 +119,15 @@ class AnalyticsDiscovery(gevent.Greenlet):
             self._pendingcb.add(watcher)
 
     def _zk_watcher(self, watcher, children):
-        self._logger.error("Analytics Discovery Children %s" % children)
+        self._logger.debug("Analytics Discovery Watcher %s Children %s" % (watcher, children))
         self._reconnect = True
 
     def __init__(self, logger, zkservers, svc_name, inst,
-                watchers={}, zpostfix="", freq=10):
+                watchers={}, zpostfix="", freq=10, do_publish=True):
         gevent.Greenlet.__init__(self)
         self._svc_name = svc_name
         self._inst = inst
+        self._do_publish = do_publish
         self._zk_server = zkservers
         # initialize logging and other stuff
         if logger is None:
@@ -151,6 +152,9 @@ class AnalyticsDiscovery(gevent.Greenlet):
     def publish(self, pubinfo):
 
         # This function can be called concurrently by the main AlarmDiscovery
+        if self._do_publish == False:
+            self._logger.debug("Publish is disabled")
+            return
         # processing loop as well as by clients.
         # It is NOT re-entrant
         self._publock.acquire()
