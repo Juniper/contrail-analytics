@@ -324,8 +324,8 @@ response sandesh QueueParamsResponse {
 struct SandeshMessageInfo {
      1: string type
      2: string level
-     3: u64    messages
-     4: u64    bytes
+     3: u64    messages (metric_type="agg")
+     4: u64    bytes (metric_type="agg")
 }
 
 /**
@@ -398,9 +398,9 @@ response sandesh DatabaseWritesStatusResponse {
 */
 
 struct AppMetrics{
-      1: optional u64                     session_duration
-      2: optional u64                     session_count
-      3: optional u64                      total_bytes
+      1: optional u64                     session_duration (metric_type="diff")
+      2: optional u64                     session_count (metric_type="diff")
+      3: optional u64                      total_bytes (metric_type="diff")
 }
 
 struct AppMetrics_P_{

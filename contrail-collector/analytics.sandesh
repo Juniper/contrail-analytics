@@ -14,17 +14,17 @@ struct QueryStats {
     20: string                     where
     21: string                     select
     22: string                     post
-    23: u32                        time_span
+    23: u32                        time_span (metric_type="diff")
     24: string                     error
-    3: u32                         chunks
+    3: u32                         chunks (metric_type="diff")
     4: string                      chunk_where_time;
     5: string                      chunk_select_time; 
     6: string                      chunk_postproc_time; 
     7: string                      chunk_merge_time; 
-    8: u32                         final_merge_time;
-    9: u32                         time
-    10: u32                        rows
-    11: u32                        enq_delay 
+    8: u32                         final_merge_time (metric_type="diff")
+    9: u32                         time (metric_type="diff")
+    10: u32                        rows (metric_type="diff")
+    11: u32                        enq_delay (metric_type="diff")
 }
 
 /**
@@ -46,9 +46,9 @@ struct AnalyticsApiSample {
     3: string remote_ip
     5: string object_type
     6: string request_url
-    8: u64 response_time_in_usec
-    9: u64 response_size_objects
-    11: u64 response_size_bytes
+    8: u64 response_time_in_usec (metric_type="diff")
+    9: u64 response_size_objects (metric_type="diff")
+    11: u64 response_size_bytes (metric_type="diff")
     12: string resp_code
     13: string useragent
     10: string node (key="ObjectCollectorInfo")
@@ -81,7 +81,7 @@ struct UserDefinedLogStatistic {
     2: optional bool deleted
     3: optional u64 rx_event (hidden="yes")
     /** @display_name:User defined log statistics*/
-    4: optional uint64_t_P_ count (stats="rx_event:DSSum:", tags="", aggtype="sum")
+    4: optional uint64_t_P_ count (stats="rx_event:DSSum:", tags="", aggtype="sum", metric_type="diff")
 } (period="60")
 
 /**

@@ -18,37 +18,37 @@ include "sandesh/library/common/derived_stats_results.sandesh"
 */
 
 struct SDWANMetrics_diff {
-      1: optional u64                     session_duration
-      2: optional u64                     session_count
-      3: optional u64                     total_bytes
-      4: optional u64                     input_bytes
-      5: optional u64                     output_bytes
-      6: optional u64                     total_pkts
-      7: optional u64                     input_pkts
-      8: optional u64                     output_pkts
-      9: optional u64                     sla_violation_duration
-     10: optional u64                     sla_violation_count
-     11: optional u64                     session_switch_count
-     12: optional u64                     jitter_violation_count
-     13: optional u64                     rtt_violation_count
-     14: optional u64                     pkt_loss_violation_count
-     15: optional u64                     minor_alarms_raised
-     16: optional u64                     major_alarms_raised
-     17: optional u64                     critical_alarms_raised
-     18: optional u64                     total_alarms_raised
-     19: optional u64                     total_alarms_cleared
+      1: optional u64                     session_duration (metric_type="diff")
+      2: optional u64                     session_count (metric_type="diff")
+      3: optional u64                     total_bytes (metric_type="diff")
+      4: optional u64                     input_bytes (metric_type="diff")
+      5: optional u64                     output_bytes (metric_type="diff")
+      6: optional u64                     total_pkts (metric_type="diff")
+      7: optional u64                     input_pkts (metric_type="diff")
+      8: optional u64                     output_pkts (metric_type="diff")
+      9: optional u64                     sla_violation_duration (metric_type="diff")
+     10: optional u64                     sla_violation_count (metric_type="diff")
+     11: optional u64                     session_switch_count (metric_type="diff")
+     12: optional u64                     jitter_violation_count (metric_type="diff")
+     13: optional u64                     rtt_violation_count (metric_type="diff")
+     14: optional u64                     pkt_loss_violation_count (metric_type="diff")
+     15: optional u64                     minor_alarms_raised (metric_type="diff")
+     16: optional u64                     major_alarms_raised (metric_type="diff")
+     17: optional u64                     critical_alarms_raised (metric_type="diff")
+     18: optional u64                     total_alarms_raised (metric_type="diff")
+     19: optional u64                     total_alarms_cleared (metric_type="diff")
 }
 
 struct SDWANMetrics_dial {
-      1: optional u64                     txbps
-      2: optional u64                     rxbps
-      3: optional u64                     rtt
-      4: optional u64                     pkt_loss
-      5: optional u64                     rtt_jitter
-      6: optional u64                     egress_jitter
-      7: optional u64                     ingress_jitter
-      8: optional u64                     sampling_percentage
-      9: optional u64                     score
+      1: optional u64                     txbps (metric_type="dial")
+      2: optional u64                     rxbps (metric_type="dial")
+      3: optional u64                     rtt (metric_type="dial")
+      4: optional u64                     pkt_loss (metric_type="dial")
+      5: optional u64                     rtt_jitter (metric_type="dial")
+      6: optional u64                     egress_jitter (metric_type="dial")
+      7: optional u64                     ingress_jitter (metric_type="dial")
+      8: optional u64                     sampling_percentage (metric_type="dial")
+      9: optional u64                     score (metric_type="dial")
 }
 
 struct SDWANMetrics_diff_P_ {

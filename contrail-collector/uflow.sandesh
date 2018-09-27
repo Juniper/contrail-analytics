@@ -21,13 +21,13 @@ const map<FlowType, string> FlowTypeName = {
  * Normalized data to identify an underlay flow
  */
 struct UFlowSample {
-    1: u64 pifindex
+    1: u64 pifindex (metric_type="dial")
     2: string sip
     3: string dip
-    4: u16 sport
-    5: u16 dport
-    6: u16 protocol
-    7: u16 vlan
+    4: u16 sport (metric_type="dial")
+    5: u16 dport (metric_type="dial")
+    6: u16 protocol (metric_type="dial")
+    7: u16 vlan (metric_type="dial")
     8: string flowtype
     9: string otherinfo
 }
