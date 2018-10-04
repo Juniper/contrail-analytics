@@ -36,6 +36,7 @@ protected:
         boost::system::error_code error;
         hostname_ = host_name(error);
         host_ip_ = GetHostIp(evm_.io_service(), hostname_);
+        default_redis_server_list_.push_back("127.0.0.1");
     }
 
     virtual void SetUp() {
@@ -52,6 +53,7 @@ protected:
     vector<string> default_cassandra_server_list_;
     vector<string> default_collector_server_list_;
     vector<string> default_conf_files_;
+    vector<string> default_redis_server_list_;
     Options options_;
 };
 
@@ -67,7 +69,8 @@ TEST_F(OptionsTest, NoArguments) {
                      options_.cassandra_server_list());
     TASK_UTIL_EXPECT_VECTOR_EQ(default_collector_server_list_,
                      options_.collector_server_list());
-    EXPECT_EQ(options_.redis_server(), "127.0.0.1");
+    TASK_UTIL_EXPECT_VECTOR_EQ(default_redis_server_list_,
+                               options_.redis_server_list());
     EXPECT_EQ(options_.redis_port(), default_redis_port);
     TASK_UTIL_EXPECT_VECTOR_EQ(default_conf_files_,
                      options_.config_file());
@@ -108,7 +111,8 @@ TEST_F(OptionsTest, DefaultConfFile) {
                      options_.cassandra_server_list());
     TASK_UTIL_EXPECT_VECTOR_EQ(default_collector_server_list_,
                      options_.collector_server_list());
-    EXPECT_EQ(options_.redis_server(), "127.0.0.1");
+    TASK_UTIL_EXPECT_VECTOR_EQ(default_redis_server_list_,
+                               options_.redis_server_list());
     EXPECT_EQ(options_.redis_port(), default_redis_port);
     TASK_UTIL_EXPECT_VECTOR_EQ(options_.config_file(),
                                passed_conf_files);
@@ -152,7 +156,8 @@ TEST_F(OptionsTest, OverrideStringFromCommandLine) {
                      options_.cassandra_server_list());
     TASK_UTIL_EXPECT_VECTOR_EQ(default_collector_server_list_,
                      options_.collector_server_list());
-    EXPECT_EQ(options_.redis_server(), "127.0.0.1");
+    TASK_UTIL_EXPECT_VECTOR_EQ(default_redis_server_list_,
+                               options_.redis_server_list());
     EXPECT_EQ(options_.redis_port(), default_redis_port);
     TASK_UTIL_EXPECT_VECTOR_EQ(options_.config_file(),
                                passed_conf_files);
@@ -194,7 +199,8 @@ TEST_F(OptionsTest, OverrideBooleanFromCommandLine) {
                      options_.cassandra_server_list());
     TASK_UTIL_EXPECT_VECTOR_EQ(default_collector_server_list_,
                      options_.collector_server_list());
-    EXPECT_EQ(options_.redis_server(), "127.0.0.1");
+    TASK_UTIL_EXPECT_VECTOR_EQ(default_redis_server_list_,
+                               options_.redis_server_list());
     EXPECT_EQ(options_.redis_port(), default_redis_port);
     TASK_UTIL_EXPECT_VECTOR_EQ(options_.config_file(),
                                passed_conf_files);
@@ -242,8 +248,8 @@ TEST_F(OptionsTest, CustomConfigFile) {
         "sandesh_send_rate_limit=5\n"
         "\n"
         "[REDIS]\n"
-        "server=1.2.3.4\n"
         "port=200\n"
+        "server_list=10.10.10.1 20.20.20.2 30.30.30.3\n"
         "\n"
         "\n"
         "[SANDESH]\n"
@@ -294,7 +300,12 @@ TEST_F(OptionsTest, CustomConfigFile) {
     TASK_UTIL_EXPECT_VECTOR_EQ(collector_server_list,
                      options_.collector_server_list());
 
-    EXPECT_EQ(options_.redis_server(), "1.2.3.4");
+    vector<string> redis_server_list;
+    redis_server_list.push_back("10.10.10.1");
+    redis_server_list.push_back("20.20.20.2");
+    redis_server_list.push_back("30.30.30.3");
+    TASK_UTIL_EXPECT_VECTOR_EQ(redis_server_list,
+                               options_.redis_server_list());
     EXPECT_EQ(options_.redis_port(), 200);
     TASK_UTIL_EXPECT_VECTOR_EQ(options_.config_file(),
                                input_conf_files);
@@ -346,8 +357,8 @@ TEST_F(OptionsTest, CustomConfigFileAndOverrideFromCommandLine) {
         "sandesh_send_rate_limit=5\n"
         "\n"
         "[REDIS]\n"
-        "server=1.2.3.4\n"
         "port=200\n"
+        "server_list=10.10.10.1 20.20.20.2 30.30.30.3\n"
         "\n"
         "[SANDESH]\n"
         "disable_object_logs=0\n"
@@ -368,7 +379,7 @@ TEST_F(OptionsTest, CustomConfigFileAndOverrideFromCommandLine) {
     config_file << cassandra_config;
     config_file.close();
 
-    int argc = 19;
+    int argc = 20;
     char *argv[argc];
     char argv_0[] = "options_test";
     char argv_1[] = "--conf_file=./options_test_query_engine.conf";
@@ -389,6 +400,7 @@ TEST_F(OptionsTest, CustomConfigFileAndOverrideFromCommandLine) {
     char argv_16[] = "--conf_file=./options_test_cassandra_config_file.conf";
     char argv_17[] = "--DEFAULT.sandesh_send_rate_limit=7";
     char argv_18[] = "--SANDESH.disable_object_logs";
+    char argv_19[] = "--REDIS.server_list=11.10.10.1 21.20.20.2 31.30.30.3";
     argv[0] = argv_0;
     argv[1] = argv_1;
     argv[2] = argv_2;
@@ -408,6 +420,7 @@ TEST_F(OptionsTest, CustomConfigFileAndOverrideFromCommandLine) {
     argv[16] = argv_16;
     argv[17] = argv_17;
     argv[18] = argv_18;
+    argv[19] = argv_19;
 
     options_.Parse(evm_, argc, argv);
 
@@ -425,7 +438,12 @@ TEST_F(OptionsTest, CustomConfigFileAndOverrideFromCommandLine) {
     TASK_UTIL_EXPECT_VECTOR_EQ(collector_server_list,
                      options_.collector_server_list());
 
-    EXPECT_EQ(options_.redis_server(), "1.2.3.4");
+    vector<string> redis_server_list;
+    redis_server_list.push_back("11.10.10.1");
+    redis_server_list.push_back("21.20.20.2");
+    redis_server_list.push_back("31.30.30.3");
+    TASK_UTIL_EXPECT_VECTOR_EQ(redis_server_list,
+                               options_.redis_server_list());
     EXPECT_EQ(options_.redis_port(), 200);
     vector<string> input_conf_files;
     input_conf_files.push_back("./options_test_query_engine.conf");

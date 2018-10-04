@@ -32,6 +32,7 @@
 #include <io/process_signal.h>
 #include <malloc.h>
 
+using std::cout;
 using std::auto_ptr;
 using std::string;
 using std::vector;
@@ -249,7 +250,6 @@ main(int argc, char *argv[]) {
     // 1. Collector client
     // 2. Redis
     // 3. Cassandra
-    // 4. Discovery (if collector list not configured)
     std::vector<ConnectionTypeName> expected_connections =
         boost::assign::list_of
          (ConnectionTypeName(g_process_info_constants.ConnectionTypeNames.find(
@@ -331,7 +331,7 @@ main(int argc, char *argv[]) {
 
     if (cassandra_ports.size() == 1 && cassandra_ports[0] == 0) {
         qe.reset(new QueryEngine(&evm,
-            options.redis_server(),
+            options.redis_server_list(),
             options.redis_port(),
             options.redis_password(),
             max_tasks,
@@ -342,7 +342,7 @@ main(int argc, char *argv[]) {
         qe.reset(new QueryEngine(&evm,
             cassandra_ips,
             cassandra_ports,
-            options.redis_server(),
+            options.redis_server_list(),
             options.redis_port(),
             options.redis_password(),
             max_tasks,
