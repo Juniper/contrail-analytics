@@ -32,6 +32,9 @@ public:
     const std::vector<std::string> config_file() const {
         return config_file_;
     }
+    const std::vector<std::string> redis_server_list() const {
+        return redis_server_list_;
+    }
     const std::string redis_server() const { return redis_server_; }
     const uint16_t redis_port() const { return redis_port_; }
     const std::string redis_password() const { return redis_password_; }
@@ -69,6 +72,7 @@ private:
     uint32_t GenerateHash(std::vector<std::string> &);
 
     std::vector<std::string> config_file_;
+    std::vector<std::string> redis_server_list_;
     std::string redis_server_;
     uint16_t redis_port_;
     std::string redis_password_;
