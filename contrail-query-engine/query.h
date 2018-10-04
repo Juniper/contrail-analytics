@@ -980,7 +980,7 @@ public:
     QueryEngine(EventManager *evm,
             std::vector<std::string> cassandra_ips,
             std::vector<int> cassandra_ports,
-            const std::string & redis_ip, unsigned short redis_port,
+            std::vector<std::string> redis_ip_ports,
             const std::string & redis_password,
             int max_tasks, int max_slice,
             const std::string & cassandra_name,
@@ -988,7 +988,7 @@ public:
             const std::string & cluster_id);
 
     QueryEngine(EventManager *evm,
-            const std::string & redis_ip, unsigned short redis_port,
+            std::vector<std::string> redis_ip_ports,
             const std::string & redis_password, int max_tasks,
             int max_slice,
             const std::string  & cassandra_user,

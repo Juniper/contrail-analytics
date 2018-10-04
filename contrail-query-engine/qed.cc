@@ -249,7 +249,6 @@ main(int argc, char *argv[]) {
     // 1. Collector client
     // 2. Redis
     // 3. Cassandra
-    // 4. Discovery (if collector list not configured)
     std::vector<ConnectionTypeName> expected_connections =
         boost::assign::list_of
          (ConnectionTypeName(g_process_info_constants.ConnectionTypeNames.find(
@@ -331,8 +330,7 @@ main(int argc, char *argv[]) {
 
     if (cassandra_ports.size() == 1 && cassandra_ports[0] == 0) {
         qe.reset(new QueryEngine(&evm,
-            options.redis_server(),
-            options.redis_port(),
+            options.redis_server_list(),
             options.redis_password(),
             max_tasks,
             options.max_slice(),
@@ -342,8 +340,7 @@ main(int argc, char *argv[]) {
         qe.reset(new QueryEngine(&evm,
             cassandra_ips,
             cassandra_ports,
-            options.redis_server(),
-            options.redis_port(),
+            options.redis_server_list(),
             options.redis_password(),
             max_tasks,
             options.max_slice(),
