@@ -161,8 +161,6 @@ void Options::Initialize(EventManager &evm,
         ("REDIS.port",
              opt::value<uint16_t>()->default_value(default_redis_port),
              "Port of Redis-uve server")
-        ("REDIS.server", opt::value<string>()->default_value("127.0.0.1"),
-             "IP address of Redis Server")
         ("REDIS.password", opt::value<string>()->default_value(""),
              "password for Redis Server")
         ;
@@ -250,7 +248,6 @@ void Options::Process(int argc, char *argv[],
     GetOptValue<int>(var_map, max_slice_, "DEFAULT.max_slice");
 
     GetOptValue<uint16_t>(var_map, redis_port_, "REDIS.port");
-    GetOptValue<string>(var_map, redis_server_, "REDIS.server");
     GetOptValue<string>(var_map, redis_password_, "REDIS.password");
     GetOptValue<string>(var_map, cluster_id_, "DATABASE.cluster_id");
     GetOptValue<string>(var_map, cassandra_user_, "CASSANDRA.cassandra_user");

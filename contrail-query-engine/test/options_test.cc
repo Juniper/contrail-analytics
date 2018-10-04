@@ -67,7 +67,6 @@ TEST_F(OptionsTest, NoArguments) {
                      options_.cassandra_server_list());
     TASK_UTIL_EXPECT_VECTOR_EQ(default_collector_server_list_,
                      options_.collector_server_list());
-    EXPECT_EQ(options_.redis_server(), "127.0.0.1");
     EXPECT_EQ(options_.redis_port(), default_redis_port);
     TASK_UTIL_EXPECT_VECTOR_EQ(default_conf_files_,
                      options_.config_file());
@@ -108,7 +107,6 @@ TEST_F(OptionsTest, DefaultConfFile) {
                      options_.cassandra_server_list());
     TASK_UTIL_EXPECT_VECTOR_EQ(default_collector_server_list_,
                      options_.collector_server_list());
-    EXPECT_EQ(options_.redis_server(), "127.0.0.1");
     EXPECT_EQ(options_.redis_port(), default_redis_port);
     TASK_UTIL_EXPECT_VECTOR_EQ(options_.config_file(),
                                passed_conf_files);
@@ -152,7 +150,6 @@ TEST_F(OptionsTest, OverrideStringFromCommandLine) {
                      options_.cassandra_server_list());
     TASK_UTIL_EXPECT_VECTOR_EQ(default_collector_server_list_,
                      options_.collector_server_list());
-    EXPECT_EQ(options_.redis_server(), "127.0.0.1");
     EXPECT_EQ(options_.redis_port(), default_redis_port);
     TASK_UTIL_EXPECT_VECTOR_EQ(options_.config_file(),
                                passed_conf_files);
@@ -194,7 +191,6 @@ TEST_F(OptionsTest, OverrideBooleanFromCommandLine) {
                      options_.cassandra_server_list());
     TASK_UTIL_EXPECT_VECTOR_EQ(default_collector_server_list_,
                      options_.collector_server_list());
-    EXPECT_EQ(options_.redis_server(), "127.0.0.1");
     EXPECT_EQ(options_.redis_port(), default_redis_port);
     TASK_UTIL_EXPECT_VECTOR_EQ(options_.config_file(),
                                passed_conf_files);
@@ -242,7 +238,6 @@ TEST_F(OptionsTest, CustomConfigFile) {
         "sandesh_send_rate_limit=5\n"
         "\n"
         "[REDIS]\n"
-        "server=1.2.3.4\n"
         "port=200\n"
         "\n"
         "\n"
@@ -294,7 +289,6 @@ TEST_F(OptionsTest, CustomConfigFile) {
     TASK_UTIL_EXPECT_VECTOR_EQ(collector_server_list,
                      options_.collector_server_list());
 
-    EXPECT_EQ(options_.redis_server(), "1.2.3.4");
     EXPECT_EQ(options_.redis_port(), 200);
     TASK_UTIL_EXPECT_VECTOR_EQ(options_.config_file(),
                                input_conf_files);
@@ -346,7 +340,6 @@ TEST_F(OptionsTest, CustomConfigFileAndOverrideFromCommandLine) {
         "sandesh_send_rate_limit=5\n"
         "\n"
         "[REDIS]\n"
-        "server=1.2.3.4\n"
         "port=200\n"
         "\n"
         "[SANDESH]\n"
@@ -425,7 +418,6 @@ TEST_F(OptionsTest, CustomConfigFileAndOverrideFromCommandLine) {
     TASK_UTIL_EXPECT_VECTOR_EQ(collector_server_list,
                      options_.collector_server_list());
 
-    EXPECT_EQ(options_.redis_server(), "1.2.3.4");
     EXPECT_EQ(options_.redis_port(), 200);
     vector<string> input_conf_files;
     input_conf_files.push_back("./options_test_query_engine.conf");

@@ -49,7 +49,7 @@ public:
     // the client should provide a callback function to be called
     // when the OpServer issues a Query.
     QEOpServerProxy(EventManager *evm, QueryEngine *qe,
-            const std::string & hostname,
+            std::vector<std::string> hostnames,
             uint16_t port, const std::string & redis_password,
             int max_chunks = nMaxChunks, int max_rows = nMaxRows);
     virtual ~QEOpServerProxy();

@@ -32,6 +32,7 @@
 #include <io/process_signal.h>
 #include <malloc.h>
 
+using std::cout;
 using std::auto_ptr;
 using std::string;
 using std::vector;
@@ -237,8 +238,16 @@ main(int argc, char *argv[]) {
     LOG(INFO, "http-server-port " << options.http_server_port());
     LOG(INFO, "Max-tasks " << max_tasks);
     LOG(INFO, "Max-slice " << options.max_slice());
+    vector<string> redis_ips;
     BOOST_FOREACH(std::string collector_ip, options.collector_server_list()) {
         LOG(INFO, "Collectors  " << collector_ip);
+        string redis_ip = collector_ip;
+        size_t collector_port_idx = redis_ip.find(":");
+        if (collector_port_idx != string::npos) {
+            string redis_ip = collector_ip.substr(0, collector_port_idx);
+            redis_ips.push_back(redis_ip);
+            LOG(INFO, "Redis IP: " << redis_ip);
+        }
     }
 
     // Initialize Sandesh
@@ -331,7 +340,7 @@ main(int argc, char *argv[]) {
 
     if (cassandra_ports.size() == 1 && cassandra_ports[0] == 0) {
         qe.reset(new QueryEngine(&evm,
-            options.redis_server(),
+            redis_ips,
             options.redis_port(),
             options.redis_password(),
             max_tasks,
@@ -342,7 +351,7 @@ main(int argc, char *argv[]) {
         qe.reset(new QueryEngine(&evm,
             cassandra_ips,
             cassandra_ports,
-            options.redis_server(),
+            redis_ips,
             options.redis_port(),
             options.redis_password(),
             max_tasks,
