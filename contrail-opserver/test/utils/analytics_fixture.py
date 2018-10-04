@@ -481,7 +481,8 @@ class QueryEngine(object):
                 (os.getenv('USER', 'None'), self.listen_port)
         subprocess.call(['rm', '-rf', self._log_file])
         args = [self.analytics_fixture.builddir + '/query_engine/qedt',
-                '--REDIS.port', str(self.analytics_fixture.redis_uves[0].port),
+                '--REDIS.server_list', '127.0.0.1:' +
+                str(self.analytics_fixture.redis_uves[0].port),
                 '--DEFAULT.cassandra_server_list', '127.0.0.1:' +
                 str(self.analytics_fixture.cassandra_port),
                 '--DEFAULT.http_server_port', str(self.listen_port),
