@@ -157,12 +157,18 @@ void Options::Initialize(EventManager &evm,
 
     // Command line and config file options.
     opt::options_description redis_config("Redis Configuration options");
+    vector<string> default_redis_server_list;
+    default_redis_server_list.push_back("127.0.0.1:6379");
     redis_config.add_options()
         ("REDIS.port",
              opt::value<uint16_t>()->default_value(default_redis_port),
              "Port of Redis-uve server")
+        ("REDIS.server_list",
+           opt::value<vector<string> >()->default_value(
+               default_redis_server_list, "127.0.0.1:6379"),
+             "IP addresses of Redis Servers")
         ("REDIS.server", opt::value<string>()->default_value("127.0.0.1"),
-             "IP address of Redis Server")
+           "IP address of Redis Server")
         ("REDIS.password", opt::value<string>()->default_value(""),
              "password for Redis Server")
         ;
@@ -249,8 +255,10 @@ void Options::Process(int argc, char *argv[],
     GetOptValue<int>(var_map, max_tasks_, "DEFAULT.max_tasks");
     GetOptValue<int>(var_map, max_slice_, "DEFAULT.max_slice");
 
-    GetOptValue<uint16_t>(var_map, redis_port_, "REDIS.port");
+    GetOptValue< vector<string> >(var_map, redis_server_list_,
+                                  "REDIS.server_list");
     GetOptValue<string>(var_map, redis_server_, "REDIS.server");
+    GetOptValue<uint16_t>(var_map, redis_port_, "REDIS.port");
     GetOptValue<string>(var_map, redis_password_, "REDIS.password");
     GetOptValue<string>(var_map, cluster_id_, "DATABASE.cluster_id");
     GetOptValue<string>(var_map, cassandra_user_, "CASSANDRA.cassandra_user");

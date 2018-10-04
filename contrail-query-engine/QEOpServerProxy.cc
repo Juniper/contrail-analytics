@@ -42,6 +42,7 @@ using std::make_pair;
 using process::ConnectionState;
 using process::ConnectionType;
 using process::ConnectionStatus;
+using process::Endpoint;
 
 extern RedisAsyncConnection * rac_alloc(EventManager *, const std::string & ,unsigned short,
 RedisAsyncConnection::ClientConnectCbFn ,
@@ -73,6 +74,7 @@ public:
     typedef std::vector<std::string> QEOutputT;
 
     struct Input {
+        int redis_host_idx;
         int cnum;
         string hostname;
         QueryEngine::QueryParams qp;
@@ -275,7 +277,7 @@ public:
                 string key = "QUERY:" + res.inp.qp.qid;
 
                 // Update query status
-                RedisAsyncConnection * rac = conns_[res.inp.cnum].get();
+                RedisAsyncConnection * rac = conns_[res.inp.redis_host_idx][res.inp.cnum].get();
                 string rkey = "REPLY:" + res.inp.qp.qid;
                 char stat[40];
                 uint prg = 10 + (chunknum * 75)/inp.chunk_size.size();
@@ -379,7 +381,7 @@ public:
                 string key = "QUERY:" + res.inp.qp.qid;
 
                 // Update query status
-                RedisAsyncConnection * rac = conns_[res.inp.cnum].get();
+                RedisAsyncConnection * rac = conns_[res.inp.redis_host_idx][res.inp.cnum].get();
                 string rkey = "REPLY:" + res.inp.qp.qid;
                 char stat[40];
                 uint prg = 10 + (chunknum * 75)/inp.chunk_size.size();
@@ -506,7 +508,7 @@ public:
                 if (!step)  {
 
                     ret.inp = inp.inp;
-                    RedisAsyncConnection * rac = conns_[ret.inp.cnum].get();
+                    RedisAsyncConnection * rac = conns_[ret.inp.redis_host_idx][ret.inp.cnum].get();
                     std::stringstream keystr;
                     auto_ptr<QEOutputT> jsonresult(new QEOutputT);
 
@@ -556,10 +558,10 @@ public:
                     ret.redis_time = static_cast<uint32_t>((now - then)/1000);
                     QE_LOG_NOQID(DEBUG,  "QE Query Result is " << stat);
                     return boost::bind(&RedisAsyncArgCommand,
-                            conns_[ret.inp.cnum].get(), _1,
+                            conns_[ret.inp.redis_host_idx][ret.inp.cnum].get(), _1,
                             list_of(string("RPUSH"))(key)(stat));   
                 } else {
-                    RedisAsyncConnection * rac = conns_[ret.inp.cnum].get();
+                    RedisAsyncConnection * rac = conns_[ret.inp.redis_host_idx][ret.inp.cnum].get();
                     string key = "REPLY:" + ret.inp.qp.qid;
                     RedisAsyncArgCommand(rac, NULL,
                         list_of(string("EXPIRE"))(key)("300"));
@@ -645,7 +647,7 @@ public:
                 if (!step)  {
                     string key = "ENGINE:" + inp.inp.hostname;
                     return boost::bind(&RedisAsyncArgCommand,
-                            conns_[inp.inp.cnum].get(), _1,
+                            conns_[inp.inp.redis_host_idx][inp.inp.cnum].get(), _1,
                             list_of(string("LREM"))(key)("0")(inp.inp.qp.qid));
                 } else {
                     ret.ret_code = true;
@@ -666,45 +668,47 @@ public:
         assert(pipes_.find(res->inp.qp.qid)->second == wp);
         pipes_.erase(res->inp.qp.qid);
         m_analytics_queries.erase(res->inp.qp.qid);
-        npipes_[res->inp.cnum-1]--;
+        npipes_[res->inp.redis_host_idx][res->inp.cnum-1]--;
         QE_LOG_NOQID(DEBUG,  " Result " << res->ret_code << " , " << res->inp.cnum << " conn");
         delete wp;
     }
 
-    void ConnUpPostProcess(uint8_t cnum) {
-
-        if (!connState_[cnum]) {
+    void ConnUpPostProcess(int redis_host_idx, uint8_t cnum) {
+        if (!connState_[redis_host_idx][cnum]) {
             QE_LOG_NOQID(DEBUG, "ConnUp SetCB" << (uint32_t)cnum);
-            cb_proc_fn_[cnum] = boost::bind(&QEOpServerImpl::CallbackProcess,
-                    this, cnum, _1, _2, _3);
-            conns_[cnum].get()->SetClientAsyncCmdCb(cb_proc_fn_[cnum]);
-            connState_[cnum] = true;
+            cb_proc_fn_[redis_host_idx][cnum] = boost::bind(&QEOpServerImpl::CallbackProcess,
+                    this, redis_host_idx, cnum, _1, _2, _3);
+            conns_[redis_host_idx][cnum].get()->SetClientAsyncCmdCb(cb_proc_fn_[redis_host_idx][cnum]);
+            connState_[redis_host_idx][cnum] = true;
         }
 
         bool isConnected = true;
         for(int i=0; i<kConnections+1; i++)
-            if (!connState_[i]) isConnected = false;
+            if (!connState_[redis_host_idx][i]) isConnected = false;
         if (isConnected) {
             string key = "ENGINE:" + hostname_;
-            conns_[0].get()->RedisAsyncArgCmd(0,
+            conns_[redis_host_idx][0].get()->RedisAsyncArgCmd(0,
                     list_of(string("BRPOPLPUSH"))("QUERYQ")(key)("0"));            
         }
     }
 
-    int LeastLoadedConnection() {
-        int minvalue = npipes_[0];
+    int LeastLoadedConnection(int redis_host_idx, int cnum) {
+        /* From cnum, check which redis node it belongs to */
+        int minvalue = npipes_[redis_host_idx][0];
         int minindex = 0;
-        for (int i=1; i<kConnections; i++) {
-            if (npipes_[i] < minvalue) {
-                minvalue = npipes_[i];
+        for (int i = 1; i < kConnections; i++) {
+            if (npipes_[redis_host_idx][i] < minvalue) {
+                minvalue = npipes_[redis_host_idx][i];
                 minindex = i;
             }
         }
         return minindex;
     }
 
-    void QueryError(string qid, int ret_code) {
-        redisContext *c = redisConnect(redis_host_.c_str(), port_);
+    void QueryError(int redis_host_idx, string qid, int ret_code) {
+        string redis_host = redis_host_port_pairs_[redis_host_idx].first;
+        int redis_port = redis_host_port_pairs_[redis_host_idx].second;
+        redisContext *c = redisConnect(redis_host.c_str(), redis_port);
         if (c->err) {
             QE_LOG_NOQID(ERROR, "Cannot report query error for " << qid <<
                 " . No Redis Connection");
@@ -736,7 +740,7 @@ public:
     }
 
 
-    void StartPipeline(const string qid) {
+    void StartPipeline(const string qid, int redis_host_idx, int cnum) {
         QueryStats qs;
         qs.set_qid(qid);
         qs.set_rows(0);
@@ -748,7 +752,10 @@ public:
 
         tbb::mutex::scoped_lock lock(mutex_);
 
-        redisContext *c = redisConnect(redis_host_.c_str(), port_);
+        string redis_host = redis_host_port_pairs_[redis_host_idx].first;
+        int redis_port = redis_host_port_pairs_[redis_host_idx].second;
+        QE_LOG_NOQID(ERROR, "StartPipeline on :" << " Redis:" << redis_host << " Port:" << redis_port << "cnum:" << cnum);
+        redisContext *c = redisConnect(redis_host.c_str(), redis_port);
 
         if (c->err) {
             QE_LOG_NOQID(ERROR, "Cannot start Pipleline for " << qid <<
@@ -794,7 +801,7 @@ public:
                 ". Could not read query input");
             freeReplyObject(reply);
             redisFree(c);
-            QueryError(qid, 5);
+            QueryError(redis_host_idx, qid, 5);
             qs.set_error("Could not read query input");
             QUERY_PERF_INFO_SEND(Sandesh::source(), // name
                                  "__UNKNOWN__",     // table
@@ -830,7 +837,7 @@ public:
         qs.set_enq_delay(enq_delay);
 
         if (ret!=0) {
-            QueryError(qid, ret);
+            QueryError(redis_host_idx, qid, ret);
             QE_LOG_NOQID(ERROR, "Cannot start Pipleline for " << qid << 
                 ". Query Parsing Error " << ret);
             qs.set_error("Query Parsing Error");
@@ -844,7 +851,7 @@ public:
         }
 
         if (pipes_.size() >= 32) {
-            QueryError(qid, EMFILE);
+            QueryError(redis_host_idx, qid, EMFILE);
             QE_LOG_NOQID(ERROR, "Cannot start Pipleline for " << qid <<
                 ". Too many queries : " << pipes_.size());
             qs.set_error("EMFILE");
@@ -890,18 +897,20 @@ public:
         // Initialize the m_analytics_queries for this qid
         m_analytics_queries[qid] = std::vector<boost::shared_ptr<AnalyticsQuery> > ();
 
-        int conn = LeastLoadedConnection();
-        npipes_[conn]++;
+        int conn = LeastLoadedConnection(redis_host_idx, cnum);
+        QE_LOG_NOQID(DEBUG, "Getting Least Loaded Conn as :" << conn << " cnum " << cnum);
+        npipes_[redis_host_idx][conn]++;
         
         // The cnum with index 0 is only used for receiving new queries
         inp.get()->cnum = conn+1; 
+        inp.get()->redis_host_idx = redis_host_idx;
 
         wp->Start(boost::bind(&QEOpServerImpl::QEPipeCb, this, wp, _1), inp);
         QE_LOG_NOQID(DEBUG, "Starting Pipeline for " << qid << " , " << conn+1 << 
             " conn, " << tinfo.size() << " tasks");
         
         // Update query status
-        RedisAsyncConnection * rac = conns_[inp.get()->cnum].get();
+        RedisAsyncConnection * rac = conns_[redis_host_idx][inp.get()->cnum].get();
         string rkey = "REPLY:" + qid;
         char stat[40];
         sprintf(stat,"{\"progress\":15}");
@@ -911,13 +920,13 @@ public:
 
     }
 
-    void ConnUpPrePostProcess(uint8_t cnum) {
+    void ConnUpPrePostProcess(int redis_host_idx, uint8_t cnum) {
         //Assign callback for AUTH command
-        cb_proc_fn_[cnum] = boost::bind(&QEOpServerImpl::ConnectCallbackProcess,
-                    this, cnum, _1, _2, _3);
-        conns_[cnum].get()->SetClientAsyncCmdCb(cb_proc_fn_[cnum]);
+        cb_proc_fn_[redis_host_idx][cnum] = boost::bind(&QEOpServerImpl::ConnectCallbackProcess,
+                    this, redis_host_idx, cnum, _1, _2, _3);
+        conns_[redis_host_idx][cnum].get()->SetClientAsyncCmdCb(cb_proc_fn_[redis_host_idx][cnum]);
         //Send AUTH command
-        RedisAsyncConnection * rac = conns_[cnum].get();
+        RedisAsyncConnection * rac = conns_[redis_host_idx][cnum].get();
         if (!redis_password_.empty()) {
             RedisAsyncArgCommand(rac, NULL,
                     list_of(string("AUTH"))(redis_password_.c_str()));
@@ -927,46 +936,82 @@ public:
         }
     }
 
-    void ConnUp(uint8_t cnum) {
+    void ConnUp(int redis_host_idx, uint8_t cnum) {
+        string redis_host = redis_host_port_pairs_[redis_host_idx].first;
         std::ostringstream ostr;
-        ostr << "ConnUp.. UP " << (uint32_t)cnum;
+        ostr << "ConnUp.. UP " << (uint32_t)cnum << " With Redis:" << redis_host;
         QE_LOG_NOQID(DEBUG, ostr.str());
         qosp_->evm_->io_service()->post(
                     boost::bind(&QEOpServerImpl::ConnUpPrePostProcess,
-                    this, cnum));
+                    this, redis_host_idx, cnum));
     }
 
-    void ConnDown(uint8_t cnum) {
-        QE_LOG_NOQID(DEBUG, "ConnDown.. DOWN.. Reconnect.." << (uint32_t)cnum);
-        connState_[cnum] = false;
-        ConnectionState::GetInstance()->Update(ConnectionType::REDIS_QUERY,
-                "Query", ConnectionStatus::DOWN, conns_[cnum]->Endpoint(),
-                std::string());
+    void UpdateRedisConnectionStatus () {
+        std::ostringstream ostr;
+        map<string, string>::iterator it;
+        vector<string> redis_endpoints;
+        int redis_hosts_cnt = redis_host_port_pairs_.size();
+        int redis_down_count = 0;
+        int redis_idx = 0;
+        int conn_idx = 0;
+        vector<Endpoint> redis_endpoint_list;
+        for (redis_idx = 0; redis_idx < redis_hosts_cnt; redis_idx++) {
+            string redis_host(redis_host_port_pairs_[redis_idx].first);
+            redis_endpoint_list.push_back(conns_[redis_idx][0]->Endpoint());
+            for (conn_idx = 0; conn_idx < kConnections + 1; conn_idx++) {
+                if (true == connState_[redis_idx][conn_idx]) {
+                    break;
+                }
+            }
+            if (conn_idx == kConnections + 1) {
+                ostr << conns_[redis_idx][0]->Endpoint() << "::Down.";
+                redis_down_count++;
+            }
+        }
+        if (redis_down_count < redis_hosts_cnt) {
+            /* Then QE should be UP, but display if any redis connection is down */
+            ConnectionState::GetInstance()->Update(ConnectionType::REDIS_QUERY,
+                "Query", ConnectionStatus::UP, redis_endpoint_list, ostr.str());
+        } else {
+            std::ostringstream empty_ostr;
+            ConnectionState::GetInstance()->Update(ConnectionType::REDIS_QUERY,
+                "Query", ConnectionStatus::DOWN, redis_endpoint_list, empty_ostr.str());
+        }
+    }
+
+    void ConnDown(int redis_host_idx, uint8_t cnum) {
+        string redis_host = redis_host_port_pairs_[redis_host_idx].first;
+        std::ostringstream ostr;
+        ostr << "ConnDown.. DOWN.. Reconnect.." << (uint32_t)cnum << " With Redis:" << redis_host;
+        QE_LOG_NOQID(DEBUG, ostr.str());
+        connState_[redis_host_idx][cnum] = false;
+        qosp_->evm_->io_service()->post(
+                     boost::bind(&QEOpServerImpl::UpdateRedisConnectionStatus, this));
         qosp_->evm_->io_service()->post(boost::bind(&RedisAsyncConnection::RAC_Connect,
-            conns_[cnum].get()));
+            conns_[redis_host_idx][cnum].get()));
     }
 
-    void ConnectCallbackProcess(uint8_t cnum, const redisAsyncContext *c, void *r, void *privdata) {
+    void ConnectCallbackProcess(int redis_host_idx, uint8_t cnum, const redisAsyncContext *c, void *r, void *privdata) {
+        QE_LOG_NOQID(DEBUG, "UP ConnectCallbackProcess.." << conns_[redis_host_idx][cnum]->Endpoint());
         if (r == NULL) {
             QE_LOG_NOQID(DEBUG, "In ConnectCallbackProcess.. NULL Reply");
             return;
         }
         redisReply reply = *reinterpret_cast<redisReply*>(r);
         if (reply.type != REDIS_REPLY_ERROR) {
-             QE_LOG_NOQID(DEBUG, "In ConnectCallbackProcess..");
-             ConnectionState::GetInstance()->Update(ConnectionType::REDIS_QUERY,
-                "Query", ConnectionStatus::UP, conns_[cnum]->Endpoint(),
-                std::string());
-             qosp_->evm_->io_service()->post(
+            QE_LOG_NOQID(DEBUG, "In ConnectCallbackProcess.." << conns_[redis_host_idx][cnum]->Endpoint());
+            qosp_->evm_->io_service()->post(
+                     boost::bind(&QEOpServerImpl::UpdateRedisConnectionStatus, this));
+            qosp_->evm_->io_service()->post(
                      boost::bind(&QEOpServerImpl::ConnUpPostProcess,
-                     this, cnum));
+                     this, redis_host_idx, cnum));
         } else {
             QE_LOG_NOQID(ERROR,"In connectCallbackProcess.. Error");
             QE_ASSERT(reply.type != REDIS_REPLY_ERROR);
         }
     }
 
-    void CallbackProcess(uint8_t cnum, const redisAsyncContext *c, void *r, void *privdata) {
+    void CallbackProcess(int redis_host_idx, uint8_t cnum, const redisAsyncContext *c, void *r, void *privdata) {
 
         //QE_TRACE_NOQID(DEBUG, "Redis CB" << cnum);
         if (0 == cnum) {
@@ -987,11 +1032,11 @@ public:
             QE_ASSERT(reply.type == REDIS_REPLY_STRING);
             string qid(reply.str);
 
-            StartPipeline(qid);
+            StartPipeline(qid, redis_host_idx, cnum);
 
             qosp_->evm_->io_service()->post(
                     boost::bind(&QEOpServerImpl::ConnUpPostProcess,
-                    this, cnum));
+                    this, redis_host_idx, cnum));
             return;
         }
 
@@ -1024,33 +1069,60 @@ public:
         rpi->Response(fullReply);
 
     }
-    
-    QEOpServerImpl(const string & redis_host, uint16_t port,
+
+    void BuildRedisIPPort(vector<string> redis_ip_port_list) {
+        typedef boost::tokenizer<boost::char_separator<char> > tokenizer;
+        for (vector<string>::const_iterator it = redis_ip_port_list.begin();
+             it != redis_ip_port_list.end(); it++) {
+            string redis_ip_port(*it);
+            boost::char_separator<char> sep(":");
+            tokenizer tokens(redis_ip_port, sep);
+            tokenizer::iterator tit = tokens.begin();
+            string redis_ip(*tit);
+            ++tit;
+            string redis_port(*tit);
+            redis_host_port_pairs_.push_back(make_pair(redis_ip, atoi(redis_port.c_str())));
+        }
+    }
+
+    QEOpServerImpl(vector<string> redis_ip_ports,
                    const string & redis_password, QEOpServerProxy * qosp,
                    int max_tasks, int max_rows) :
             hostname_(boost::asio::ip::host_name()),
-            redis_host_(redis_host),
-            port_(port),
             redis_password_(redis_password),
             qosp_(qosp),
             max_tasks_(max_tasks),
             max_rows_(max_rows) {
-        for (int i=0; i<kConnections+1; i++) {
-            cb_proc_fn_[i] = boost::bind(&QEOpServerImpl::CallbackProcess,
-                    this, i, _1, _2, _3);
-            connState_[i] = false;
-            if (i)
-                conns_[i].reset(rac_alloc(qosp->evm_, redis_host_, port,
-                        boost::bind(&QEOpServerImpl::ConnUp, this, i),
-                        boost::bind(&QEOpServerImpl::ConnDown, this, i)));
-            else
-                conns_[i].reset(rac_alloc_nocheck(qosp->evm_, redis_host_, port,
-                        boost::bind(&QEOpServerImpl::ConnUp, this, i),
-                        boost::bind(&QEOpServerImpl::ConnDown, this, i)));
-              
-            // The cnum with index 0 is only used for receiving new queries
-            // It does not host any pipelines
-            if (i) npipes_[i-1] = 0;
+        int redis_host_idx = 0;
+        /* Initialize */
+        BuildRedisIPPort(redis_ip_ports);
+        int redis_host_count = redis_host_port_pairs_.size();
+        for (int i = 0; i < redis_host_count; i++) {
+            cb_proc_fn_[i] = new RedisAsyncConnection::ClientAsyncCmdCbFn[kConnections + 1];
+            conns_[i] = new boost::shared_ptr<RedisAsyncConnection>[kConnections + 1];
+            npipes_[i] = new int[kConnections];
+            connState_[i] = new bool[kConnections + 1];
+        }
+        for (redis_host_idx = 0; redis_host_idx < int(redis_host_count); redis_host_idx++) {
+            string redis_host = redis_host_port_pairs_[redis_host_idx].first;
+            int redis_port = redis_host_port_pairs_[redis_host_idx].second;
+            for (int i = 0; i < kConnections + 1; i++) {
+                cb_proc_fn_[redis_host_idx][i] = boost::bind(&QEOpServerImpl::CallbackProcess,
+                                             this, redis_host_idx, i, _1, _2, _3);
+                connState_[redis_host_idx][i] = false;
+                if (i) {
+                    conns_[redis_host_idx][i].reset(rac_alloc(qosp->evm_, redis_host, redis_port,
+                                    boost::bind(&QEOpServerImpl::ConnUp, this, redis_host_idx, i),
+                                    boost::bind(&QEOpServerImpl::ConnDown, this, redis_host_idx, i)));
+                } else {
+                    conns_[redis_host_idx][i].reset(rac_alloc_nocheck(qosp->evm_, redis_host, redis_port,
+                                    boost::bind(&QEOpServerImpl::ConnUp, this, redis_host_idx, i),
+                                    boost::bind(&QEOpServerImpl::ConnDown, this, redis_host_idx, i)));
+                }
+                // The cnum with index 0 is only used for receiving new queries
+                // It does not host any pipelines
+                if (i) npipes_[redis_host_idx][i-1] = 0;
+            }
         }
     }
 
@@ -1073,17 +1145,17 @@ private:
     static const uint8_t kConnections = 4;
 
     const string hostname_;
-    const string redis_host_;
-    const unsigned short port_;
+    map<string, string> redis_status_maps;
     const string redis_password_;
     QEOpServerProxy * const qosp_;
-    boost::shared_ptr<RedisAsyncConnection> conns_[kConnections+1];
-    RedisAsyncConnection::ClientAsyncCmdCbFn cb_proc_fn_[kConnections+1];
-    bool connState_[kConnections+1];
+    boost::shared_ptr<RedisAsyncConnection> *conns_[kConnections+1];
+    RedisAsyncConnection::ClientAsyncCmdCbFn *cb_proc_fn_[kConnections+1];
+    bool *connState_[kConnections+1];
 
     tbb::mutex mutex_;
     map<string,QEPipeT*> pipes_;
-    int npipes_[kConnections];
+    vector<pair<string, int> > redis_host_port_pairs_;
+    int *npipes_[kConnections];
     int max_tasks_;
     int max_rows_;
     std::map<std::string, std::vector<boost::shared_ptr<AnalyticsQuery> > >
@@ -1092,11 +1164,11 @@ private:
 };
 
 QEOpServerProxy::QEOpServerProxy(EventManager *evm, QueryEngine *qe,
-            const string & hostname, uint16_t port, const string & redis_password,
-            int max_tasks, int max_rows) :
+            vector<string> redis_ip_ports,
+            const string & redis_password, int max_tasks, int max_rows) :
         evm_(evm),
         qe_(qe),
-        impl_(new QEOpServerImpl(hostname, port, redis_password, this, 
+        impl_(new QEOpServerImpl(redis_ip_ports, redis_password, this,
             max_tasks, max_rows)) {}
 
 QEOpServerProxy::~QEOpServerProxy() {}
