@@ -21,7 +21,6 @@ from gevent.lock import BoundedSemaphore
 from pysandesh.util import UTCTimestampUsec
 from pysandesh.connection_info import ConnectionState
 from sandesh.viz.constants import UVE_MAP
-from sandesh_common.vns.constants import COLLECTOR_DISCOVERY_SERVICE_NAME
 from pysandesh.gen_py.process_info.ttypes import ConnectionType,\
      ConnectionStatus
 import traceback
@@ -41,7 +40,7 @@ class RedisInst(object):
 
 class UVEServer(object):
 
-    def __init__(self, redis_uve_list, zoo_list, logger,
+    def __init__(self, redis_uve_list, logger,
             redis_password=None, \
             uvedbcache=None, usecache=False, freq=5):
         self._logger = logger
@@ -53,9 +52,6 @@ class UVEServer(object):
         self._uve_reverse_map = {}
         self._freq = freq
         self._active_collectors = ['127.0.0.1']
-        self._zk = None
-        self._zk_list = zoo_list
-        self._zk_connect = False
 
         for h,m in UVE_MAP.iteritems():
             self._uve_reverse_map[m] = h
@@ -124,8 +120,6 @@ class UVEServer(object):
     # end update_redis_uve_list
 
     def run(self):
-        if len(self._zk_list) > 0:
-            self.start_zookeeper_client()
         exitrun = False
         while not exitrun:
             for rkey in self._redis_uve_map.keys():
@@ -559,46 +553,9 @@ class UVEServer(object):
         return self._uvedbcache.get_uvedb_cache_uve(table, uve_key)
     # end get_uvedb_cache_uve
 
-    def start_zookeeper_client(self):
-        while True:
-            self._logger.error("UVE server zk start")
-            self._zk = KazooClient(hosts=self._zk_list)
-            self._zk.add_listener(self._zk_listen)
-            try:
-                self._zk.start()
-                while self._zk_connect == False:
-                    gevent.sleep(1)
-                path = "/analytics-discovery-/" + COLLECTOR_DISCOVERY_SERVICE_NAME
-                self._zk.ensure_path(path)
-                self._zk.ChildrenWatch(path, self.collectors_change_cb)
-                break
-            except Exception as e:
-                # Update connection info
-                self._zk.remove_listener(self._zk_listen)
-                try:
-                    self._zk.stop()
-                    self._zk.close()
-                except Exception as ex:
-                    template = "Exception {0} in UVEServer zk stop/close. Args:\n{1!r}"
-                    messag = template.format(type(ex).__name__, ex.args)
-                    self._logger.error("%s : traceback %s for %s" % \
-                        (messag, traceback.format_exc(), self._svc_name))
-                finally:
-                    self._zk = None
-                gevent.sleep(1)
-    #end start_zookeeper_client
-
-    def _zk_listen(self, state):
-        self._logger.error("UVE server zookeeper listen %s" % str(state))
-        if state == KazooState.CONNECTED:
-            self._zk_connect = True
-        elif state == KazooState.LOST:
-            self._logger.error("UVE server connection LOST")
-            self._zk_connect = False
-        elif state == KazooState.SUSPENDED:
-            self._logger.error("UVE server connection SUSPENDED")
-            self._zk_connect = False
-    #end _zk_listen
+    def get_active_collectors(self):
+        return self._active_collectors
+    # endif get_active_collectors
 
 # end UVEServer
 
