@@ -51,7 +51,8 @@ from sandesh_common.vns.constants import ModuleNames, CategoryNames,\
      ANALYTICS_API_SERVER_DISCOVERY_SERVICE_NAME, ALARM_GENERATOR_SERVICE_NAME, \
      OpServerAdminPort, CLOUD_ADMIN_ROLE, APIAAAModes, \
      AAA_MODE_CLOUD_ADMIN, AAA_MODE_NO_AUTH, AAA_MODE_RBAC, \
-     ServicesDefaultConfigurationFiles, SERVICE_OPSERVER
+     ServicesDefaultConfigurationFiles, SERVICE_OPSERVER,
+     COLLECTOR_DISCOVERY_SERVICE_NAME
 from sandesh.viz.constants import _TABLES, _OBJECT_TABLES,\
     _OBJECT_TABLE_SCHEMA, _OBJECT_TABLE_COLUMN_VALUES, \
     _STAT_TABLES, STAT_OBJECTID_FIELD, STAT_VT_PREFIX, \
@@ -754,7 +755,14 @@ class OpServer(object):
             self.redis_uve_list.append(redis_elem)
         if is_local:
             ad_freq = 2
-            us_freq = 2 
+            us_freq = 2
+
+        self._uve_server = UVEServer(self.redis_uve_list,
+                                 self._logger,
+                                 self._args.redis_password,
+                                 None, False,
+                                 freq = us_freq)
+        self._state_server.update_redis_list(self.redis_uve_list) 
 
         if self._args.zk_list:
             self._ad = AnalyticsDiscovery(self._logger,
@@ -762,6 +770,8 @@ class OpServer(object):
                 ANALYTICS_API_SERVER_DISCOVERY_SERVICE_NAME,
                 self._hostname + "-" + self._instance_id,
                 {ALARM_GENERATOR_SERVICE_NAME:self.disc_agp},
+                {COLLECTOR_DISCOVERY_SERVICE_NAME:\
+                    self._uve_server.collectors_change_cb},
                 self._args.zk_prefix,
                 ad_freq)
         else:
@@ -777,17 +787,6 @@ class OpServer(object):
                                   instance_id = "0",
                                   port = int(redis_ip_port[1]))
                     self.agp[part] = pi
-
-        zk_list = ""
-        if self._args.zk_list:
-            zk_list = ','.join(self._args.zk_list)
-        self._uve_server = UVEServer(self.redis_uve_list,
-                                 zk_list,
-                                 self._logger,
-                                 self._args.redis_password,
-                                 None, False,
-                                 freq = us_freq)
-        self._state_server.update_redis_list(self.redis_uve_list)
 
         self._analytics_links = ['uves', 'uve-types', 'tables',
             'queries', 'alarms', 'uve-stream', 'alarm-stream']

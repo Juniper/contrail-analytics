@@ -41,7 +41,8 @@ from sandesh.nodeinfo.process_info.ttypes import *
 from sandesh_common.vns.ttypes import Module, NodeType
 from sandesh_common.vns.constants import ModuleNames, CategoryNames,\
      ModuleCategoryMap, Module2NodeType, NodeTypeNames, ModuleIds,\
-     INSTANCE_ID_DEFAULT, ALARM_GENERATOR_SERVICE_NAME
+     INSTANCE_ID_DEFAULT, ALARM_GENERATOR_SERVICE_NAME,
+     COLLECTOR_DISCOVERY_SERVICE_NAME
 from alarmgen_cfg import CfgParser
 from uveserver import UVEServer
 from partition_handler import PartitionHandler, UveStreamProc
@@ -986,10 +987,7 @@ class Controller(object):
         if is_local:
             us_freq = 2
             ad_freq = 2
-        zk_list = ""
-        if self._conf.zk_list():
-            zk_list = ','.join(self._conf.zk_list())
-        self._us = UVEServer(redis_uve_list, zk_list, self._logger,
+        self._us = UVEServer(redis_uve_list, self._logger,
                 self._conf.redis_password(), freq=us_freq)
 
         # Start AnalyticsDiscovery to monitor AlarmGen instances
@@ -999,6 +997,7 @@ class Controller(object):
                 ALARM_GENERATOR_SERVICE_NAME,
                 self._hostname + "-" + self._instance_id,
                 {ALARM_GENERATOR_SERVICE_NAME:self.disc_cb_ag},
+                {COLLECTOR_DISCOVERY_SERVICE_NAME:self._us.collectors_change_cb},
                 self._conf.kafka_prefix(),
                 ad_freq)
             self._max_out_rows = 20
