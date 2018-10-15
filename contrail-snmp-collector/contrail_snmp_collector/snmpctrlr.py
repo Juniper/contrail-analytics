@@ -58,7 +58,7 @@ class Controller(object):
                                                             len(self._config.collectors()))
         self.uve = SnmpUve(self._config)
         self._sandesh = self.uve.sandesh_instance()
-        self._hostname = socket.gethostname()
+        self._hostname = socket.getfqdn()
         self._logger = self.uve.logger()
         self.sleep_time()
         self.last = set()

@@ -407,6 +407,7 @@ int main(int argc, char *argv[])
             options.get_db_write_options(),
             options.sandesh_config(),
             config_client,
+            options.hostname(),
             options.host_ip());
 
     config_client->Init();
