@@ -57,10 +57,11 @@ public:
             const DbWriteOptions &db_write_options,
             const SandeshConfig &sandesh_config,
             ConfigClientCollector *config_client,
+            std::string hostname,
             std::string host_ip);
     VizCollector(EventManager *evm, DbHandlerPtr db_handler,
                  Ruleeng *ruleeng,
-                 Collector *collector, OpServerProxy *osp);
+                 Collector *collector, OpServerProxy *osp, std::string hostname);
     ~VizCollector();
 
     std::string name() { return name_; }

@@ -12,6 +12,7 @@
 #include <sandesh/sandesh_message_builder.h>
 
 #include <base/logging.h>
+#include "base/address_util.h"
 #include <io/io_types.h>
 #include <io/tcp_server.h>
 #include <io/tcp_session.h>
@@ -1470,6 +1471,11 @@ void StructuredSyslogTcpForwarder::Connect() {
     boost::system::error_code ec;
     boost::asio::ip::tcp::endpoint endpoint;
     endpoint.address(boost::asio::ip::address::from_string(ipaddress_, ec));
+    if(ec.value() != 0){
+      boost::asio::io_service io_service;
+      std::string address_string = GetHostIp(&io_service, ipaddress_);
+      endpoint.address(boost::asio::ip::address::from_string(address_string, ec));
+    }
     endpoint.port(port_);
     TcpServer::Connect(session_, endpoint);
 }

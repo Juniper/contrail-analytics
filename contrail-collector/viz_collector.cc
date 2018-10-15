@@ -56,6 +56,7 @@ VizCollector::VizCollector(EventManager *evm, unsigned short listen_port,
             const DbWriteOptions &db_write_options,
             const SandeshConfig &sandesh_config,
             ConfigClientCollector *config_client,
+            std::string hostname,
             std::string host_ip) :
     osp_(new OpServerProxy(evm, this, redis_uve_ip, redis_uve_port,
          redis_password, aggconf, brokers, partitions, kafka_prefix)),
@@ -80,11 +81,7 @@ VizCollector::VizCollector(EventManager *evm, unsigned short listen_port,
                         boost::bind(&Ruleeng::rule_execute,
                                      ruleeng_.get(), _1, _2, _3, _4));
 
-    error_code error;
-    if (dup)
-        name_ = boost::asio::ip::host_name(error) + "dup";
-    else
-        name_ = boost::asio::ip::host_name(error);
+    name_ = hostname;
     if (protobuf_collector_enabled) {
         protobuf_collector_.reset(new ProtobufCollector(evm,
             protobuf_listen_port, protobuf_schema_file_directory,
@@ -102,7 +99,6 @@ VizCollector::VizCollector(EventManager *evm, unsigned short listen_port,
 
     host_ip_ = host_ip;
     if (use_zookeeper) {
-        std::string hostname = boost::asio::ip::host_name(error);
         zoo_client_.reset(new ZookeeperClient(hostname.c_str(),
             zookeeper_server_list.c_str()));
         AddNodeToZooKeeper();
@@ -110,7 +106,7 @@ VizCollector::VizCollector(EventManager *evm, unsigned short listen_port,
 }
 
 VizCollector::VizCollector(EventManager *evm, DbHandlerPtr db_handler,
-        Ruleeng *ruleeng, Collector *collector, OpServerProxy *osp) :
+        Ruleeng *ruleeng, Collector *collector, OpServerProxy *osp, std::string hostname) :
     db_initializer_(new DbHandlerInitializer(evm, DbGlobalName(false),
         std::string("collector::DbIf"),
         boost::bind(&VizCollector::DbInitializeCb, this),
@@ -119,8 +115,7 @@ VizCollector::VizCollector(EventManager *evm, DbHandlerPtr db_handler,
     ruleeng_(ruleeng),
     collector_(collector),
     redis_gen_(0), partitions_(0) {
-    error_code error;
-    name_ = boost::asio::ip::host_name(error);
+    name_ = hostname;
 }
 
 VizCollector::~VizCollector() {
