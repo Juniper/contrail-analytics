@@ -7,13 +7,13 @@
 #include <boost/bind.hpp>
 #include <boost/assign.hpp>
 #include <boost/assign/list_of.hpp>
-#include <boost/asio/ip/host_name.hpp>
 #include <boost/array.hpp>
 #include <boost/uuid/name_generator.hpp>
 
 #include "base/logging.h"
 #include "base/task.h"
 #include "base/parse_object.h"
+#include "base/address_util.h"
 #include <base/connection_info.h>
 #include "io/event_manager.h"
 
@@ -290,9 +290,9 @@ std::string Collector::DbGlobalName(bool dup) {
     std::string name;
     error_code error;
     if (dup)
-        name = boost::asio::ip::host_name(error) + "dup" + ":" + "Global";
+        name = ResolveCanonicalName() + "dup" + ":" + "Global";
     else
-        name = boost::asio::ip::host_name(error) + ":" + "Global";
+        name = ResolveCanonicalName() + ":" + "Global";
 
     return name;
 }

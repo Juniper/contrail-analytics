@@ -4,7 +4,6 @@
 
 #include <fstream>
 
-#include <boost/asio/ip/host_name.hpp>
 #include <boost/program_options.hpp>
 #include <boost/tokenizer.hpp>
 #include <malloc.h>
@@ -18,6 +17,7 @@
 #include "base/timer.h"
 #include "base/connection_info.h"
 #include "base/misc_utils.h"
+#include "base/address_util.h"
 #include "io/event_manager.h"
 #include <sandesh/common/vns_types.h>
 #include <sandesh/common/vns_constants.h>
@@ -310,9 +310,9 @@ int main(int argc, char *argv[])
     std::string hostname;
     boost::system::error_code error;
     if (options.dup()) {
-        hostname = boost::asio::ip::host_name(error) + "dup";
+        hostname = ResolveCanonicalName() + "dup";
     } else {
-        hostname = boost::asio::ip::host_name(error);
+        hostname = ResolveCanonicalName();
     }
 
     // Determine if the number of connections is expected:

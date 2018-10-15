@@ -7,7 +7,6 @@
 #include <iostream>
 #include <boost/foreach.hpp>
 #include <boost/assign/list_of.hpp>
-#include <boost/asio/ip/host_name.hpp>
 #include <boost/assign/list_of.hpp>
 #include <boost/functional/hash.hpp>
 
@@ -15,6 +14,7 @@
 #include "base/contrail_ports.h"
 #include "base/logging.h"
 #include "base/misc_utils.h"
+#include "base/address_util.h"
 #include "base/util.h"
 #include <base/options_util.h>
 #include "net/address_util.h"
@@ -47,7 +47,7 @@ bool Options::Parse(EventManager &evm, int argc, char *argv[]) {
 void Options::Initialize(EventManager &evm,
                          opt::options_description &cmdline_options) {
     boost::system::error_code error;
-    string hostname = host_name(error);
+    string hostname = ResolveCanonicalName();
     string host_ip = GetHostIp(evm.io_service(), hostname);
 
     if (host_ip.empty()) {

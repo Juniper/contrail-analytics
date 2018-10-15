@@ -7,7 +7,6 @@
 #include <boost/bind.hpp>
 #include <boost/foreach.hpp>
 #include <boost/assign/list_of.hpp>
-#include <boost/asio/ip/host_name.hpp>
 #include <boost/uuid/name_generator.hpp>
 #include <boost/system/error_code.hpp>
 
@@ -19,6 +18,7 @@
 #include <base/logging.h>
 #include <io/event_manager.h>
 #include <base/connection_info.h>
+#include <base/address_util.h>
 #include <sandesh/sandesh_message_builder.h>
 #include <sandesh/protocol/TXMLProtocol.h>
 #include <database/cassandra/cql/cql_if.h>
@@ -90,7 +90,7 @@ DbHandler::DbHandler(EventManager *evm,
                              boost::bind(&DbHandler::ReceiveConfig, this, _1, _2));
     }
     error_code error;
-    col_name_ = boost::asio::ip::host_name(error);
+    col_name_ = ResolveCanonicalName();
 
     if (cassandra_options.cluster_id_.empty()) {
         tablespace_ = g_viz_constants.COLLECTOR_KEYSPACE_CQL;

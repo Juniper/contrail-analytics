@@ -3,7 +3,6 @@
  */
 
 #include "viz_collector.h"
-#include <boost/asio/ip/host_name.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/bind.hpp>
 #include <iostream>
@@ -11,6 +10,7 @@
 
 #include "base/logging.h"
 #include "base/task.h"
+#include "base/address_util.h"
 #include "base/parse_object.h"
 #include "io/event_manager.h"
 
@@ -82,9 +82,9 @@ VizCollector::VizCollector(EventManager *evm, unsigned short listen_port,
 
     error_code error;
     if (dup)
-        name_ = boost::asio::ip::host_name(error) + "dup";
+        name_ = ResolveCanonicalName() + "dup";
     else
-        name_ = boost::asio::ip::host_name(error);
+        name_ = ResolveCanonicalName();
     if (protobuf_collector_enabled) {
         protobuf_collector_.reset(new ProtobufCollector(evm,
             protobuf_listen_port, protobuf_schema_file_directory,
@@ -102,7 +102,7 @@ VizCollector::VizCollector(EventManager *evm, unsigned short listen_port,
 
     host_ip_ = host_ip;
     if (use_zookeeper) {
-        std::string hostname = boost::asio::ip::host_name(error);
+        std::string hostname = ResolveCanonicalName();
         zoo_client_.reset(new ZookeeperClient(hostname.c_str(),
             zookeeper_server_list.c_str()));
         AddNodeToZooKeeper();
@@ -120,7 +120,7 @@ VizCollector::VizCollector(EventManager *evm, DbHandlerPtr db_handler,
     collector_(collector),
     redis_gen_(0), partitions_(0) {
     error_code error;
-    name_ = boost::asio::ip::host_name(error);
+    name_ = ResolveCanonicalName();
 }
 
 VizCollector::~VizCollector() {
@@ -270,7 +270,7 @@ bool VizCollector::GetCqlMetrics(cass::cql::Metrics *metrics) {
 
 void VizCollector::AddNodeToZooKeeper() {
     error_code error;
-    std::string hostname = boost::asio::ip::host_name(error);
+    std::string hostname = ResolveCanonicalName();
     std::string path = "/analytics-discovery-";
     zoo_client_->CreateNode(path.c_str(),
                                     hostname.c_str(),
@@ -281,7 +281,7 @@ void VizCollector::AddNodeToZooKeeper() {
                                     hostname.c_str(),
                                     Z_NODE_TYPE_PERSISTENT);
 
-    path += "/" + host_ip_;
+    path += "/" + hostname;
     if (zoo_client_->CheckNodeExist(path.c_str())) {
         zoo_client_->DeleteNode(path.c_str());
     }
