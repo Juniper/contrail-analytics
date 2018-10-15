@@ -662,7 +662,7 @@ class OpServer(object):
         else:
             self._instance_id = INSTANCE_ID_DEFAULT
         self.table = "ObjectCollectorInfo"
-        self._hostname = socket.gethostname()
+        self._hostname = socket.getfqdn()
         if self._args.dup:
             self._hostname += 'dup'
         self._sandesh = Sandesh()
@@ -1707,7 +1707,7 @@ class OpServer(object):
             queries['pending_queries'] = pending_queries_info
 
             processing_queries = redish.lrange(
-                'ENGINE:' + socket.gethostname(), 0, -1)
+                'ENGINE:' + socket.getfqdn(), 0, -1)
             processing_queries_info = []
             abandoned_queries_info = []
             error_queries_info = []

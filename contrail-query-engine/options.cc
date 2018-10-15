@@ -4,13 +4,13 @@
 
 #include <fstream>
 #include <iostream>
-#include <boost/asio/ip/host_name.hpp>
 #include <boost/foreach.hpp>
 #include <boost/functional/hash.hpp>
 
 #include "base/contrail_ports.h"
 #include "base/logging.h"
 #include "base/misc_utils.h"
+#include "base/address_util.h"
 #include "base/util.h"
 #include <base/options_util.h>
 #include <query_engine/buildinfo.h>
@@ -52,7 +52,7 @@ uint32_t Options::GenerateHash(std::vector<std::string> &list) {
 void Options::Initialize(EventManager &evm,
                          opt::options_description &cmdline_options) {
     boost::system::error_code error;
-    string hostname = host_name(error);
+    string hostname = ResolveCanonicalName();
     string host_ip = GetHostIp(evm.io_service(), hostname);
     if (host_ip.empty()) {
         cout << "Error! Cannot resolve host " << hostname <<

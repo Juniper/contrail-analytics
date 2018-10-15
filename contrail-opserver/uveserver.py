@@ -15,6 +15,7 @@ import xmltodict
 import redis
 import datetime
 import sys
+import socket
 from opserver_util import OpServerUtils
 import re
 from gevent.lock import BoundedSemaphore
@@ -52,7 +53,7 @@ class UVEServer(object):
         self._redis_password = redis_password
         self._uve_reverse_map = {}
         self._freq = freq
-        self._active_collectors = ['127.0.0.1']
+        self._active_collectors = ['localhost']
         self._zk = None
         self._zk_list = zoo_list
         self._zk_connect = False
@@ -75,7 +76,8 @@ class UVEServer(object):
         self._active_collectors = children
         redis_uve_list = []
         for redis_cfg in self._redis_cfg_info:
-            if redis_cfg[0] in self._active_collectors:
+            redis_fqdn = socket.getfqdn(redis_cfg[0])
+            if redis_fqdn in self._active_collectors:
                 redis_elem = (redis_cfg[0], redis_cfg[1])
                 redis_uve_list.append(redis_elem)
         self.update_redis_uve_list(redis_uve_list)
@@ -181,7 +183,7 @@ class UVEServer(object):
                     if rkey in self._redis_uve_map.keys():
                         if rinst.redis_handle is None:
                             if self._active_collectors is not None and \
-                                rkey.ip not in self._active_collectors:
+                                socket.getfqdn(rkey.ip) not in self._active_collectors:
                                 ConnectionState.update(ConnectionType.REDIS_UVE,\
                                     rkey.ip + ":" + str(rkey.port), ConnectionStatus.UP,
                                     [rkey.ip+":"+str(rkey.port)])
