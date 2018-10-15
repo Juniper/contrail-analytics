@@ -7,6 +7,7 @@
 #include <tbb/mutex.h>
 #include <boost/bind.hpp>
 #include "base/util.h"
+#include "base/address_util.h"
 #include "base/logging.h"
 #include "base/parse_object.h"
 #include <cstdlib>
@@ -38,7 +39,7 @@ RedisAsyncConnection::RedisAsyncConnection(EventManager *evm, const std::string 
     client_disconnect_cb_(client_disconnect_cb) {
     boost::system::error_code ec;
     boost::asio::ip::address redis_addr(
-        boost::asio::ip::address::from_string(hostname_, ec));
+        AddressFromString(hostname_, &ec));
     endpoint_ = boost::asio::ip::tcp::endpoint(redis_addr, redis_port);
 }
 

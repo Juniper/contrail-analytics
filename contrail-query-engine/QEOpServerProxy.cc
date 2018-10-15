@@ -8,6 +8,7 @@
 #include <boost/tuple/tuple.hpp>
 #include "base/util.h"
 #include "base/logging.h"
+#include "base/address_util.h"
 #include <tbb/atomic.h>
 #include <cstdlib>
 #include <cerrno>
@@ -1028,7 +1029,7 @@ public:
     QEOpServerImpl(const string & redis_host, uint16_t port,
                    const string & redis_password, QEOpServerProxy * qosp,
                    int max_tasks, int max_rows) :
-            hostname_(boost::asio::ip::host_name()),
+            hostname_(ResolveCanonicalName()),
             redis_host_(redis_host),
             port_(port),
             redis_password_(redis_password),
