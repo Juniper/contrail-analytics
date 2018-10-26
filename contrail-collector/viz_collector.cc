@@ -101,10 +101,13 @@ VizCollector::VizCollector(EventManager *evm, unsigned short listen_port,
     }
 
     host_ip_ = host_ip;
+    zookeeper_server_list_ = zookeeper_server_list;
     if (use_zookeeper) {
         std::string hostname = ResolveCanonicalName();
         zoo_client_.reset(new ZookeeperClient(hostname.c_str(),
-            zookeeper_server_list.c_str()));
+            zookeeper_server_list_.c_str()));
+        zoo_client_->AddListener(boost::bind(&VizCollector::ZooStateChangeCb,
+                                             this));
         AddNodeToZooKeeper();
     }
 }
@@ -317,6 +320,14 @@ void VizCollector::AddNodeToZooKeeper() {
     zoo_client_->CreateNode(path.c_str(),
                                     jsonline.c_str(),
                                     Z_NODE_TYPE_EPHEMERAL);
+}
+
+void VizCollector::ZooStateChangeCb() {
+    error_code error;
+    std::string hostname = boost::asio::ip::host_name(error);
+    zoo_client_.reset(new ZookeeperClient(hostname.c_str(),
+            zookeeper_server_list_.c_str()));
+    AddNodeToZooKeeper();
 }
 
 void VizCollector::DelNodeFromZoo() {
