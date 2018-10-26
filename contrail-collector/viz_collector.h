@@ -140,8 +140,9 @@ public:
         }
         return std::make_pair(bpart, npart);
     }
-    void AddNodeToZooKeeper(const std::string &host_ip);
+    void AddNodeToZooKeeper();
     void DelNodeFromZoo();
+    void ZooStateChangeCb();
 private:
     std::string DbGlobalName(bool dup=false, const std::string &host_ip="127.0.0.1");
     void DbInitializeCb();
@@ -153,6 +154,7 @@ private:
     boost::scoped_ptr<StructuredSyslogCollector> structured_syslog_collector_;
     boost::scoped_ptr<zookeeper::client::ZookeeperClient> zoo_client_;
     std::string host_ip_;
+    std::string zookeeper_server_list_;
     std::string name_;
     unsigned short listen_port_;
     uint32_t redis_gen_;
