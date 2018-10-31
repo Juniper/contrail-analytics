@@ -119,7 +119,7 @@ class AnalyticsDiscovery(gevent.Greenlet):
             self._pendingcb.add(watcher)
 
     def _zk_watcher(self, watcher, children):
-        self._logger.error("Analytics Discovery Children %s" % children)
+        self._logger.error("Analytics Discovery Watcher %s Children %s" % (watcher, children))
         self._reconnect = True
 
     def __init__(self, logger, zkservers, svc_name, inst,
