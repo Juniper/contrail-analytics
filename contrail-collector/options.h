@@ -110,6 +110,18 @@ public:
         bool disable_db_messages_writes_;
     };
 
+    struct Kafka {
+        Kafka() :
+            ssl_enable(false),
+            keyfile(),
+            certfile(),
+            ca_cert() {}
+        bool ssl_enable;
+        std::string keyfile;
+        std::string certfile;
+        std::string ca_cert;
+    };
+
     Options();
     bool Parse(EventManager &evm, int argc, char **argv);
     void ParseReConfig();
@@ -135,6 +147,9 @@ public:
 
     const std::vector<std::string> cassandra_server_list() const {
         return cassandra_server_list_;
+    }
+    const Kafka get_kafka_options() const {
+        return kafka_options_;
     }
     const std::string zookeeper_server_list() const {
         return zookeeper_server_list_;
@@ -255,6 +270,7 @@ private:
     uint16_t redis_port_;
     std::string redis_password_;
     Cassandra cassandra_options_;
+    Kafka kafka_options_;
     std::string hostname_;
     std::string host_ip_;
     uint16_t http_server_port_;

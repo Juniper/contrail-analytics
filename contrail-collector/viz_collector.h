@@ -57,7 +57,8 @@ public:
             const DbWriteOptions &db_write_options,
             const SandeshConfig &sandesh_config,
             ConfigClientCollector *config_client,
-            std::string host_ip);
+            std::string host_ip,
+            const Options::Kafka& kafka_options);
     VizCollector(EventManager *evm, DbHandlerPtr db_handler,
                  Ruleeng *ruleeng,
                  Collector *collector, OpServerProxy *osp);

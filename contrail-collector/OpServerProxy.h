@@ -9,6 +9,7 @@
 #include "io/event_manager.h"
 #include <analytics/redis_types.h>
 #include "redis_processor_vizd.h"
+#include "options.h"
 
 // This class can be used to send UVE Traces from vizd to the OpSever(s)
 // Currently, this is done via Redis. 
@@ -30,7 +31,8 @@ public:
             const std::string& redis_uve_password,
             const std::map<std::string, std::string>& aggconf,
             const std::string& brokers,
-            uint16_t partitions, const std::string& kafka_prefix);
+            uint16_t partitions, const std::string& kafka_prefix,
+            const Options::Kafka& kafka_options);
     OpServerProxy() : impl_(NULL) { }
     virtual ~OpServerProxy();
     virtual void Shutdown();
