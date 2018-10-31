@@ -876,6 +876,7 @@ class Controller(object):
         self._libpart_name = self._conf.host_ip() + ":" + self._instance_id
         self._libpart = None
         self._partset = set()
+        self._lredis = None
 
         is_collector = True
         if test_logger is not None:
@@ -1412,6 +1413,7 @@ class Controller(object):
 
         lredis = None
         oldworkerset = None
+        redis_changed = False
         while True:
             for part in self._uveqf.keys():
                 self._logger.error("Stop UVE processing for %d:%d" % \
@@ -1432,19 +1434,36 @@ class Controller(object):
                     del self._uveq[part]
             prev = time.time()
             try:
+                # Get the collector list from zookeeper, it is assumed that redis is
+                # running along with collector, in case redis is down in one collector
+                # node, then we will connect to next available and UP redis instance
+                # from collector list
+                redis_ip_list = self._us.get_active_collectors()
                 if lredis is None:
-                    lredis = StrictRedisWrapper(
-                            host="127.0.0.1",
-                            port=self._conf.redis_server_port(),
-                            password=self._conf.redis_password(),
-                            db=7)
-                    self.reconnect_agg_uve(lredis)
-                    ConnectionState.update(conn_type = ConnectionType.REDIS_UVE,
-                          name = 'AggregateRedis', status = ConnectionStatus.UP,
-                          server_addrs = ['127.0.0.1:'+str(self._conf.redis_server_port())])
+                    # Get the new available redis instance.
+                    lredis = self.get_redis_instance()
+                    if lredis is None:
+                        down_redis_ip = ''
+                        if len(redis_ip_list) > 0:
+                            # Use first IP
+                            down_redis_ip = redis_ip_list[0]
+                            ConnectionState.update(conn_type=ConnectionType.REDIS_UVE,
+                                name='AggregateRedis',
+                                status=ConnectionStatus.DOWN,
+                                server_addrs=[down_redis_ip +
+                                              ':'+str(self._conf.redis_server_port())])
+                    else:
+                        redis_changed = True
+                        self.reconnect_agg_uve(lredis)
+                        redis_ip = lredis.connection_pool.connection_kwargs['host']
+                        ConnectionState.update(conn_type = ConnectionType.REDIS_UVE,
+                            name = 'AggregateRedis', status = ConnectionStatus.UP,
+                            server_addrs = [redis_ip + ":" + str(self._conf.redis_server_port())])
                 else:
-                    if not lredis.exists(self._moduleid+':'+self._instance_id):
+                    redis_changed = False
+                    if not lredis.exists(self._moduleid + ':' + self._instance_id):
                         self._logger.error('Identified redis restart')
+                        redis_changed = True
                         self.reconnect_agg_uve(lredis)
                 gevs = {}
                 pendingset = {}
@@ -1533,12 +1552,17 @@ class Controller(object):
                 else:
                     self._logger.error("%s : traceback %s" % \
                                   (messag, traceback.format_exc()))
-
+                down_redis_ip = ''
+                if lredis is None:
+                    if len(redis_ip_list) > 0:
+                        down_redis_ip = redis_ip_list[0]
+                else:
+                    down_redis_ip = lredis.connection_pool.connection_kwargs['host']
+                ConnectionState.update(conn_type=ConnectionType.REDIS_UVE,
+                    name='AggregateRedis', status=ConnectionStatus.DOWN,
+                    server_addrs=[down_redis_ip + ':' + \
+                                  str(self._conf.redis_server_port())])
                 lredis = None
-                ConnectionState.update(conn_type = ConnectionType.REDIS_UVE,
-                      name = 'AggregateRedis', status = ConnectionStatus.DOWN,
-                      server_addrs = ['127.0.0.1:'+str(self._conf.redis_server_port())])
-
                 if self._ad:
                     self._ad.publish(None)
                 oldworkerset = None
@@ -1549,11 +1573,12 @@ class Controller(object):
                 for part in self._workers.keys():
                     if self._workers[part]._up:
                         workerset[part] = self._workers[part].acq_time()
-                if workerset != oldworkerset:
+                if ((workerset != oldworkerset) or (redis_changed is True)):
                     data = {
-                        'ip-address': self._conf.host_ip(),
+                        'ip-address': lredis.connection_pool.connection_kwargs['host'],
                         'instance-id': self._instance_id,
                         'redis-port': str(self._conf.redis_server_port()),
+                        'redis-agg-db': self._conf.get_redis_agg_db(),
                         'partitions': json.dumps(workerset)
                     }
                     if self._ad:
@@ -2072,9 +2097,7 @@ class Controller(object):
                 self.partition_log("Dup partitions %s" % \
                     str(parts.intersection(set(self._workers.keys()))))
             else:
-                lredis = StrictRedisWrapper(host="127.0.0.1",
-                            port=self._conf.redis_server_port(),
-                            password=self._conf.redis_password(), db=7)
+                lredis = self._lredis
                 for partno in parts:
                     self.clear_agg_uve(lredis, self._instance_id, partno)
                     ph = UveStreamProc(','.join(self._conf.kafka_broker_list()),
@@ -2388,6 +2411,33 @@ class Controller(object):
             alarm_sandesh.send(sandesh=self._sandesh)
             return SandeshAlarmAckResponseCode.SUCCESS
     # end alarm_ack_callback
+
+    def get_redis_instance(self):
+        '''
+        This API takes the redis list from collector list as published in zookeeper.
+        This API makes sure, it returns redis instance which is UP, if any redis
+        running in the collector list is UP, else returns None
+        '''
+        redis_ip_list = self._us.get_active_collectors()
+        if len(redis_ip_list) == 0:
+            return None
+        idx = 0
+        while True:
+            try:
+                redis_ip = redis_ip_list[idx]
+                lredis = StrictRedisWrapper(host=redis_ip,
+                                            port=self._conf.redis_server_port(),
+                                            password=self._conf.redis_password(),
+                                            db=self._conf.get_redis_agg_db())
+                # Check a dummy exists to check if this redis is UP
+                lredis.exists(self._moduleid + ':' + self._instance_id)
+                self._logger.debug('Got a new redis instance %s' %(redis_ip))
+                self._lredis = lredis
+                return lredis
+            except Exception as e:
+                idx = idx + 1
+                if idx >= len(redis_ip_list):
+                    return None
 
     def disc_cb_ag(self, alist):
         '''
