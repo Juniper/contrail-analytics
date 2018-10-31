@@ -26,6 +26,7 @@ class StructuredSyslogServer {
         const std::string &structured_syslog_kafka_broker,
         const std::string &structured_syslog_kafka_topic,
         uint16_t structured_syslog_kafka_partitions,
+        const Options::Kafka &kafka_options,
         ConfigClientCollector *config_client,
         StatWalker::StatTableInsertFn stat_db_cb);
     virtual ~StructuredSyslogServer();
@@ -83,6 +84,7 @@ public:
     StructuredSyslogForwarder(EventManager *evm, const vector <std::string> &tcp_forward_dst,
                                const std::string &structured_syslog_kafka_broker,
                                const std::string &structured_syslog_kafka_topic,
+                               const Options::Kafka& kafka_options,
                                uint16_t structured_syslog_kafka_partitions);
 
     virtual ~StructuredSyslogForwarder();
@@ -96,6 +98,7 @@ protected:
     void Init(const vector <std::string> &tcp_forward_dst,
                const std::string &structured_syslog_kafka_broker,
                const std::string &structured_syslog_kafka_topic,
+               const Options::Kafka& kafka_options,
                uint16_t structured_syslog_kafka_partitions);
 private:
     EventManager                           *evm_;

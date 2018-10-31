@@ -1375,8 +1375,15 @@ class Controller(object):
         try:
             # acks = 1 (default) wait for leader to write record to 
             # local log
-            producer = KafkaProducer(
-                    bootstrap_servers=self._conf.kafka_broker_list())
+            if not self._conf.kafka_use_ssl():
+                producer = KafkaProducer(
+                        bootstrap_servers=self._conf.kafka_broker_list())
+            else:
+                producer = KafkaProducer(
+                        bootstrap_servers=self._conf.kafka_broker_list(),
+                        security_protocol='SSL',
+                        ssl_check_hostname=False,
+                        **self._conf.kafka_ssl_params())
             self._logger.info("Initialized health-check KafkaProducer")
         except Exception as ex:
             producer = None
@@ -2085,6 +2092,8 @@ class Controller(object):
                             self.handle_resource_check,
                             self._instance_id,
                             self._conf.redis_server_port(),
+                            self._conf.kafka_use_ssl(),
+                            self._conf.kafka_ssl_params(),
                             self._conf.kafka_prefix()+"-workers")
                     ph.start()
                     self._workers[partno] = ph

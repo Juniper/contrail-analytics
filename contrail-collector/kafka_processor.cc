@@ -19,6 +19,7 @@
 #include <algorithm>
 #include <iterator>
 #include <librdkafka/rdkafkacpp.h>
+#include <librdkafka/rdkafka.h>
 #include <sandesh/sandesh_uve.h>
 #include <sandesh/common/vns_types.h>
 #include <sandesh/common/vns_constants.h>
@@ -212,12 +213,17 @@ KafkaProcessor::KafkaProcessor(EventManager *evm, VizCollector *collector,
              const std::map<std::string, std::string>& aggconf,
              const std::string brokers,
              const std::string topic, 
-             uint16_t partitions) :
+             uint16_t partitions,
+             const Options::Kafka &kafka_options) :
     partitions_(partitions),
     aggconf_(aggconf),
     evm_(evm),
     collector_(collector),
     brokers_(brokers),
+    ssl_enable_(kafka_options.ssl_enable),
+    kafka_keyfile_(kafka_options.keyfile),
+    kafka_certfile_(kafka_options.certfile),
+    kafka_ca_cert_(kafka_options.ca_cert),
     topicpre_(topic),
     redis_up_(false),
     kafka_elapsed_ms_(0),
@@ -257,10 +263,16 @@ KafkaProcessor::StartKafka(void) {
     conf->set("dr_cb", &k_dr_cb, errstr);
     conf->set("api.version.request", "false", errstr);
     conf->set("broker.version.fallback", "0.9.0.1", errstr);
+    if (ssl_enable_) {
+        conf->set("security.protocol", "SSL", errstr);
+        conf->set("ssl.key.location", kafka_keyfile_, errstr);
+        conf->set("ssl.certificate.location", kafka_certfile_, errstr);
+        conf->set("ssl.ca.location", kafka_ca_cert_, errstr);
+    }
     producer_.reset(RdKafka::Producer::create(conf, errstr));
     LOG(ERROR, "Kafka new Prod " << errstr);
     delete conf;
-    if (!producer_) { 
+    if (!producer_) {
         return false;
     }
     for (unsigned int i=0; i<partitions_; i++) {

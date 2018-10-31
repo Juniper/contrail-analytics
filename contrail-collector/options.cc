@@ -302,10 +302,6 @@ void Options::Initialize(EventManager &evm,
         ("DEFAULT.zookeeper_server_list",
             opt::value<string>()->default_value(""),
             "Zookeeper server list")
-        ("DEFAULT.kafka_broker_list",
-           opt::value<vector<string> >()->default_value(
-               default_kafka_broker_list, ""),
-             "Kafka Broker List")
         ("DEFAULT.partitions",
             opt::value<uint16_t>()->default_value(
                 default_partitions),
@@ -346,6 +342,27 @@ void Options::Initialize(EventManager &evm,
         ("DEFAULT.disable_flow_collection",
             opt::bool_switch(&disable_flow_collection_),
             "Disable flow message collection")
+        ;
+
+    // Command line and config file options.
+    opt::options_description kafka_config("Kafka Configuration options");
+    kafka_config.add_options()
+        ("KAFKA.kafka_broker_list",
+           opt::value<vector<string> >()->default_value(
+               default_kafka_broker_list, ""),
+             "kafka broker list")
+        ("KAFKA.kafka_ssl_enable",
+             opt::value<bool>()->default_value(false),
+             "Enable SSL Encryptions for Kafka connection")
+        ("KAFKA.kafka_keyfile", opt::value<std::string>()->default_value(
+         "/etc/contrail/ssl/private/server-privkey.pem"),
+         "kafka SSL private key")
+        ("KAFKA.kafka_certfile", opt::value<std::string>()->default_value(
+         "/etc/contrail/ssl/certs/server.pem"),
+         "kafka SSL certificate")
+        ("KAFKA.kafka_ca_cert", opt::value<std::string>()->default_value(
+         "/etc/contrail/ssl/certs/ca-cert.pem"),
+         "Kafka CA SSL certificate")
         ;
 
     // Command line and config file options.
@@ -457,10 +474,10 @@ void Options::Initialize(EventManager &evm,
         ;
 
     config_file_options_.add(config).add(cassandra_config)
-        .add(database_config).add(sandesh_config).add(keystone_config)
+        .add(database_config).add(sandesh_config).add(keystone_config).add(kafka_config)
         .add(collector_config).add(redis_config).add(api_server_config).add(configdb_config);
     cmdline_options.add(generic).add(config).add(cassandra_config)
-        .add(database_config).add(sandesh_config).add(keystone_config)
+        .add(database_config).add(sandesh_config).add(keystone_config).add(kafka_config)
         .add(collector_config).add(redis_config).add(api_server_config).add(configdb_config);
 }
 
@@ -647,7 +664,7 @@ void Options::Process(int argc, char *argv[],
     GetOptValue<string>(var_map, zookeeper_server_list_,
                         "DEFAULT.zookeeper_server_list");
     GetOptValue< vector<string> >(var_map, kafka_broker_list_,
-                                  "DEFAULT.kafka_broker_list");
+                                  "KAFKA.kafka_broker_list");
     GetOptValue<uint16_t>(var_map, partitions_, "DEFAULT.partitions");
     GetOptValue<string>(var_map, host_ip_, "DEFAULT.hostip");
     GetOptValue<string>(var_map, hostname_, "DEFAULT.hostname");
@@ -663,6 +680,10 @@ void Options::Process(int argc, char *argv[],
     GetOptValue<bool>(var_map, use_syslog_, "DEFAULT.use_syslog");
     GetOptValue<string>(var_map, syslog_facility_, "DEFAULT.syslog_facility");
     GetOptValue<string>(var_map, kafka_prefix_, "DATABASE.cluster_id");
+    GetOptValue<bool>(var_map, kafka_options_.ssl_enable, "KAFKA.kafka_ssl_enable");
+    GetOptValue<string>(var_map, kafka_options_.keyfile, "KAFKA.kafka_keyfile");
+    GetOptValue<string>(var_map, kafka_options_.certfile, "KAFKA.kafka_certfile");
+    GetOptValue<string>(var_map, kafka_options_.ca_cert, "KAFKA.kafka_ca_cert");
     GetOptValue<uint16_t>(var_map, redis_port_, "REDIS.port");
     GetOptValue<string>(var_map, redis_server_, "REDIS.server");
     GetOptValue<string>(var_map, redis_password_, "REDIS.password");
