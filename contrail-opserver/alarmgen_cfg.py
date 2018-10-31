@@ -8,6 +8,8 @@ from pysandesh.gen_py.sandesh.ttypes import SandeshLevel
 from sandesh_common.vns.constants import SERVICE_ALARM_GENERATOR, \
     ServicesDefaultConfigurationFiles
 
+ALARMGEN_REDIS_AGGREGATE_DB_BASE_INDEX = 7
+
 class CfgParser(object):
 
     def __init__(self, argv):
@@ -199,6 +201,9 @@ class CfgParser(object):
             self._args.config_db_server_list = \
                 self._args.config_db_server_list.split()
         self._args.conf_file = args.conf_file
+        redis_agg_db_offset = os.getenv('ALARMGEN_REDIS_AGGREGATE_DB_OFFSET', "1")
+        self._args._redis_agg_db = ALARMGEN_REDIS_AGGREGATE_DB_BASE_INDEX + \
+                                   int(redis_agg_db_offset) - 1
 
     def _pat(self):
         if self.__pat is None:
@@ -284,3 +289,6 @@ class CfgParser(object):
 
     def sandesh_config(self):
         return SandeshConfig.from_parser_arguments(self._args)
+
+    def get_redis_agg_db(self):
+        return self._args._redis_agg_db
