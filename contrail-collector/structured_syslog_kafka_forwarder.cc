@@ -187,11 +187,16 @@ KafkaForwarder::KafkaTimer() {
 KafkaForwarder::KafkaForwarder(EventManager *evm,
              const std::string brokers,
              const std::string topic,
+             const Options::Kafka& kafka_options,
              uint16_t partitions) :
     partitions_(partitions),
     evm_(evm),
     brokers_(brokers),
     topic_str_(topic),
+    ssl_enable_(kafka_options.ssl_enable),
+    ssl_keyfile_(kafka_options.keyfile),
+    ssl_certfile_(kafka_options.certfile),
+    ssl_cacert_(kafka_options.ca_cert),
     kafka_elapsed_ms_(0),
     kafka_start_ms_(UTCTimestampUsec()/1000),
     kafka_tick_ms_(0),
@@ -223,6 +228,12 @@ KafkaForwarder::Init(void) {
     conf->set("metadata.broker.list", brokers_, errstr);
     conf->set("event_cb", &k_forwarder_event_cb, errstr);
     conf->set("dr_cb", &k_forwarder_dr_cb, errstr);
+    if (ssl_enable_) {
+        conf->set("security.protocol", "SSL", errstr);
+        conf->set("ssl.key.location", ssl_keyfile_, errstr);
+        conf->set("ssl.certificate.location", ssl_certfile_, errstr);
+        conf->set("ssl.ca.location", ssl_cacert_, errstr);
+    }
     producer_.reset(RdKafka::Producer::create(conf, errstr));
     LOG(ERROR, "KafkaForwarder new Prod " << errstr);
     delete conf;

@@ -6,6 +6,7 @@
 #define __KAFKAPROCESSOR_H__
 
 #include <string>
+#include "options.h"
 #include <librdkafka/rdkafkacpp.h>
 #include "io/event_manager.h"
 
@@ -33,7 +34,8 @@ class KafkaProcessor {
                      const std::map<std::string, std::string>& aggconf,
                      const std::string brokers,
                      const std::string topic, 
-                     uint16_t partitions);
+                     uint16_t partitions,
+                     const Options::Kafka& kafka_options);
 
 
         void Shutdown();
@@ -51,6 +53,10 @@ class KafkaProcessor {
         boost::shared_ptr<RdKafka::Producer> producer_;
         std::vector<boost::shared_ptr<RdKafka::Topic> > topic_;
         std::string brokers_;
+        bool ssl_enable_;
+        std::string kafka_keyfile_;
+        std::string kafka_certfile_;
+        std::string kafka_ca_cert_;
         std::string topicpre_;
         bool redis_up_;
         uint64_t kafka_elapsed_ms_;

@@ -425,7 +425,8 @@ class OpServerProxy::OpServerImpl {
                      const std::map<std::string, std::string>& aggconf,
                      const std::string brokers,
                      const std::string topic, 
-                     uint16_t partitions) :
+                     uint16_t partitions,
+                     const Options::Kafka &kafka_options) :
                 partitions_(partitions),
                 aggconf_(aggconf),
                 redis_uve_(redis_uve_ip, redis_uve_port),
@@ -437,7 +438,7 @@ class OpServerProxy::OpServerImpl {
                 redis_password_(redis_password) {
             if (brokers != "") {
                 kafka_proc_.reset(new KafkaProcessor(evm_, collector,
-                    aggconf, brokers, topic, partitions));
+                    aggconf, brokers, topic, partitions, kafka_options));
             }
 
             to_ops_conn_.reset(new RedisAsyncConnection(evm_, 
@@ -494,11 +495,12 @@ OpServerProxy::OpServerProxy(EventManager *evm, VizCollector *collector,
                              const std::map<std::string, std::string>& aggconf,
                              const std::string& brokers,
                              uint16_t partitions,
-                             const std::string& kafka_prefix=std::string()) {
+                             const std::string& kafka_prefix=std::string(),
+                             const Options::Kafka &kafka_options=Options::Kafka()) {
     impl_ = new OpServerImpl(evm, collector, redis_uve_ip, redis_uve_port,
                              redis_password,
                              aggconf,
-                             brokers, kafka_prefix + string("-uve-"), partitions);
+                             brokers, kafka_prefix + string("-uve-"), partitions, kafka_options);
 }
 
 OpServerProxy::~OpServerProxy() {
