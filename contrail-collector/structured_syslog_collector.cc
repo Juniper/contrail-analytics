@@ -13,6 +13,7 @@ StructuredSyslogCollector::StructuredSyslogCollector(EventManager *evm,
     const std::string &structured_syslog_kafka_broker,
     const std::string &structured_syslog_kafka_topic,
     uint16_t structured_syslog_kafka_partitions,
+    const Options::Kafka &kafka_options,
     DbHandlerPtr db_handler,
     ConfigClientCollector *config_client) {
     StatWalker::StatTableInsertFn stat_db_cb = NULL;
@@ -24,6 +25,7 @@ StructuredSyslogCollector::StructuredSyslogCollector(EventManager *evm,
                     structured_syslog_tcp_forward_dst, structured_syslog_kafka_broker,
                     structured_syslog_kafka_topic,
                     structured_syslog_kafka_partitions,
+                    kafka_options,
                     config_client,
                     stat_db_cb));
 }
