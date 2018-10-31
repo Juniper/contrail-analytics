@@ -2472,6 +2472,7 @@ class OpServer(object):
             instance_id = elem['instance-id']
             port = int(elem['redis-port']) 
             ip_address = elem['ip-address']
+            redis_agg_db = elem['redis-agg-db']
             # If AlarmGenerator sends partitions as NULL, its
             # unable to provide service
             if not elem['partitions']:
@@ -2479,10 +2480,11 @@ class OpServer(object):
             parts = json.loads(elem['partitions'])
             for partstr,acq_time in parts.iteritems():
                 partno = int(partstr)
-                pi = PartInfo(instance_id = instance_id,
-                              ip_address = ip_address,
-                              acq_time = acq_time,
-                              port = port)
+                pi = PartInfo(instance_id=instance_id,
+                              ip_address=ip_address,
+                              redis_agg_db=redis_agg_db,
+                              acq_time=acq_time,
+                              port=port)
                 if partno not in new_agp:
                     new_agp[partno] = pi
                 else:
