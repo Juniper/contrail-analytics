@@ -49,7 +49,6 @@ class CfgParser(object):
         defaults = {
             'host_ip'           : '127.0.0.1',
             'collectors'        : [],
-            'kafka_broker_list' : ['127.0.0.1:9092'],
             'log_local'         : False,
             'log_level'         : SandeshLevel.SYS_DEBUG,
             'log_category'      : '',
@@ -61,7 +60,7 @@ class CfgParser(object):
             'partitions'        : 15,
             'zk_list'           : None,
             'alarmgen_list'     : ['127.0.0.1:0'],
-            'cluster_id'     :'',
+            'cluster_id'        :'',
         }
         defaults.update(SandeshConfig.get_default_options(['DEFAULTS']))
 
@@ -88,6 +87,14 @@ class CfgParser(object):
             'config_db_password': None
         }
 
+        kafka_opts = {
+            'kafka_broker_list': ['127.0.0.1:9092'], 
+            'kafka_ssl_enable': False,
+            'kafka_keyfile'   : '/etc/contrail/ssl/private/server-privkey.pem',
+            'kafka_certfile'  : '/etc/contrail/ssl/certs/server.pem',
+            'kafka_ca_cert'   : '/etc/contrail/ssl/certs/ca-cert.pem'
+        }
+
         sandesh_opts = SandeshConfig.get_default_options()
 
         config = None
@@ -101,6 +108,8 @@ class CfgParser(object):
                 redis_opts.update(dict(config.items('REDIS')))
             if 'CONFIGDB' in config.sections():
                 configdb_opts.update(dict(config.items('CONFIGDB')))
+            if 'KAFKA' in config.sections():
+                kafka_opts.update(dict(config.items('KAFKA')))
             SandeshConfig.update_options(sandesh_opts, config)
         # Override with CLI options
         # Don't surpress add_help here so it will handle -h
@@ -183,6 +192,14 @@ class CfgParser(object):
             nargs="+")
         parser.add_argument("--cluster_id",
             help="Analytics Cluster Id")
+        parser.add_argument("--kafka_ssl_enable", action='store_true',
+            help="Enable SSL encryption for kafka connection")
+        parser.add_argument("--kafka_keyfile", type=str,
+            help="Location of kafka ssl private key")
+        parser.add_argument("--kafka_certfile", type=str,
+            help="Location of kafka ssl host certificate")
+        parser.add_argument("--kafka_ca_cert", type=str,
+            help="Location of kafka ssl CA certificate")
         SandeshConfig.add_parser_arguments(parser)
         self._args = parser.parse_args(remaining_argv)
         if type(self._args.collectors) is str:
@@ -261,6 +278,14 @@ class CfgParser(object):
 
     def kafka_prefix(self):
         return self._args.cluster_id
+
+    def kafka_use_ssl(self):
+        return self._args.kafka_ssl_enable
+
+    def kafka_ssl_params(self):
+        return {'ssl_keyfile': self._args.kafka_keyfile,
+                'ssl_certfile': self._args.kafka_certfile,
+                'ssl_cafile': self._args.kafka_ca_cert}
 
     def rabbitmq_params(self):
         return {'servers': self._args.rabbitmq_server_list,

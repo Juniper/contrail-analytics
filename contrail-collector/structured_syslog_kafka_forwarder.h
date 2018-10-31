@@ -8,6 +8,7 @@
 #include <string>
 #include <librdkafka/rdkafkacpp.h>
 #include "io/event_manager.h"
+#include "options.h"
 
 class KafkaForwarder {
     public:
@@ -20,7 +21,8 @@ class KafkaForwarder {
 
         KafkaForwarder(EventManager *evm,
                      const std::string brokers,
-                     const std::string topic, 
+                     const std::string topic,
+                     const Options::Kafka& kafka_options,
                      uint16_t partitions);
 
         void Shutdown();
@@ -37,6 +39,10 @@ class KafkaForwarder {
         boost::shared_ptr<RdKafka::Producer> producer_;
         std::string brokers_;
         std::string topic_str_;
+        bool ssl_enable_;
+        std::string ssl_keyfile_;
+        std::string ssl_certfile_;
+        std::string ssl_cacert_;
         boost::shared_ptr<RdKafka::Topic> topic_;
         uint64_t kafka_elapsed_ms_;
         const uint64_t kafka_start_ms_;
