@@ -59,6 +59,7 @@ const std::vector<Sandesh::QueueWaterMarkInfo> Collector::kSmQueueWaterMarkInfo 
         (Collector::kQSizeLowWaterMark, SandeshLevel::INVALID, false, true);
 
 Collector::Collector(EventManager *evm, short server_port,
+        const std::string& server_ip,
         const SandeshConfig &sandesh_config, DbHandlerPtr db_handler,
         OpServerProxy *osp, VizCallback cb) :
         SandeshServer(evm, sandesh_config),
@@ -68,7 +69,7 @@ Collector::Collector(EventManager *evm, short server_port,
         cb_(cb),
         db_queue_wm_info_(kDbQueueWaterMarkInfo),
         sm_queue_wm_info_(kSmQueueWaterMarkInfo) {
-    SandeshServer::Initialize(server_port);
+    SandeshServer::Initialize(server_port, server_ip);
 
     Module::type module = Module::COLLECTOR;
     string module_name = g_vns_constants.ModuleNames.find(module)->second;

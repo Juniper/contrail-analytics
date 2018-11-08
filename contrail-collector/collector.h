@@ -62,6 +62,7 @@ public:
         GenDb::GenDbIf::DbAddColumnCb db_cb)> VizCallback;
 
     Collector(EventManager *evm, short server_port,
+              const std::string& server_ip,
               const SandeshConfig &sandesh_config,
               DbHandlerPtr db_handler, OpServerProxy *osp,
               VizCallback cb);
