@@ -167,11 +167,11 @@ In vns.sandesh, the Sandesh port for ```analytics-alarm-nodemgr``` and ```analyt
 ```
 const u16 HttpPortAnalyticsAlarmNodemgr = 8113
 const u16 HttpPortAnalyticsSNMPNodemgr = 8114
+```
 
 ### 4.1.6 Changes in Other Deployers
 Other deployers like contrail-helm-deployer, openshift-ansible, tripleo, also need to have similar changes.
 
-```
 # 5 Performance and Scaling Impact
 None
 
