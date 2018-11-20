@@ -164,14 +164,15 @@ ANALYTICS_SNMP_NODE_MGR
 ### 4.1.5 Changes in Sandesh
 In viz.sandesh, two Object tables are created, ```ObjectAnalyticsAlarmInfo``` and ```ObjectAnalyticsSNMPInfo```
 In vns.sandesh, the Sandesh port for ```analytics-alarm-nodemgr``` and ```analytics-snmp-nodemgr``` are defined as below:
+
 ```
 const u16 HttpPortAnalyticsAlarmNodemgr = 8113
 const u16 HttpPortAnalyticsSNMPNodemgr = 8114
+```
 
 ### 4.1.6 Changes in Other Deployers
 Other deployers like contrail-helm-deployer, openshift-ansible, tripleo, also need to have similar changes.
 
-```
 # 5 Performance and Scaling Impact
 None
 
