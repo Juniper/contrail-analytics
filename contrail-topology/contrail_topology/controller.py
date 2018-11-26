@@ -26,7 +26,11 @@ class PRouter(object):
 class Controller(object):
     def __init__(self, config):
         self._config = config
-        self._hostname = socket.getfqdn()
+        if 'host_ip' in self._config._args:
+            host_ip = self._config._args.host_ip
+        else:
+            host_ip = socket.gethostbyname(socket.getfqdn())
+        self._hostname = socket.getfqdn(host_ip)
         self.analytic_api = AnalyticApiClient(self._config)
         self._config.random_collectors = self._config.collectors()
         self._chksum = ""
@@ -45,7 +49,8 @@ class Controller(object):
         self._vrouter_l2ifs = {}
         self._old_vrouter_l2ifs = {}
         self._config_handler = TopologyConfigHandler(self._sandesh,
-            self._config.rabbitmq_params(), self._config.cassandra_params())
+            self._config.rabbitmq_params(), self._config.cassandra_params(),
+            host_ip)
         self.constnt_schdlr = ConsistentScheduler(self.uve._moduleid,
             zookeeper=self._config.zookeeper_server(),
             delete_hndlr=self._del_uves, logger=self._logger,

@@ -15,11 +15,12 @@ class SnmpConfigHandler(ConfigHandler):
         }
     }
 
-    def __init__(self, sandesh, rabbitmq_cfg, cassandra_cfg):
+    def __init__(self, sandesh, rabbitmq_cfg, cassandra_cfg, host_ip):
         service_id = sandesh.source_id()+':'+sandesh.module()+':'+ \
             sandesh.instance_id()
         super(SnmpConfigHandler, self).__init__(sandesh, service_id,
-              rabbitmq_cfg, cassandra_cfg, DBBaseSC, self.REACTION_MAP)
+              rabbitmq_cfg, cassandra_cfg, DBBaseSC, self.REACTION_MAP,
+              host_ip)
     # end __init__
 
     def get_physical_routers(self):

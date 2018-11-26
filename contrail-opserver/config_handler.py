@@ -15,7 +15,7 @@ from analytics_logger import AnalyticsLogger
 class ConfigHandler(object):
 
     def __init__(self, sandesh, service_id, rabbitmq_cfg, cassandra_cfg,
-                 db_cls, reaction_map):
+                 db_cls, reaction_map, host_ip):
         self._sandesh = sandesh
         self._logger = AnalyticsLogger(self._sandesh)
         self._service_id = service_id
@@ -25,6 +25,7 @@ class ConfigHandler(object):
         self._reaction_map = reaction_map
         self._vnc_amqp = None
         self._vnc_db = None
+        self.host_ip = host_ip
     # end __init__
 
     # Public methods
@@ -36,7 +37,7 @@ class ConfigHandler(object):
             try:
                 self._vnc_amqp = VncAmqpHandle(self._sandesh, self._logger,
                     self._db_cls, self._reaction_map, self._service_id,
-                    self._rabbitmq_cfg)
+                    self._rabbitmq_cfg, self.host_ip)
                 self._vnc_amqp.establish()
             except Exception as e:
                 template = 'Exception {0} connecting to Rabbitmq. Arguments:\n{1!r}'
