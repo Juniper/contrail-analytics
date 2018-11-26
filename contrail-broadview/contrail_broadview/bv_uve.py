@@ -42,7 +42,11 @@ class BroadViewOL(object):
         self._moduleid = ModuleNames[module]
         node_type = Module2NodeType[module]
         self._node_type_name = NodeTypeNames[node_type]
-        self._hostname = socket.getfqdn()
+        if 'host_ip' in self._conf._args:
+            host_ip = self._conf._args.host_ip
+        else:
+            host_ip = socket.gethostbyname(socket.getfqdn())
+        self._hostname = socket.getfqdn(host_ip)
         self._instance_id = '0'
         sandesh_global.init_generator(self._moduleid, self._hostname,
                                       self._node_type_name,
