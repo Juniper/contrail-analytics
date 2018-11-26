@@ -56,9 +56,13 @@ class Controller(object):
              self._chksum = hashlib.md5("".join(self._config.collectors())).hexdigest()
              self._config.random_collectors = random.sample(self._config.collectors(), \
                                                             len(self._config.collectors()))
+        if 'host_ip' in self._config._args:
+            host_ip = self._config._args.host_ip
+        else:
+            host_ip = socket.gethostbyname(socket.getfqdn())
         self.uve = SnmpUve(self._config)
         self._sandesh = self.uve.sandesh_instance()
-        self._hostname = socket.getfqdn()
+        self._hostname = socket.getfqdn(host_ip)
         self._logger = self.uve.logger()
         self.sleep_time()
         self.last = set()
