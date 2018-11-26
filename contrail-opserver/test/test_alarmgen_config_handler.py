@@ -682,7 +682,8 @@ class TestAlarmGenConfigHandler(unittest.TestCase):
             sandesh=sandesh_instance, module_id='test',
             instance_id='0', rabbitmq_cfg=None, cassandra_cfg=None,
             alarm_plugins={},
-            alarm_config_change_callback=mock_alarm_config_change_callback)
+            alarm_config_change_callback=mock_alarm_config_change_callback,
+            host_ip=None)
         config_db = alarmgen_config_handler.config_db()
         alarm_config_db = alarmgen_config_handler.alarm_config_db()
         for test in tests:
