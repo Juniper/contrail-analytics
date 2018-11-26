@@ -869,7 +869,7 @@ class Controller(object):
         node_type = Module2NodeType[module]
         self._node_type_name = NodeTypeNames[node_type]
         self.table = "ObjectCollectorInfo"
-        self._hostname = socket.getfqdn()
+        self._hostname = socket.getfqdn(self._conf.host_ip())
         self._instance_id = self._conf.worker_id()
         self._disable_cb = False
 
@@ -1018,7 +1018,7 @@ class Controller(object):
         self._config_handler = AlarmGenConfigHandler(self._sandesh,
             self._moduleid, self._instance_id, self._conf.rabbitmq_params(),
             self._conf.cassandra_params(), self.mgrs,
-            self.alarm_config_change_callback)
+            self.alarm_config_change_callback, self._conf.host_ip())
 
         PartitionOwnershipReq.handle_request = self.handle_PartitionOwnershipReq
         PartitionStatusReq.handle_request = self.handle_PartitionStatusReq
