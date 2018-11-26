@@ -20,7 +20,7 @@ class PRouter(object):
 class Controller(object):
     def __init__(self, config):
         self._config = config
-        self._me = socket.getfqdn() + ':' + str(os.getpid())
+        self._me = socket.getfqdn(self._config.host_ip()) + ':' + str(os.getpid())
         self.ol = BroadViewOL(self._config)
         self.bv_api = BroadviewApiClient(self.ol)
         self.sleep_time()

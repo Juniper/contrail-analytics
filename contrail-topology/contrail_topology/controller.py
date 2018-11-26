@@ -26,7 +26,7 @@ class PRouter(object):
 class Controller(object):
     def __init__(self, config):
         self._config = config
-        self._hostname = socket.getfqdn()
+        self._hostname = socket.getfqdn(self._config.host_ip())
         self.analytic_api = AnalyticApiClient(self._config)
         self._config.random_collectors = self._config.collectors()
         self._chksum = ""
