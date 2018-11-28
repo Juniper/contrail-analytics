@@ -800,7 +800,7 @@ class AnalyticsFixture(fixtures.Fixture):
             return False
 
         self.logger.info("Src Name is %s" % src)
-        if src == socket.gethostname():
+        if src == socket.getfqdn('127.0.0.1'):
             return True
         else:
             return False
