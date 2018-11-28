@@ -50,7 +50,7 @@ class GeneratorFixture(fixtures.Fixture):
 
     def __init__(self, name, collectors, logger, opserver_port,
                  start_time=None, node_type="Test",
-                 hostname=socket.gethostname(), inst = "0",
+                 hostname=socket.getfqdn("127.0.0.1"), inst = "0",
                  sandesh_config=None):
         self._hostname = hostname
         self._name = name
@@ -282,15 +282,15 @@ class GeneratorFixture(fixtures.Fixture):
                 'Sent UveVirtualNetworkAgentTrace:%s .. %d .. size %d' % (vn_id, num, len(vn_agent.vn_stats)))
 
     def generate_intervn(self):
-        self.send_vn_uve(socket.gethostname(), 0, 2)
+        self.send_vn_uve(socket.getfqdn("127.0.0.1"), 0, 2)
         time.sleep(1)
-        self.send_vn_uve(socket.gethostname(), 1, 3)
+        self.send_vn_uve(socket.getfqdn("127.0.0.1"), 1, 3)
         time.sleep(1)
-        self.send_vn_uve(socket.gethostname(), 0, 3)
+        self.send_vn_uve(socket.getfqdn("127.0.0.1"), 0, 3)
         time.sleep(1)
 
         self.vn_all_rows = {}
-        self.vn_all_rows['whereclause'] = 'vn_stats.vrouter=' + socket.gethostname()
+        self.vn_all_rows['whereclause'] = 'vn_stats.vrouter=' + socket.getfqdn("127.0.0.1")
         self.vn_all_rows['rows'] = 8
 
         self.vn_sum_rows = {}

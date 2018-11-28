@@ -78,7 +78,7 @@ class Collector(object):
         self.protobuf_port = protobuf_port
         self.http_port = 0
         self.listen_port = 0
-        self.hostname = socket.gethostname()
+        self.hostname = socket.getfqdn("127.0.0.1")
         self._instance = None
         self._redis_uve = redis_uve
         self._logger = logger
@@ -221,7 +221,7 @@ class AlarmGen(object):
         self.http_port = 0
         self.kafka_port = kafka_port
         self._zoo = zoo
-        self.hostname = socket.gethostname()
+        self.hostname = socket.getfqdn("127.0.0.1")
         self.sandesh_config = sandesh_config
         self._instance = None
         self._logger = logger
@@ -333,7 +333,7 @@ class OpServer(object):
         self.collectors = collectors
         self.analytics_fixture = analytics_fixture
         self.http_port = 0
-        self.hostname = socket.gethostname()
+        self.hostname = socket.getfqdn("127.0.0.1")
         self._zoo = zoo
         self._instance = None
         self._logger = logger
@@ -453,7 +453,7 @@ class QueryEngine(object):
         self.analytics_fixture = analytics_fixture
         self.listen_port = AnalyticsFixture.get_free_port()
         self.http_port = 0
-        self.hostname = socket.gethostname()
+        self.hostname = socket.getfqdn("127.0.0.1")
         self._instance = None
         self._logger = logger
         self.redis_password = None
@@ -800,7 +800,7 @@ class AnalyticsFixture(fixtures.Fixture):
             return False
 
         self.logger.info("Src Name is %s" % src)
-        if src == socket.gethostname():
+        if src == socket.getfqdn('127.0.0.1'):
             return True
         else:
             return False
@@ -898,7 +898,7 @@ class AnalyticsFixture(fixtures.Fixture):
                              start_time='-10m', end_time='now',
                              select_fields=["ObjectLog"],
                              where_clause=str(
-                                 'ObjectId=' + socket.gethostname()),
+                                 'ObjectId=' + socket.getfqdn("127.0.0.1")),
                              sync=False)
         self.logger.info("res %s" % str(res))
         if res == []:
@@ -1034,7 +1034,7 @@ class AnalyticsFixture(fixtures.Fixture):
         vns = VerificationOpsSrv('127.0.0.1', self.opserver_port,
             self.admin_user, self.admin_password)
         where_clause1 = "ModuleId = contrail-query-engine"
-        where_clause2 = str("Source =" + socket.gethostname())
+        where_clause2 = str("Source =" + socket.getfqdn("127.0.0.1"))
         res = vns.post_query(
             MESSAGE_TABLE,
             start_time='-10m', end_time='now',
@@ -1058,7 +1058,7 @@ class AnalyticsFixture(fixtures.Fixture):
         vns = VerificationOpsSrv('127.0.0.1', self.opserver_port,
             self.admin_user, self.admin_password)
         where_clause1 = "ModuleId = contrail-query-engine"
-        where_clause2 = str("Source =" + socket.gethostname())
+        where_clause2 = str("Source =" + socket.getfqdn())
         res = vns.post_query(
             MESSAGE_TABLE,
             start_time='-10m', end_time='now',
@@ -1080,7 +1080,7 @@ class AnalyticsFixture(fixtures.Fixture):
         self.logger.info('verify_message_table_where_prefix')
         vns = VerificationOpsSrv('127.0.0.1', self.opserver_port,
             self.admin_user, self.admin_password)
-        prefix_key_value_map = {'Source': socket.gethostname()[:-1],
+        prefix_key_value_map = {'Source': socket.getfqdn("127.0.0.1")[:-1],
             'ModuleId': 'contrail-', 'Messagetype': 'Collector'}
         for key, value in prefix_key_value_map.iteritems():
             self.logger.info('verify where_prefix: %s = %s*' % (key, value))
@@ -1101,7 +1101,7 @@ class AnalyticsFixture(fixtures.Fixture):
         vns = VerificationOpsSrv('127.0.0.1', self.opserver_port,
             self.admin_user, self.admin_password)
         where_clause1 = "ModuleId = contrail-query-engine"
-        where_clause2 = str("Source =" + socket.gethostname())
+        where_clause2 = str("Source =" + socket.getfqdn("127.0.0.1"))
         res = vns.post_query(MESSAGE_TABLE,
                              start_time='-10m', end_time='now',
                              select_fields=["ModuleId"],
@@ -1176,7 +1176,7 @@ class AnalyticsFixture(fixtures.Fixture):
         vns = VerificationOpsSrv('127.0.0.1', self.opserver_port,
             self.admin_user, self.admin_password)
         where_clause1 = "ModuleId = contrail-query-engine"
-        where_clause2 = str("Source =" + socket.gethostname())
+        where_clause2 = str("Source =" + socket.getfqdn("127.0.0.1"))
 
         exp_moduleids = ['contrail-analytics-api',
                          'contrail-collector', 'contrail-query-engine']

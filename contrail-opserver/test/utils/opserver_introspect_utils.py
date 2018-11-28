@@ -91,7 +91,7 @@ class VerificationOpsSrv (IntrospectUtilBase):
 
     def get_ops_collector(self, col=None):
         if (col is None):
-            col = socket.gethostname()
+            col = socket.getfqdn("127.0.0.1")
         res = None
         try:
             col_dict = self.dict_get('analytics/uves/analytics-node/' + col,

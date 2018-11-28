@@ -24,7 +24,7 @@ from opserver_introspect_utils import VerificationOpsSrv
 class StatsFixture(fixtures.Fixture):
 
     def __init__(self, name, collectors, logger,
-                 opserver_port, start_time=None, node_type="Test", hostname=socket.gethostname()):
+                 opserver_port, start_time=None, node_type="Test", hostname=socket.getfqdn("127.0.0.1")):
         #import pdb; pdb.set_trace()
         self._hostname = hostname
         self._name = name
