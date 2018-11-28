@@ -310,9 +310,9 @@ int main(int argc, char *argv[])
     std::string hostname;
     boost::system::error_code error;
     if (options.dup()) {
-        hostname = ResolveCanonicalName() + "dup";
+        hostname = ResolveCanonicalName(options.host_ip()) + "dup";
     } else {
-        hostname = ResolveCanonicalName();
+        hostname = ResolveCanonicalName(options.host_ip());
     }
 
     // Determine if the number of connections is expected:

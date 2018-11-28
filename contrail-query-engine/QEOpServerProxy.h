@@ -51,7 +51,8 @@ public:
     QEOpServerProxy(EventManager *evm, QueryEngine *qe,
             std::vector<std::string> redis_ip_ports,
             const std::string & redis_password,
-            int max_chunks = nMaxChunks, int max_rows = nMaxRows);
+            int max_chunks = nMaxChunks, int max_rows = nMaxRows,
+	    std::string host_ip);
     virtual ~QEOpServerProxy();
 
     // When the result of a Query is available, the client should

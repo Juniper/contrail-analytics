@@ -60,7 +60,8 @@ public:
             std::string host_ip);
     VizCollector(EventManager *evm, DbHandlerPtr db_handler,
                  Ruleeng *ruleeng,
-                 Collector *collector, OpServerProxy *osp);
+                 Collector *collector, OpServerProxy *osp,
+		 std::string host_ip);
     ~VizCollector();
 
     std::string name() { return name_; }
@@ -141,7 +142,7 @@ public:
     void AddNodeToZooKeeper();
     void DelNodeFromZoo();
 private:
-    std::string DbGlobalName(bool dup=false);
+    std::string DbGlobalName(bool dup=false, std::string host_ip);
     void DbInitializeCb();
     boost::scoped_ptr<DbHandlerInitializer> db_initializer_;
     boost::scoped_ptr<OpServerProxy> osp_;

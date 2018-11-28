@@ -47,8 +47,8 @@ bool Options::Parse(EventManager &evm, int argc, char *argv[]) {
 void Options::Initialize(EventManager &evm,
                          opt::options_description &cmdline_options) {
     boost::system::error_code error;
-    string hostname = ResolveCanonicalName();
     string host_ip = GetHostIp(evm.io_service(), hostname);
+    string hostname = ResolveCanonicalName(host_ip);
 
     if (host_ip.empty()) {
         cout << "Error! Cannot resolve host " << hostname <<

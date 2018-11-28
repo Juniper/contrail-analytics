@@ -286,13 +286,13 @@ void Collector::DisconnectSession(SandeshSession *session) {
     gen->DisconnectSession(vsession);
 }
 
-std::string Collector::DbGlobalName(bool dup) {
+std::string Collector::DbGlobalName(bool dup, std::string host_ip) {
     std::string name;
     error_code error;
     if (dup)
-        name = ResolveCanonicalName() + "dup" + ":" + "Global";
+        name = ResolveCanonicalName(host_ip) + "dup" + ":" + "Global";
     else
-        name = ResolveCanonicalName() + ":" + "Global";
+        name = ResolveCanonicalName(host_ip) + ":" + "Global";
 
     return name;
 }
