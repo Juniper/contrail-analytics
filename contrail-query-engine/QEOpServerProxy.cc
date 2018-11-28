@@ -1165,7 +1165,8 @@ private:
 
 QEOpServerProxy::QEOpServerProxy(EventManager *evm, QueryEngine *qe,
             vector<string> redis_ip_ports,
-            const string & redis_password, int max_tasks, int max_rows) :
+            const string & redis_password, std::string host_ip,
+	    int max_tasks, int max_rows) :
         evm_(evm),
         qe_(qe),
         impl_(new QEOpServerImpl(redis_ip_ports, redis_password, this,
