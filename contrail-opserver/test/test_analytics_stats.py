@@ -518,7 +518,7 @@ class StatsTest(testtools.TestCase, fixtures.TestWithFixtures):
 
     @staticmethod
     def _check_skip_test():
-        if (socket.gethostname() == 'build01'):
+        if (socket.getfqdn("127.0.0.1") == 'build01'):
             logging.info("Skipping test")
             return True
         return False

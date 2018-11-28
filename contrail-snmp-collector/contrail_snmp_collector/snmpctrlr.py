@@ -56,9 +56,13 @@ class Controller(object):
              self._chksum = hashlib.md5("".join(self._config.collectors())).hexdigest()
              self._config.random_collectors = random.sample(self._config.collectors(), \
                                                             len(self._config.collectors()))
-        self.uve = SnmpUve(self._config)
+        if 'host_ip' in self._config._args:
+            host_ip = self._config._args.host_ip
+        else:
+            host_ip = socket.gethostbyname(socket.getfqdn())
+        self.uve = SnmpUve(self._config, host_ip)
         self._sandesh = self.uve.sandesh_instance()
-        self._hostname = socket.getfqdn()
+        self._hostname = socket.getfqdn(host_ip)
         self._logger = self.uve.logger()
         self.sleep_time()
         self.last = set()
@@ -72,7 +76,8 @@ class Controller(object):
         self._partitions = None
         self._prouters = {}
         self._config_handler = SnmpConfigHandler(self._sandesh,
-            self._config.rabbitmq_params(), self._config.cassandra_params())
+            self._config.rabbitmq_params(), self._config.cassandra_params(),
+            host_ip)
         self._consistent_scheduler = ConsistentScheduler(self._config._name,
             zookeeper=self._config.zookeeper_server(),
             delete_hndlr=self._del_uves, logger=self._logger,
