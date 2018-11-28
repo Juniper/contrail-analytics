@@ -28,14 +28,14 @@ class SnmpUve(object):
                        'ifOutMulticastPkts'],
             )
 
-    def __init__(self, conf, instance='0'):
+    def __init__(self, conf, host_ip, instance='0'):
         self._conf = conf
         module = Module.CONTRAIL_SNMP_COLLECTOR
         self._moduleid = ModuleNames[module]
         node_type = Module2NodeType[module]
         self._node_type_name = NodeTypeNames[node_type]
         self.table = "ObjectCollectorInfo"
-        self._hostname = socket.getfqdn()
+        self._hostname = socket.getfqdn(host_ip)
         self._instance_id = instance
         sandesh_global.init_generator(self._moduleid, self._hostname,
                                       self._node_type_name, self._instance_id,

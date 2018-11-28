@@ -50,7 +50,7 @@ public:
     // when the OpServer issues a Query.
     QEOpServerProxy(EventManager *evm, QueryEngine *qe,
             std::vector<std::string> redis_ip_ports,
-            const std::string & redis_password,
+            const std::string & redis_password, const std::string &host_ip,
             int max_chunks = nMaxChunks, int max_rows = nMaxRows);
     virtual ~QEOpServerProxy();
 

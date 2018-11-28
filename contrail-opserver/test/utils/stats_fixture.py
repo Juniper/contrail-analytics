@@ -24,7 +24,7 @@ from opserver_introspect_utils import VerificationOpsSrv
 class StatsFixture(fixtures.Fixture):
 
     def __init__(self, name, collectors, logger,
-                 opserver_port, start_time=None, node_type="Test", hostname=socket.gethostname()):
+                 opserver_port, start_time=None, node_type="Test", hostname=socket.getfqdn("127.0.0.1")):
         #import pdb; pdb.set_trace()
         self._hostname = hostname
         self._name = name
@@ -55,7 +55,7 @@ class StatsFixture(fixtures.Fixture):
     @retry(delay=2, tries=5)
     def verify_on_setup(self):
         try:
-            vg = VerificationGenerator('127.0.0.1', self._http_port)
+            vg = VerificationGenerator(socket.getfqdn("127.0.0.1"), self._http_port)
             conn_status = vg.get_collector_connection_status()
         except:
             return False
@@ -147,7 +147,7 @@ class StatsFixture(fixtures.Fixture):
                          check_rows = None, check_uniq = None, 
                          sort_fields=None, filt=None):
         self._logger.info("verify_test_stat")
-        vns = VerificationOpsSrv('127.0.0.1', self._opserver_port)
+        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1"), self._opserver_port)
         res = vns.post_query(table, start_time=stime, end_time='now',
                              select_fields=select_fields,
                              where_clause=where_clause,
