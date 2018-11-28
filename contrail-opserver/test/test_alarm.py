@@ -9,6 +9,7 @@ import time
 from gevent import monkey; monkey.patch_all()
 import json
 import signal
+import socket
 import copy
 import logging
 import mock
@@ -189,11 +190,11 @@ class TestUveStreamer(unittest.TestCase, TestChecker):
         self.ustr = UveStreamer(logging, None, None, self.mock_agp, None,\
                 None, None, None, Mock_usp)
         self.ustr.start()
-        self.mock_agp[0] = PartInfo(ip_address = "127.0.0.1", 
+        self.mock_agp[0] = PartInfo(ip_address = socket.getfqdn("127.0.0.1"), 
                                     acq_time = 666,
                                     instance_id = "0",
                                     port = 6379)
-        self.mock_agp[1] = PartInfo(ip_address = "127.0.0.1", 
+        self.mock_agp[1] = PartInfo(ip_address = socket.getfqdn("127.0.0.1"), 
                                     acq_time = 777,
                                     instance_id = "0",
                                     port = 6379)
@@ -272,8 +273,8 @@ class TestAlarmGen(unittest.TestCase, TestChecker):
     
     def setUp(self):
         config = CfgParser('--http_server_port 0 '
-                           '--zk_list 127.0.0.1:0 '
-                           '--redis_uve_list 127.0.0.1:0 '
+                           '--zk_list '+socket.getfqdn("127.0.0.1")+':0 '
+                           '--redis_uve_list '+socket.getfqdn("127.0.0.1")+':0 '
                            '--redis_server_port 0')
         config.parse()
         self._ag = Controller(config, logging)
@@ -380,7 +381,7 @@ class TestAlarmGen(unittest.TestCase, TestChecker):
             mock_send_agg_uve, mock_clear_agg_uve, mock_reconnect_agg_uve):
 
         m_get_part = Mock_get_part() 
-        m_get_part[(1,("127.0.0.1",0,0))] = "127.0.0.1:0", \
+        m_get_part[(1,(socket.getfqdn("127.0.0.1"),0,0))] = socket.getfqdn("127.0.0.1") + ":0", \
             { "gen1" :
                 { "ObjectXX:uve1" : {"type1":{}}  }}
         mock_get_part.side_effect = m_get_part
@@ -390,7 +391,7 @@ class TestAlarmGen(unittest.TestCase, TestChecker):
         mock_get_uve.side_effect = m_get_uve
 
         m_redis_instances = Mock_redis_instances()
-        m_redis_instances[("127.0.0.1",0)] = 0
+        m_redis_instances[(socket.getfqdn("127.0.0.1"),0)] = 0
         mock_redis_instances.side_effect = m_redis_instances
 
         m_poll = Mock_poll()
@@ -424,7 +425,7 @@ class TestAlarmGen(unittest.TestCase, TestChecker):
             mock_send_agg_uve, mock_clear_agg_uve, mock_reconnect_agg_uve):
 
         m_get_part = Mock_get_part() 
-        m_get_part[(1,("127.0.0.1",0,0))] = "127.0.0.1:0", \
+        m_get_part[(1,(socket.getfqdn("127.0.0.1"),0,0))] = socket.getfqdn("127.0.0.1")+":0", \
             { "gen1" :
                 { "ObjectXX:uve1" : {"type1":{}}  }}
         mock_get_part.side_effect = m_get_part
@@ -435,13 +436,13 @@ class TestAlarmGen(unittest.TestCase, TestChecker):
         mock_get_uve.side_effect = m_get_uve
 
         m_redis_instances = Mock_redis_instances()
-        m_redis_instances[("127.0.0.1",0)] = 0
+        m_redis_instances[(socket.getfqdn("127.0.0.1"),0)] = 0
         mock_redis_instances.side_effect = m_redis_instances
 
         m_poll = Mock_poll()
         m_poll["ObjectYY:uve2"] = ConsumerRecord(topic='-uve',
                     partition=0, offset=0,
-                    key='ObjectYY:uve2|type2|gen1|127.0.0.1:0',
+                    key='ObjectYY:uve2|type2|gen1|'+socket.getfqdn("127.0.0.1")+':0',
                     value='{}')
         mock_KafkaConsumer.return_value.poll.side_effect = \
             m_poll
@@ -468,7 +469,7 @@ class TestAlarmGen(unittest.TestCase, TestChecker):
             mock_send_agg_uve, mock_clear_agg_uve, mock_reconnect_agg_uve):
 
         m_get_part = Mock_get_part() 
-        m_get_part[(1,("127.0.0.1",0,0))] = "127.0.0.1:0", \
+        m_get_part[(1,(socket.getfqdn("127.0.0.1"),0,0))] = socket.getfqdn("127.0.0.1")+":0", \
             { "gen1" :
                 { "ObjectXX:uve1" : { "type1":{} } }}
         m_get_part[(1,("127.0.0.5",0,0))] = "127.0.0.5:0", \
@@ -483,7 +484,7 @@ class TestAlarmGen(unittest.TestCase, TestChecker):
         mock_get_uve.side_effect = m_get_uve
 
         m_redis_instances = Mock_redis_instances()
-        m_redis_instances[("127.0.0.1",0)] = 0
+        m_redis_instances[(socket.getfqdn("127.0.0.1"),0)] = 0
         mock_redis_instances.side_effect = m_redis_instances
 
         # When this message is read, 127.0.0.5 will not be present
@@ -514,7 +515,7 @@ class TestAlarmGen(unittest.TestCase, TestChecker):
         # Withdraw collector 127.0.0.1
         self.assertTrue(self.checker_dict([1, "ObjectXX", "uve1"], self._ag.ptab_info))
         del m_get_uve["ObjectXX:uve1"]
-        del m_redis_instances[("127.0.0.1",0)]
+        del m_redis_instances[(socket.getfqdn("127.0.0.1"),0)]
         self.assertTrue(self.checker_dict([1, "ObjectXX", "uve1"], self._ag.ptab_info, False))
 
     @mock.patch('opserver.alarmgen.AlarmTrace', autospec=True)

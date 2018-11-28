@@ -1087,8 +1087,8 @@ public:
 
     QEOpServerImpl(vector<string> redis_ip_ports,
                    const string & redis_password, QEOpServerProxy * qosp,
-                   int max_tasks, int max_rows) :
-            hostname_(ResolveCanonicalName()),
+                   int max_tasks, int max_rows, const string &host_ip) :
+            hostname_(ResolveCanonicalName(host_ip)),
             redis_password_(redis_password),
             qosp_(qosp),
             max_tasks_(max_tasks),
@@ -1165,11 +1165,12 @@ private:
 
 QEOpServerProxy::QEOpServerProxy(EventManager *evm, QueryEngine *qe,
             vector<string> redis_ip_ports,
-            const string & redis_password, int max_tasks, int max_rows) :
+            const string & redis_password, const std::string &host_ip,
+            int max_tasks, int max_rows) :
         evm_(evm),
         qe_(qe),
         impl_(new QEOpServerImpl(redis_ip_ports, redis_password, this,
-            max_tasks, max_rows)) {}
+            max_tasks, max_rows, host_ip)) {}
 
 QEOpServerProxy::~QEOpServerProxy() {}
 
