@@ -47,7 +47,7 @@ class BroadViewOL(object):
         sandesh_global.init_generator(self._moduleid, self._hostname,
                                       self._node_type_name,
                                       self._instance_id,
-                                      self._conf.collectors(), 
+                                      self._conf.collectors(),
                                       self._node_type_name,
                                       self._conf.http_port(),
                                       ['contrail_broadview.gen_py'],

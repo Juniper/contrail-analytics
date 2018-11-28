@@ -335,7 +335,8 @@ main(int argc, char *argv[]) {
             max_tasks,
             options.max_slice(),
             options.cassandra_user(),
-            options.cassandra_password()));
+            options.cassandra_password(),
+	    options.host_ip()));
     } else {
         qe.reset(new QueryEngine(&evm,
             cassandra_ips,
@@ -346,7 +347,8 @@ main(int argc, char *argv[]) {
             options.max_slice(),
             options.cassandra_user(),
             options.cassandra_password(),
-            options.cluster_id()));
+            options.cluster_id(),
+	    options.host_ip()));
     }
     QESandeshContext qec(qe.get());
     Sandesh::set_client_context(&qec);
