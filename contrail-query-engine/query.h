@@ -985,14 +985,16 @@ public:
             int max_tasks, int max_slice,
             const std::string & cassandra_name,
             const std::string & cassandra_password,
-            const std::string & cluster_id);
+            const std::string & cluster_id,
+            std::string host_ip);
 
     QueryEngine(EventManager *evm,
             std::vector<std::string> redis_ip_ports,
             const std::string & redis_password, int max_tasks,
             int max_slice,
             const std::string  & cassandra_user,
-            const std::string  & cassandra_password);
+            const std::string  & cassandra_password,
+            std::string host_ip);
 
     // This constructor used only for test purpose
     QueryEngine(){}
