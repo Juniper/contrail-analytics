@@ -63,7 +63,8 @@ VizCollector::VizCollector(EventManager *evm, unsigned short listen_port,
          kafka_options)),
     redis_gen_(0), partitions_(partitions) {
     if (!cassandra_options.cassandra_ips_.empty()) {
-        db_initializer_.reset(new DbHandlerInitializer(evm, DbGlobalName(dup),
+        db_initializer_.reset(new DbHandlerInitializer(evm,
+            DbGlobalName(dup, host_ip),
             std::string("collector:DbIf"),
             boost::bind(&VizCollector::DbInitializeCb, this),
             cassandra_options,
@@ -84,9 +85,9 @@ VizCollector::VizCollector(EventManager *evm, unsigned short listen_port,
 
     error_code error;
     if (dup)
-        name_ = ResolveCanonicalName() + "dup";
+        name_ = ResolveCanonicalName(host_ip) + "dup";
     else
-        name_ = ResolveCanonicalName();
+        name_ = ResolveCanonicalName(host_ip);
     if (protobuf_collector_enabled) {
         protobuf_collector_.reset(new ProtobufCollector(evm,
             protobuf_listen_port, protobuf_schema_file_directory,
@@ -105,16 +106,17 @@ VizCollector::VizCollector(EventManager *evm, unsigned short listen_port,
 
     host_ip_ = host_ip;
     if (use_zookeeper) {
-        std::string hostname = ResolveCanonicalName();
+        std::string hostname = ResolveCanonicalName(host_ip);
         zoo_client_.reset(new ZookeeperClient(hostname.c_str(),
             zookeeper_server_list.c_str()));
-        AddNodeToZooKeeper();
+        AddNodeToZooKeeper(host_ip_);
     }
 }
 
 VizCollector::VizCollector(EventManager *evm, DbHandlerPtr db_handler,
-        Ruleeng *ruleeng, Collector *collector, OpServerProxy *osp) :
-    db_initializer_(new DbHandlerInitializer(evm, DbGlobalName(false),
+        Ruleeng *ruleeng, Collector *collector, OpServerProxy *osp,
+        const std::string &host_ip) :
+    db_initializer_(new DbHandlerInitializer(evm, DbGlobalName(false, host_ip),
         std::string("collector::DbIf"),
         boost::bind(&VizCollector::DbInitializeCb, this),
         db_handler)),
@@ -123,14 +125,15 @@ VizCollector::VizCollector(EventManager *evm, DbHandlerPtr db_handler,
     collector_(collector),
     redis_gen_(0), partitions_(0) {
     error_code error;
-    name_ = ResolveCanonicalName();
+    name_ = ResolveCanonicalName(host_ip);
 }
 
 VizCollector::~VizCollector() {
 }
 
-std::string VizCollector::DbGlobalName(bool dup) {
-    return Collector::DbGlobalName(dup);
+std::string VizCollector::DbGlobalName(bool dup,
+    const std::string &host_ip) {
+    return Collector::DbGlobalName(dup, host_ip);
 }
 
 bool VizCollector::SendRemote(const string& destination,
@@ -271,9 +274,9 @@ bool VizCollector::GetCqlMetrics(cass::cql::Metrics *metrics) {
     return db_handler->GetCqlMetrics(metrics);
 }
 
-void VizCollector::AddNodeToZooKeeper() {
+void VizCollector::AddNodeToZooKeeper(const std::string &host_ip) {
     error_code error;
-    std::string hostname = ResolveCanonicalName();
+    std::string hostname = ResolveCanonicalName(host_ip);
     std::string path = "/analytics-discovery-";
     zoo_client_->CreateNode(path.c_str(),
                                     hostname.c_str(),
