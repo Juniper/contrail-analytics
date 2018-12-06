@@ -56,9 +56,11 @@ VizCollector::VizCollector(EventManager *evm, unsigned short listen_port,
             const DbWriteOptions &db_write_options,
             const SandeshConfig &sandesh_config,
             ConfigClientCollector *config_client,
-            std::string host_ip) :
+            std::string host_ip,
+            const Options::Kafka &kafka_options) :
     osp_(new OpServerProxy(evm, this, redis_uve_ip, redis_uve_port,
-         redis_password, aggconf, brokers, partitions, kafka_prefix)),
+         redis_password, aggconf, brokers, partitions, kafka_prefix,
+         kafka_options)),
     redis_gen_(0), partitions_(partitions) {
     if (!cassandra_options.cassandra_ips_.empty()) {
         db_initializer_.reset(new DbHandlerInitializer(evm, DbGlobalName(dup),
@@ -96,6 +98,7 @@ VizCollector::VizCollector(EventManager *evm, unsigned short listen_port,
             structured_syslog_kafka_broker,
             structured_syslog_kafka_topic,
             structured_syslog_kafka_partitions,
+            kafka_options,
             db_initializer_?db_initializer_->GetDbHandler():DbHandlerPtr(),
             config_client));
     }

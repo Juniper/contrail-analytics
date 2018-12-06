@@ -407,7 +407,8 @@ int main(int argc, char *argv[])
             options.get_db_write_options(),
             options.sandesh_config(),
             config_client,
-            options.host_ip());
+            options.host_ip(),
+            options.get_kafka_options());
 
     config_client->Init();
     analytics->Init();

@@ -689,7 +689,8 @@ class UveStreamer(gevent.Greenlet):
         del self._parts[partno]
 
 class PartitionHandler(gevent.Greenlet):
-    def __init__(self, brokers, group, topic, logger, limit):
+    def __init__(self, brokers, group, topic, logger, limit, kafka_use_ssl,
+                 kafka_ssl_params):
         gevent.Greenlet.__init__(self)
         self._brokers = brokers
         self._group = group
@@ -700,6 +701,8 @@ class PartitionHandler(gevent.Greenlet):
         self._partoffset = 0
         self._kfk = None
         self._failed = False
+        self._kafka_use_ssl = kafka_use_ssl
+        self._kafka_ssl_params = kafka_ssl_params
 
     def failed(self):
         return self._failed
@@ -723,9 +726,17 @@ class PartitionHandler(gevent.Greenlet):
                 self._logger.error("Newer KafkaClient %s" % self._topic)
                 self._failed = False
                 try:
-                    consumer = KafkaConsumer(
-                         bootstrap_servers=self._brokers.split(','),
-                         group_id=None)
+                    if not self._kafka_use_ssl:
+                        consumer = KafkaConsumer(
+                             bootstrap_servers=self._brokers.split(','),
+                             group_id=None)
+                    else:
+                        consumer = KafkaConsumer(
+                             bootstrap_servers=self._brokers.split(','),
+                             group_id=None,
+                             security_protocol='SSL',
+                             ssl_check_hostname=False,
+                             **self._kafka_ssl_params)
                     consumer.assign([common.TopicPartition(self._topic,0)])
                 except Exception as ex:
                     self.part_cur_time = time.time()
@@ -815,9 +826,10 @@ class UveStreamProc(PartitionHandler):
     #  aginst    : instance_id of alarmgen
     #  rport     : redis server port
     def __init__(self, brokers, partition, uve_topic, logger, callback,
-            host_ip, rsc, aginst, rport, group="-workers"):
+            host_ip, rsc, aginst, rport, kafka_use_ssl, kafka_ssl_params,
+            group="-workers"):
         super(UveStreamProc, self).__init__(brokers, group,
-            uve_topic, logger, False)
+            uve_topic, logger, False, kafka_use_ssl, kafka_ssl_params)
         self._uvedb = {}
         self._uvein = {}
         self._callback = callback

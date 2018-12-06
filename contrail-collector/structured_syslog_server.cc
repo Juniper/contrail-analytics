@@ -1200,6 +1200,7 @@ public:
         const vector<string> &structured_syslog_tcp_forward_dst,
         const std::string &structured_syslog_kafka_broker,
         const std::string &structured_syslog_kafka_topic,
+        const Options::Kafka &kafka_options,
         uint16_t structured_syslog_kafka_partitions,
         ConfigClientCollector *config_client,
         StatWalker::StatTableInsertFn stat_db_callback) :
@@ -1212,6 +1213,7 @@ public:
             forwarder_.reset(new StructuredSyslogForwarder (evm, structured_syslog_tcp_forward_dst,
                                                             structured_syslog_kafka_broker,
                                                             structured_syslog_kafka_topic,
+                                                            kafka_options,
                                                             structured_syslog_kafka_partitions));
         } else {
             LOG(DEBUG, "forward destination not configured");
@@ -1392,11 +1394,13 @@ StructuredSyslogServer::StructuredSyslogServer(EventManager *evm,
     const std::string &structured_syslog_kafka_broker,
     const std::string &structured_syslog_kafka_topic,
     uint16_t structured_syslog_kafka_partitions,
+    const Options::Kafka &kafka_options,
     ConfigClientCollector *config_client,
     StatWalker::StatTableInsertFn stat_db_fn) {
     impl_ = new StructuredSyslogServerImpl(evm, port, structured_syslog_tcp_forward_dst,
                                            structured_syslog_kafka_broker,
                                            structured_syslog_kafka_topic,
+                                           kafka_options,
                                            structured_syslog_kafka_partitions,
                                            config_client, stat_db_fn);
 }
@@ -1498,6 +1502,7 @@ StructuredSyslogForwarder::StructuredSyslogForwarder(EventManager *evm,
                                                      const vector <std::string> &tcp_forward_dst,
                                                      const std::string &structured_syslog_kafka_broker,
                                                      const std::string &structured_syslog_kafka_topic,
+                                                     const Options::Kafka &kafka_options,
                                                      uint16_t structured_syslog_kafka_partitions):
     evm_(evm) {
     if (tcp_forward_dst.size() != 0) {
@@ -1509,12 +1514,14 @@ StructuredSyslogForwarder::StructuredSyslogForwarder(EventManager *evm,
         boost::bind(&StructuredSyslogForwarder::PollTcpForwarderErrorHandler, this, _1, _2));
     }
     Init(tcp_forward_dst, structured_syslog_kafka_broker, structured_syslog_kafka_topic,
+         kafka_options,
          structured_syslog_kafka_partitions);
 }
 
 void StructuredSyslogForwarder::Init(const std::vector<std::string> &tcp_forward_dst,
                                      const std::string &structured_syslog_kafka_broker,
                                      const std::string &structured_syslog_kafka_topic,
+                                     const Options::Kafka &kafka_options,
                                      uint16_t structured_syslog_kafka_partitions) {
     for (std::vector<std::string>::const_iterator it = tcp_forward_dst.begin(); it != tcp_forward_dst.end(); ++it) {
         std::vector<std::string> dest;
@@ -1530,6 +1537,7 @@ void StructuredSyslogForwarder::Init(const std::vector<std::string> &tcp_forward
     if (structured_syslog_kafka_broker != "") {
         kafkaForwarder_ = new KafkaForwarder(evm_, structured_syslog_kafka_broker,
                                              structured_syslog_kafka_topic,
+                                             kafka_options,
                                              structured_syslog_kafka_partitions);
     } else {
         kafkaForwarder_ = NULL;

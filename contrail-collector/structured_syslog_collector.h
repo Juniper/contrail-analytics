@@ -17,6 +17,7 @@ class StructuredSyslogCollector {
         const std::string &structured_syslog_kafka_broker,
         const std::string &structured_syslog_kafka_topic,
         uint16_t structured_syslog_kafka_partitions,
+        const Options::Kafka &kafka_options,
         DbHandlerPtr db_handler,
         ConfigClientCollector *config_client);
     virtual ~StructuredSyslogCollector();

@@ -154,7 +154,7 @@ class Collector(object):
                 args.append('--CASSANDRA.cassandra_password')
                 args.append(self.cassandra_password)
         if self.kafka_port:
-            args.append('--DEFAULT.kafka_broker_list')
+            args.append('--KAFKA.kafka_broker_list')
             args.append('127.0.0.1:%d' % self.kafka_port)
             args.append('--DEFAULT.partitions')
             args.append(str(4))
