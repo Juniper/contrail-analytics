@@ -217,6 +217,7 @@ class CfgParser(object):
             self._args.config_db_server_list = \
                 self._args.config_db_server_list.split()
         self._args.conf_file = args.conf_file
+        self._args.kafka_ssl_enable = (str(self._args.kafka_ssl_enable).lower() == 'true')
 
     def _pat(self):
         if self.__pat is None:
