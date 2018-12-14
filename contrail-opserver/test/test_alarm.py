@@ -190,14 +190,16 @@ class TestUveStreamer(unittest.TestCase, TestChecker):
         self.ustr = UveStreamer(logging, None, None, self.mock_agp, None,\
                 None, None, None, Mock_usp)
         self.ustr.start()
-        self.mock_agp[0] = PartInfo(ip_address = socket.getfqdn("127.0.0.1"), 
-                                    acq_time = 666,
-                                    instance_id = "0",
-                                    port = 6379)
-        self.mock_agp[1] = PartInfo(ip_address = socket.getfqdn("127.0.0.1"), 
-                                    acq_time = 777,
-                                    instance_id = "0",
-                                    port = 6379)
+        self.mock_agp[0] = PartInfo(ip_address=socket.getfqdn("127.0.0.1"),
+                                    acq_time=666,
+                                    redis_agg_db=0,
+                                    instance_id="0",
+                                    port=6379)
+        self.mock_agp[1] = PartInfo(ip_address=socket.getfqdn("127.0.0.1"),
+                                    acq_time=777,
+                                    redis_agg_db=0,
+                                    instance_id="0",
+                                    port=6379)
 
     def tearDown(self):
         self.ustr.kill()
