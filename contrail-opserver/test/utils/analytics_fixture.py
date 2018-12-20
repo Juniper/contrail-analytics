@@ -672,6 +672,9 @@ class AnalyticsFixture(fixtures.Fixture):
         self.zookeeper = Zookeeper()
         self.zookeeper.start()
 
+        os.environ['ANALYTICSDB_NODES'] = '127.0.0.1'
+        os.environ['ANALYTICS_ALARM_NODES'] = '127.0.0.1'
+
         zkport = None
         if self.start_kafka:
             zkport = self.zookeeper.port
