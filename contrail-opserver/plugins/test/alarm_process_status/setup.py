@@ -11,6 +11,8 @@ setup(
     entry_points = {
         'contrail.analytics.alarms': [
             'ObjectCollectorInfo = alarm_process_status.main:ProcessStatus',
+            'ObjectAnalyticsAlarmInfo = alarm_process_status.main:ProcessStatus',
+            'ObjectAnalyticsSNMPInfo = alarm_process_status.main:ProcessStatus',
             'ObjectVRouter = alarm_process_status.main:ProcessStatus',
             'ObjectConfigNode = alarm_process_status.main:ProcessStatus',
             'ObjectBgpRouter = alarm_process_status.main:ProcessStatus',

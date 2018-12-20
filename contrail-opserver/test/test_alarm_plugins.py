@@ -498,7 +498,7 @@ class TestAlarmPlugins(unittest.TestCase):
         tests = [
             TestCase(
                 name='analytics-node: ContrailConfig == null',
-                input=TestInput(uve_key='ObjectCollectorInfo:host1',
+                input=TestInput(uve_key='ObjectAnalyticsAlarmInfo:host1',
                     uve_data={}),
                 output=TestOutput(or_list=[
                     {
@@ -523,7 +523,7 @@ class TestAlarmPlugins(unittest.TestCase):
             ),
             TestCase(
                 name='analytics-node: ContrailConfig != null',
-                input=TestInput(uve_key='ObjectCollectorInfo:host1',
+                input=TestInput(uve_key='ObjectAnalyticsAlarmInfo:host1',
                     uve_data={
                         'ContrailConfig': {
                             'elements': {
@@ -763,13 +763,13 @@ class TestAlarmPlugins(unittest.TestCase):
         tests = [
             TestCase(
                 name='NodeStatus == null',
-                input=TestInput(uve_key='ObjectCollectorInfo:host1',
+                input=TestInput(uve_key='ObjectAnalyticsAlarmInfo:host1',
                     uve_data={}),
                 output=TestOutput(or_list=None)
             ),
             TestCase(
                 name='NodeStatus.build_info == null',
-                input=TestInput(uve_key='ObjectCollectorInfo:host1',
+                input=TestInput(uve_key='ObjectAnalyticsAlarmInfo:host1',
                     uve_data={
                         'NodeStatus': {
                             'self_ip_list': ['10.10.10.1']
@@ -799,7 +799,7 @@ class TestAlarmPlugins(unittest.TestCase):
             ),
             TestCase(
                 name='NodeStatus.build_info != null',
-                input=TestInput(uve_key='ObjectCollectorInfo:host1',
+                input=TestInput(uve_key='ObjectAnalyticsAlarmInfo:host1',
                     uve_data={
                         'NodeStatus': {
                             'self_ip_list': ['10.10.10.1'],
@@ -817,13 +817,13 @@ class TestAlarmPlugins(unittest.TestCase):
         tests = [
             TestCase(
                 name='NodeStatus == null',
-                input=TestInput(uve_key='ObjectCollectorInfo:host1',
+                input=TestInput(uve_key='ObjectAnalyticsAlarmInfo:host1',
                     uve_data={}),
                 output=TestOutput(or_list=None)
             ),
             TestCase(
                 name='NodeStatus.process_status == null',
-                input=TestInput(uve_key='ObjectCollectorInfo:host1',
+                input=TestInput(uve_key='ObjectAnalyticsAlarmInfo:host1',
                     uve_data={'NodeStatus': {}}),
                 output=TestOutput(or_list=[
                     {
@@ -849,7 +849,7 @@ class TestAlarmPlugins(unittest.TestCase):
             TestCase(
                 name='All processes: NodeStatus.process_status.state'
                     ' == Functional',
-                input=TestInput(uve_key='ObjectCollectorInfo:host1',
+                input=TestInput(uve_key='ObjectAnalyticsAlarmInfo:host1',
                     uve_data={'NodeStatus': {'process_status': [
                         {
                             'instance_id': '0',
@@ -868,7 +868,7 @@ class TestAlarmPlugins(unittest.TestCase):
             TestCase(
                 name='One process: NodeStatus.process_status.state'
                     ' != Functional',
-                input=TestInput(uve_key='ObjectCollectorInfo:host1',
+                input=TestInput(uve_key='ObjectAnalyticsAlarmInfo:host1',
                     uve_data={'NodeStatus': {'process_status': [
                         {
                             'instance_id': '0',
@@ -918,7 +918,7 @@ class TestAlarmPlugins(unittest.TestCase):
             TestCase(
                 name='Multiple processes: NodeStatus.process_status.state'
                     ' != Functional',
-                input=TestInput(uve_key='ObjectCollectorInfo:host1',
+                input=TestInput(uve_key='ObjectAnalyticsAlarmInfo:host1',
                     uve_data={'NodeStatus': {'process_status': [
                         {
                             'instance_id': '0',
@@ -988,13 +988,13 @@ class TestAlarmPlugins(unittest.TestCase):
         tests = [
             TestCase(
                 name='NodeStatus == null',
-                input=TestInput(uve_key='ObjectCollectorInfo:host1',
+                input=TestInput(uve_key='ObjectAnalyticsAlarmInfo:host1',
                     uve_data={}),
                 output=TestOutput(or_list=None)
             ),
             TestCase(
                 name='NodeStatus.process_info == null',
-                input=TestInput(uve_key='ObjectCollectorInfo:host1',
+                input=TestInput(uve_key='ObjectAnalyticsAlarmInfo:host1',
                     uve_data={'NodeStatus': {}}),
                 output=TestOutput(or_list=[
                     {
@@ -1020,7 +1020,7 @@ class TestAlarmPlugins(unittest.TestCase):
             TestCase(
                 name='All processes: NodeStatus.process_info.process_state'
                     ' == PROCESS_STATE_RUNNING',
-                input=TestInput(uve_key='ObjectCollectorInfo:host1',
+                input=TestInput(uve_key='ObjectAnalyticsAlarmInfo:host1',
                     uve_data={'NodeStatus': {'process_info': [
                         {
                             'process_name': 'contrail-topology',
@@ -1037,7 +1037,7 @@ class TestAlarmPlugins(unittest.TestCase):
             TestCase(
                 name='One process: NodeStatus.process_info.process_state != '
                     'PROCESS_STATE_RUNNING',
-                input=TestInput(uve_key='ObjectCollectorInfo:host1',
+                input=TestInput(uve_key='ObjectAnalyticsAlarmInfo:host1',
                     uve_data={'NodeStatus': {'process_info': [
                         {
                             'process_name': 'contrail-topology',
@@ -1084,7 +1084,7 @@ class TestAlarmPlugins(unittest.TestCase):
             TestCase(
                 name='Multiple processes: with process_state != '
                     'PROCESS_STATE_RUNNING',
-                input=TestInput(uve_key='ObjectCollectorInfo:host4',
+                input=TestInput(uve_key='ObjectAnalyticsAlarmInfo:host4',
                     uve_data={'NodeStatus': {'process_info': [
                         {
                             'process_name': 'contrail-topology',
@@ -2012,7 +2012,7 @@ class TestAlarmPlugins(unittest.TestCase):
         tests = [
             TestCase(
                 name='NodeStatus == null',
-                input=TestInput(uve_key='ObjectCollectorInfo:host2',
+                input=TestInput(uve_key='ObjectAnalyticsAlarmInfo:host2',
                     uve_data={
                         'ContrailConfig': {
                             'elements': {
@@ -2044,7 +2044,7 @@ class TestAlarmPlugins(unittest.TestCase):
             ),
             TestCase(
                 name='NodeStatus != null',
-                input=TestInput(uve_key='ObjectCollectorInfo:host2',
+                input=TestInput(uve_key='ObjectAnalyticsAlarmInfo:host2',
                     uve_data={
                         'NodeStatus': {
                             'process_info': [
@@ -2291,14 +2291,14 @@ class TestAlarmPlugins(unittest.TestCase):
 
             TestCase(
                 name='NodeStatus == null',
-                input=TestInput(uve_key='ObjectCollectorInfo:host1',
+                input=TestInput(uve_key='ObjectAnalyticsAlarmInfo:host1',
                     uve_data={}),
                 output=TestOutput(or_list=None)
             ),
             TestCase(
                 name='NodeStatus.running_package_version == ' +\
                      'NodeStatus.installed_package_version',
-                input=TestInput(uve_key='ObjectCollectorInfo:host1',
+                input=TestInput(uve_key='ObjectAnalyticsAlarmInfo:host1',
                     uve_data={
                         'NodeStatus': {
                             'running_package_version': '"3.1.0.0-2740"',
@@ -2311,7 +2311,7 @@ class TestAlarmPlugins(unittest.TestCase):
             TestCase(
                 name='NodeStatus.running_package_version != ' +\
                      'NodeStatus.installed_package_version',
-                input=TestInput(uve_key='ObjectCollectorInfo:host1',
+                input=TestInput(uve_key='ObjectAnalyticsAlarmInfo:host1',
                     uve_data={
                         'NodeStatus': {
                             'running_package_version': '"3.1.0.0-2740"',
