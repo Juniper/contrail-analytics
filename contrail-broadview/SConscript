@@ -104,7 +104,6 @@ if 'BUILD_ONLY' in env['ENV']:
 env.Depends(test_cmd, [env['TOP']+x for x in test_depends])
 env.Depends(test_cmd, src_rules)
 
-env.Alias('test', test_cmd)
 env.Alias('controller/src/analytics/contrail-broadview:test', test_cmd)
 env.AlwaysBuild(test_cmd)
 
