@@ -86,7 +86,9 @@ class CfgParser(object):
             'kombu_ssl_ca_certs': '',
             'config_db_server_list': None,
             'config_db_username': None,
-            'config_db_password': None
+            'config_db_password': None,
+            'config_db_use_ssl': False,
+            'config_db_ca_certs': None
         }
 
         kafka_opts = {
@@ -187,6 +189,10 @@ class CfgParser(object):
             help="Cassandra user name")
         parser.add_argument("--config_db_password",
             help="Cassandra password")
+        parser.add_argument("--config_db_use_ssl",
+            help="Cassandra SSL enable flag")
+        parser.add_argument("--config_db_ca_certs",
+            help="Cassandra CA certs file path")
         parser.add_argument("--redis_uve_list",
             help="List of redis-uve in ip:port format. For internal use only",
             nargs="+")
@@ -311,6 +317,8 @@ class CfgParser(object):
         return {'servers': self._args.config_db_server_list,
                 'user': self._args.config_db_username,
                 'password': self._args.config_db_password,
+                'use_ssl': self._args.config_db_use_ssl,
+                'ca_certs': self._args.config_db_ca_certs,
                 'cluster_id': self._args.cluster_id}
     # end cassandra_params
 
