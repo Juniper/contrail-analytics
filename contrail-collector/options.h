@@ -89,6 +89,8 @@ public:
         Cassandra() :
             user_(),
             password_(),
+            use_ssl_(),
+            ca_certs_(),
             compaction_strategy_(),
             flow_tables_compaction_strategy_(),
             disable_all_db_writes_(false),
@@ -103,6 +105,8 @@ public:
         TtlMap ttlmap_;
         std::string user_;
         std::string password_;
+        bool use_ssl_;
+        std::string ca_certs_;
         std::string compaction_strategy_;
         std::string flow_tables_compaction_strategy_;
         bool disable_all_db_writes_;
