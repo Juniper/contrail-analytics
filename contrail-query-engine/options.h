@@ -59,6 +59,8 @@ public:
     const std::string cluster_id() const { return cluster_id_; }
     const std::string cassandra_user() const { return cassandra_user_; }
     const std::string cassandra_password() const { return cassandra_password_; }
+    const bool cassandra_use_ssl() const { return cassandra_use_ssl_; }
+    const std::string cassandra_ca_certs() const { return cassandra_ca_certs_; }
     const SandeshConfig &sandesh_config() const { return sandesh_config_; }
 
     void ParseReConfig();
@@ -106,4 +108,6 @@ private:
     std::string cluster_id_;
     std::string cassandra_user_;
     std::string cassandra_password_;
+    bool cassandra_use_ssl_;
+    std::string cassandra_ca_certs_;
 };

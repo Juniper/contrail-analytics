@@ -139,6 +139,10 @@ void Options::Initialize(EventManager &evm,
               "Cassandra user name")
         ("CASSANDRA.cassandra_password", opt::value<string>()->default_value(""),
               "Cassandra password")
+        ("CASSANDRA.cassandra_use_ssl", opt::bool_switch(&cassandra_options_.use_ssl_),
+              "SSL communication enable/disable with Cassandra")
+        ("CASSANDRA.cassandra_ca_certs", opt::value<string>()->default_value(""),
+              "Path to file with CA certificates")
         ("CASSANDRA.compaction_strategy",
             opt::value<string>()->default_value(
                 GenDb::g_gendb_constants.SIZE_TIERED_COMPACTION_STRATEGY),
@@ -427,6 +431,12 @@ void Options::Initialize(EventManager &evm,
         ("CONFIGDB.config_db_password",
              opt::value<string>()->default_value(""),
              "ConfigDB password")
+        ("CONFIGDB.config_db_use_ssl",
+             opt::value<bool>()->default_value(false),
+             "Use SSL for Cassandra connection")
+        ("CONFIGDB.config_db_ca_certs",
+             opt::value<string>()->default_value(""),
+             "CA Certificate file for SSL Cassandra connection")
         ("CONFIGDB.rabbitmq_server_list",
              opt::value<vector<string> >()->default_value(
              default_rabbitmq_server_list, default_rabbitmq_server),
@@ -694,6 +704,10 @@ void Options::Process(int argc, char *argv[],
         "CASSANDRA.cassandra_user");
     GetOptValue<string>(var_map, cassandra_options_.password_,
         "CASSANDRA.cassandra_password");
+    GetOptValue<bool>(var_map, cassandra_options_.use_ssl_,
+        "CASSANDRA.cassandra_use_ssl");
+    GetOptValue<string>(var_map, cassandra_options_.ca_certs_,
+        "CASSANDRA.cassandra_ca_certs");
     GetOptValue<string>(var_map, cassandra_options_.compaction_strategy_,
         "CASSANDRA.compaction_strategy");
     if (!ValidateCompactionStrategyOption(
@@ -774,6 +788,12 @@ void Options::ParseConfigOptions(const boost::program_options::variables_map
     GetOptValue<string>(var_map,
                      configdb_options_.config_db_password,
                      "CONFIGDB.config_db_password");
+    GetOptValue<bool>(var_map,
+                     configdb_options_.config_db_use_ssl,
+                     "CONFIGDB.config_db_use_ssl");
+    GetOptValue<string>(var_map,
+                     configdb_options_.config_db_ca_certs,
+                     "CONFIGDB.config_db_ca_certs");
     configdb_options_.rabbitmq_server_list.clear();
     GetOptValue< vector<string> >(var_map,
                      configdb_options_.rabbitmq_server_list,

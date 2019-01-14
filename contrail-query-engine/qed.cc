@@ -336,6 +336,8 @@ main(int argc, char *argv[]) {
             options.max_slice(),
             options.cassandra_user(),
             options.cassandra_password(),
+            options.cassandra_use_ssl(),
+            options.cassandra_ca_certs(),
             options.host_ip()));
     } else {
         qe.reset(new QueryEngine(&evm,
@@ -347,6 +349,8 @@ main(int argc, char *argv[]) {
             options.max_slice(),
             options.cassandra_user(),
             options.cassandra_password(),
+            options.cassandra_use_ssl(),
+            options.cassandra_ca_certs(),
             options.cluster_id(),
             options.host_ip()));
     }
