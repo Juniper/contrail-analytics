@@ -817,7 +817,7 @@ AnalyticsQuery::AnalyticsQuery(const std::string& qid, std::map<std::string,
         ttlmap_(ttlmap),
         where_start_(0),
         select_start_(0),
-        postproc_start_(0),        
+        postproc_start_(0),
         merge_needed(false),
         parallel_batch_num(batch),
         total_parallel_batches(total_batches),
@@ -915,13 +915,17 @@ QueryEngine::QueryEngine(EventManager *evm,
             const std::string & redis_password, int max_tasks, int max_slice,
             const std::string & cassandra_user,
             const std::string & cassandra_password,
+            bool cassandra_use_ssl,
+            const std::string & cassandra_ca_certs,
             const std::string &host_ip) :
         qosp_(new QEOpServerProxy(evm,
             this, redis_ip_ports, redis_password, host_ip, max_tasks)),
         evm_(evm),
         cassandra_ports_(0),
         cassandra_user_(cassandra_user),
-        cassandra_password_(cassandra_password)
+        cassandra_password_(cassandra_password),
+        cassandra_use_ssl_(cassandra_use_ssl),
+        cassandra_ca_certs_(cassandra_ca_certs)
 {
     max_slice_ =  max_slice;
     // default keyspace
@@ -942,6 +946,8 @@ QueryEngine::QueryEngine(EventManager *evm,
             const std::string & redis_password, int max_tasks, int max_slice,
             const std::string & cassandra_user,
             const std::string & cassandra_password,
+            bool cassandra_use_ssl,
+            const std::string & cassandra_ca_certs,
             const std::string & cluster_id,
             const std::string &host_ip) :
         qosp_(new QEOpServerProxy(evm,
@@ -950,9 +956,12 @@ QueryEngine::QueryEngine(EventManager *evm,
         cassandra_ports_(cassandra_ports),
         cassandra_ips_(cassandra_ips),
         cassandra_user_(cassandra_user),
-        cassandra_password_(cassandra_password) {
+        cassandra_password_(cassandra_password),
+        cassandra_use_ssl_(cassandra_use_ssl),
+        cassandra_ca_certs_(cassandra_ca_certs) {
         dbif_.reset(new cass::cql::CqlIf(evm, cassandra_ips,
-            cassandra_ports[0], cassandra_user, cassandra_password));
+            cassandra_ports[0], cassandra_user, cassandra_password,
+            cassandra_use_ssl_, cassandra_ca_certs_));
         if (cluster_id.empty()) {
             keyspace_ = g_viz_constants.COLLECTOR_KEYSPACE_CQL;
         } else {
