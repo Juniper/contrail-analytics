@@ -89,6 +89,7 @@ TEST_F(OptionsTest, NoArguments) {
     EXPECT_EQ(options_.max_tasks(), 0);
     EXPECT_EQ(options_.max_slice(), 100);
     EXPECT_EQ(options_.test_mode(), false);
+    EXPECT_EQ(options_.cassandra_use_ssl(), false);
     EXPECT_EQ(options_.sandesh_config().system_logs_rate_limit,
         g_sandesh_constants.DEFAULT_SANDESH_SEND_RATELIMIT);
     EXPECT_FALSE(options_.sandesh_config().disable_object_logs);
@@ -131,6 +132,7 @@ TEST_F(OptionsTest, DefaultConfFile) {
     EXPECT_EQ(options_.max_tasks(), 0);
     EXPECT_EQ(options_.max_slice(), 100);
     EXPECT_EQ(options_.test_mode(), false);
+    EXPECT_EQ(options_.cassandra_use_ssl(), false);
     EXPECT_EQ(options_.sandesh_config().system_logs_rate_limit,
         g_sandesh_constants.DEFAULT_SANDESH_SEND_RATELIMIT);
     EXPECT_FALSE(options_.sandesh_config().disable_object_logs);
@@ -176,6 +178,7 @@ TEST_F(OptionsTest, OverrideStringFromCommandLine) {
     EXPECT_EQ(options_.max_tasks(), 0);
     EXPECT_EQ(options_.max_slice(), 100);
     EXPECT_EQ(options_.test_mode(), false);
+    EXPECT_EQ(options_.cassandra_use_ssl(), false);
     EXPECT_EQ(options_.sandesh_config().system_logs_rate_limit, 5);
 }
 
@@ -219,6 +222,7 @@ TEST_F(OptionsTest, OverrideBooleanFromCommandLine) {
     EXPECT_EQ(options_.max_tasks(), 0);
     EXPECT_EQ(options_.max_slice(), 100);
     EXPECT_EQ(options_.test_mode(), true); // Overridden from command line.
+    EXPECT_EQ(options_.cassandra_use_ssl(), false);
     EXPECT_TRUE(options_.sandesh_config().disable_object_logs);
 }
 
@@ -265,7 +269,9 @@ TEST_F(OptionsTest, CustomConfigFile) {
     string cassandra_config = ""
         "[CASSANDRA]\n"
         "cassandra_user=cassandra1\n"
-        "cassandra_password=cassandra1\n";
+        "cassandra_password=cassandra1\n"
+        "cassandra_use_ssl=true\n"
+        "cassandra_ca_certs=/tmp/null\n";
 
     config_file.open("./options_test_cassandra_config_file.conf");
     config_file << cassandra_config;
@@ -326,6 +332,8 @@ TEST_F(OptionsTest, CustomConfigFile) {
     EXPECT_EQ(options_.test_mode(), true);
     EXPECT_EQ(options_.cassandra_user(), "cassandra1");
     EXPECT_EQ(options_.cassandra_password(), "cassandra1");
+    EXPECT_EQ(options_.cassandra_use_ssl(), true);
+    EXPECT_EQ(options_.cassandra_ca_certs(), "/tmp/null");
     EXPECT_EQ(options_.sandesh_config().system_logs_rate_limit, 5);
     EXPECT_FALSE(options_.sandesh_config().disable_object_logs);
 }
@@ -373,7 +381,9 @@ TEST_F(OptionsTest, CustomConfigFileAndOverrideFromCommandLine) {
     string cassandra_config = ""
         "[CASSANDRA]\n"
         "cassandra_user=cassandra1\n"
-        "cassandra_password=cassandra1\n";
+        "cassandra_password=cassandra1\n"
+        "cassandra_use_ssl=true\n"
+        "cassandra_ca_certs=/tmp/null\n";
 
     config_file.open("./options_test_cassandra_config_file.conf");
     config_file << cassandra_config;
@@ -397,10 +407,12 @@ TEST_F(OptionsTest, CustomConfigFileAndOverrideFromCommandLine) {
     char argv_13[] = "--DEFAULT.collectors=31.30.30.3:300";
     char argv_14[] = "--CASSANDRA.cassandra_user=cassandra";
     char argv_15[] = "--CASSANDRA.cassandra_password=cassandra";
-    char argv_16[] = "--conf_file=./options_test_cassandra_config_file.conf";
-    char argv_17[] = "--DEFAULT.sandesh_send_rate_limit=7";
-    char argv_18[] = "--SANDESH.disable_object_logs";
-    char argv_19[] = "--REDIS.server_list=11.10.10.1:6379 21.20.20.2:6379 31.30.30.3:6379";
+    char argv_16[] = "--CASSANDRA.cassandra_use_ssl";
+    char argv_17[] = "--CASSANDRA.cassandra_ca_certs=/tmp/null";
+    char argv_18[] = "--conf_file=./options_test_cassandra_config_file.conf";
+    char argv_19[] = "--DEFAULT.sandesh_send_rate_limit=7";
+    char argv_20[] = "--SANDESH.disable_object_logs";
+    char argv_21[] = "--REDIS.server_list=11.10.10.1:6379 21.20.20.2:6379 31.30.30.3:6379";
     argv[0] = argv_0;
     argv[1] = argv_1;
     argv[2] = argv_2;
@@ -421,6 +433,8 @@ TEST_F(OptionsTest, CustomConfigFileAndOverrideFromCommandLine) {
     argv[17] = argv_17;
     argv[18] = argv_18;
     argv[19] = argv_19;
+    argv[20] = argv_20;
+    argv[21] = argv_21;
 
     options_.Parse(evm_, argc, argv);
 
@@ -452,6 +466,8 @@ TEST_F(OptionsTest, CustomConfigFileAndOverrideFromCommandLine) {
                                input_conf_files);
     EXPECT_EQ(options_.cassandra_user(),"cassandra");
     EXPECT_EQ(options_.cassandra_password(),"cassandra");
+    EXPECT_EQ(options_.cassandra_use_ssl(), true);
+    EXPECT_EQ(options_.cassandra_ca_certs(), "/tmp/null");
     EXPECT_EQ(options_.hostname(), "test");
     EXPECT_EQ(options_.host_ip(), "1.2.3.4");
     EXPECT_EQ(options_.http_server_port(), 800);

@@ -985,6 +985,8 @@ public:
             int max_tasks, int max_slice,
             const std::string & cassandra_name,
             const std::string & cassandra_password,
+            bool cassandra_use_ssl,
+            const std::string& cassandra_ca_certs,
             const std::string & cluster_id,
             const std::string &host_ip);
 
@@ -992,15 +994,17 @@ public:
             std::vector<std::string> redis_ip_ports,
             const std::string & redis_password, int max_tasks,
             int max_slice,
-            const std::string  & cassandra_user,
-            const std::string  & cassandra_password,
+            const std::string & cassandra_user,
+            const std::string & cassandra_password,
+            bool cassandra_use_ssl,
+            const std::string& cassandra_ca_certs,
             const std::string &host_ip);
 
     // This constructor used only for test purpose
     QueryEngine(){}
 
     virtual ~QueryEngine();
-    
+
     int
     QueryPrepare(QueryParams qp,
         std::vector<uint64_t> &chunk_size,
@@ -1063,6 +1067,8 @@ private:
     std::vector<std::string> cassandra_ips_;
     std::string cassandra_user_;
     std::string cassandra_password_;
+    bool cassandra_use_ssl_;
+    std::string cassandra_ca_certs_;
     TtlMap ttlmap_;
     std::string keyspace_;
 };
