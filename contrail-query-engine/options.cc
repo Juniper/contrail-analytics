@@ -100,6 +100,10 @@ void Options::Initialize(EventManager &evm,
              "name for cassandra")
         ("CASSANDRA.cassandra_password", opt::value<string>()->default_value(""),
              "password for cassandra");
+        ("CASSANDRA.cassandra_use_ssl", opt::bool_switch(&cassandra_use_ssl_),
+             "SSL on/off for cassandra")
+        ("CASSANDRA.cassandra_ca_certs", opt::value<string>()->default_value(""),
+             "Path to CA certs file for cassandra's SSL")
 
     // Command line and config file options.
     opt::options_description config("Configuration options");
@@ -263,6 +267,8 @@ void Options::Process(int argc, char *argv[],
     GetOptValue<string>(var_map, cluster_id_, "DATABASE.cluster_id");
     GetOptValue<string>(var_map, cassandra_user_, "CASSANDRA.cassandra_user");
     GetOptValue<string>(var_map, cassandra_password_, "CASSANDRA.cassandra_password");
+    GetOptValue<string>(var_map, cassandra_use_ssl_, "CASSANDRA.cassandra_use_ssl");
+    GetOptValue<string>(var_map, cassandra_ca_certs_, "CASSANDRA.cassandra_ca_certs");
 
     sandesh::options::ProcessOptions(var_map, &sandesh_config_);
 }
