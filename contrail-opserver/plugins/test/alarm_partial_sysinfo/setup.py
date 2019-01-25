@@ -10,7 +10,7 @@ setup(
     packages=find_packages(),
     entry_points = {
         'contrail.analytics.alarms': [
-            'ObjectCollectorInfo = alarm_partial_sysinfo.main:PartialSysinfoAnalytics',
+            'ObjectAnalyticsAlarmInfo = alarm_partial_sysinfo.main:PartialSysinfoAnalytics',
             'ObjectVRouter = alarm_partial_sysinfo.main:PartialSysinfoCompute',
             'ObjectConfigNode = alarm_partial_sysinfo.main:PartialSysinfoConfig',
             'ObjectBgpRouter = alarm_partial_sysinfo.main:PartialSysinfoControl',

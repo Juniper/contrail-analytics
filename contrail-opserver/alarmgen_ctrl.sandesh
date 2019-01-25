@@ -214,7 +214,7 @@ struct AlarmgenStats {
  * structure to carry alarmgen status data
  */
 struct AlarmgenStatus {
-    1: string                      name (key="ObjectCollectorInfo")
+    1: string                      name (key="ObjectAnalyticsAlarmInfo")
     /** @display_name:Alarmgen Counters*/
     2: list<AlarmgenStats>         counters (tags="name:.instance",aggtype="union")
     4: list<string>                alarmgens (aggtype="union",ulink="ObjectGeneratorInfo:ModuleClientState")
@@ -230,7 +230,7 @@ struct AlarmgenPartionInfo {
  * structure to carry alarmgen partition data
  */
 struct AlarmgenPartition {
-    1: string                      name (key="ObjectCollectorInfo")
+    1: string                      name (key="ObjectAnalyticsAlarmInfo")
     2: list<AlarmgenPartionInfo>   inst_parts (aggtype="union")
     3: optional bool               deleted
 }
@@ -279,7 +279,7 @@ trace sandesh AlarmExceptionTrace {
  * @object: analytics-node
  */
 objectlog sandesh AlarmgenConfigLog {
-    1: string name (key="ObjectCollectorInfo")
+    1: string name (key="ObjectAnalyticsAlarmInfo")
     2: string config_type
     3: string operation
     4: map<string, string> config

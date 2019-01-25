@@ -34,7 +34,7 @@ class SnmpUve(object):
         self._moduleid = ModuleNames[module]
         node_type = Module2NodeType[module]
         self._node_type_name = NodeTypeNames[node_type]
-        self.table = "ObjectCollectorInfo"
+        self.table = "ObjectAnalyticsSNMPInfo"
         self._hostname = socket.getfqdn(host_ip)
         self._instance_id = instance
         sandesh_global.init_generator(self._moduleid, self._hostname,
