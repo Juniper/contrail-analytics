@@ -229,6 +229,7 @@ class CfgParser(object):
         self._args._redis_agg_db = ALARMGEN_REDIS_AGGREGATE_DB_BASE_INDEX + \
                                    int(redis_agg_db_offset) - 1
         self._args.kafka_ssl_enable = (str(self._args.kafka_ssl_enable).lower() == 'true')
+        self._args.config_db_use_ssl = (str(self._args.config_db_use_ssl).lower() == 'true')
 
     def _pat(self):
         if self.__pat is None:

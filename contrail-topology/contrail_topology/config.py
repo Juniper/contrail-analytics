@@ -220,6 +220,7 @@ optional arguments:
                 self._args.config_db_server_list.split()
         self._args.config_sections = config
         self._args.conf_file = args.conf_file
+        self._args.config_db_use_ssl = (str(self._args.config_db_use_ssl).lower() == 'true')
 
     def _pat(self):
         if self.__pat is None:
