@@ -205,6 +205,7 @@ Mibs = LldpTable, ArpTable
                 self._args.config_db_server_list.split()
         self._args.config_sections = config
         self._args.conf_file = args.conf_file
+        self._args.config_db_use_ssl = (str(self._args.config_db_use_ssl).lower() == 'true')
 
     def collectors(self):
         return self._args.collectors
