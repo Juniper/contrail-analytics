@@ -17,8 +17,8 @@ kombu==3.0.9
 ../../../src/contrail-analytics/contrail-collector/test/utils/mockkafka
 ../../../controller/src/config/test/utils/mockzoo
 ../opserver
-../sandesh/common/dist/sandesh-common-0.1dev.tar.gz
-../tools/sandesh/library/python/dist/sandesh-0.1dev.tar.gz
+../sandesh/common/dist/sandesh-common-0.1.dev0.tar.gz
+../tools/sandesh/library/python/dist/sandesh-0.1.dev0.tar.gz
 ../config/common/dist/cfgm_common-0.1dev.tar.gz
 contrail-api-client
 ../nodemgr/dist/nodemgr-0.1dev.tar.gz
