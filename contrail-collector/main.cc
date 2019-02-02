@@ -384,6 +384,7 @@ int main(int argc, char *argv[])
         new ConfigClientCollector(a_evm, hostname, module_id, options);
     analytics = new VizCollector(a_evm,
             options.collector_port(),
+            options.collector_server(),
             protobuf_server_enabled,
             protobuf_port,
             schema_file_directory,
