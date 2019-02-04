@@ -1018,13 +1018,14 @@ class Controller(object):
 
         # Create config handler to read/update alarm config
         self._config_handler = AlarmGenConfigHandler(self._sandesh,
-            self._moduleid, self._instance_id, self._conf.rabbitmq_params(),
-            self._conf.cassandra_params(), self.mgrs,
+            self._moduleid, self._instance_id, self._conf.db_drivers(),
+            self._conf.rabbitmq_params(), self._conf.cassandra_params(),
+            self._conf.etcd_params(), self.mgrs,
             self.alarm_config_change_callback, self._conf.host_ip())
 
         PartitionOwnershipReq.handle_request = self.handle_PartitionOwnershipReq
         PartitionStatusReq.handle_request = self.handle_PartitionStatusReq
-        UVETableAlarmReq.handle_request = self.handle_UVETableAlarmReq 
+        UVETableAlarmReq.handle_request = self.handle_UVETableAlarmReq
         UVETableInfoReq.handle_request = self.handle_UVETableInfoReq
         UVETablePerfReq.handle_request = self.handle_UVETablePerfReq
         AlarmConfigRequest.handle_request = self.handle_AlarmConfigRequest
