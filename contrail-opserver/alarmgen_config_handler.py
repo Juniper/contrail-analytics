@@ -12,7 +12,7 @@ from vnc_api.gen.resource_xsd import IdPermsType, AlarmExpression, \
 from pysandesh.gen_py.sandesh.ttypes import SandeshLevel
 from sandesh.alarmgen_ctrl.ttypes import AlarmgenConfigLog
 from config_handler import ConfigHandler
-from alarmgen_config_db import DBBaseAG, GlobalSystemConfigAG, AlarmAG
+from alarmgen_config_db import DBBaseAG, AlarmAG
 from opserver_util import camel_case_to_hyphen, inverse_dict
 from plugins.alarm_base import AlarmBase 
 from sandesh.viz.constants import UVE_MAP
@@ -32,13 +32,13 @@ class AlarmGenConfigHandler(ConfigHandler):
         }
     }
 
-    def __init__(self, sandesh, module_id, instance_id, rabbitmq_cfg,
-                 cassandra_cfg, alarm_plugins, alarm_config_change_callback,
-                 host_ip):
+    def __init__(self, sandesh, module_id, instance_id, db_drivers_cfg,
+                 rabbitmq_cfg, cassandra_cfg, etcd_cfg, alarm_plugins,
+                 alarm_config_change_callback, host_ip):
         service_id = socket.getfqdn()+':'+module_id+':'+instance_id
         super(AlarmGenConfigHandler, self).__init__(sandesh, service_id,
-              rabbitmq_cfg, cassandra_cfg, DBBaseAG, self.REACTION_MAP,
-              host_ip)
+              db_drivers_cfg, rabbitmq_cfg, cassandra_cfg, etcd_cfg, DBBaseAG,
+              self.REACTION_MAP, host_ip)
         self._alarm_plugins = alarm_plugins
         self._alarm_config_change_callback = alarm_config_change_callback
         self._inbuilt_alarms = {}
@@ -214,7 +214,7 @@ class AlarmGenConfigHandler(ConfigHandler):
     # end _handle_config_update
 
     def _handle_config_sync(self):
-        db_cls_list = [GlobalSystemConfigAG, AlarmAG]
+        db_cls_list = [AlarmAG,]
         for cls in db_cls_list:
             for fq_name, alarmgen_db_obj in cls.items():
                 self._handle_config_update(cls.obj_type, fq_name, 'UPDATE',

@@ -76,7 +76,8 @@ class Controller(object):
         self._partitions = None
         self._prouters = {}
         self._config_handler = SnmpConfigHandler(self._sandesh,
-            self._config.rabbitmq_params(), self._config.cassandra_params(),
+            self._config.db_drivers(), self._config.rabbitmq_params(),
+            self._config.cassandra_params(), self._config.etcd_params(),
             host_ip)
         self._consistent_scheduler = ConsistentScheduler(self._config._name,
             zookeeper=self._config.zookeeper_server(),

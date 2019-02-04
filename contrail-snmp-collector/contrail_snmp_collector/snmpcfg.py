@@ -9,6 +9,7 @@ from sandesh_common.vns.ttypes import Module
 from sandesh_common.vns.constants import ModuleNames, \
     HttpPortSnmpCollector, \
     ServicesDefaultConfigurationFiles, SERVICE_SNMP_COLLECTOR
+from cfgm_common.vnc_etcd import etcd_args
 
 class CfgParser(object):
     CONF_DEFAULT_PATHS = ServicesDefaultConfigurationFiles.get(
@@ -90,6 +91,7 @@ Mibs = LldpTable, ArpTable
         defaults.update(SandeshConfig.get_default_options(['DEFAULTS']))
 
         configdb_opts = {
+            'notification_driver': 'rabbit',
             'rabbitmq_server_list': None,
             'rabbitmq_port': 5672,
             'rabbitmq_user': 'guest',
@@ -101,11 +103,22 @@ Mibs = LldpTable, ArpTable
             'rabbitmq_ssl_keyfile': '',
             'rabbitmq_ssl_certfile': '',
             'rabbitmq_ssl_ca_certs': '',
+            'db_driver': 'cassandra',
             'config_db_server_list': None,
             'config_db_username': None,
             'config_db_password': None,
             'config_db_use_ssl': False,
-            'config_db_ca_certs': None
+            'config_db_ca_certs': None,
+            'etcd_user': None,
+            'etcd_password': None,
+            'etcd_server': '127.0.0.1',
+            'etcd_port': 2379,
+            'etcd_prefix': '/contrail',
+            'etcd_kv_store': '',
+            'etcd_use_ssl': False,
+            'etcd_ssl_keyfile': '',
+            'etcd_ssl_certfile': '',
+            'etcd_ssl_ca_certs': '',
         }
 
         sandesh_opts = SandeshConfig.get_default_options()
@@ -158,6 +171,8 @@ Mibs = LldpTable, ArpTable
             help="Time between snmp interface status poll")
         parser.add_argument("--http_server_port", type=int,
             help="introspect server port")
+        parser.add_argument("--notification_driver", type=str,
+            help="Notification service driver to use [rabbitmq, etcd]")
         parser.add_argument("--rabbitmq_server_list",
             help="List of Rabbitmq servers in ip:port format")
         parser.add_argument("--rabbitmq_user",
@@ -178,6 +193,8 @@ Mibs = LldpTable, ArpTable
             help="Certificate file for SSL RabbitMQ connection")
         parser.add_argument("--rabbitmq_ssl_ca_certs",
             help="CA Certificate file for SSL RabbitMQ connection")
+        parser.add_argument("--db_driver", type=str,
+            help="Config BB service driver to use [cassandra, etcd]")
         parser.add_argument("--config_db_server_list",
             help="List of cassandra servers in ip:port format",
             nargs='+')
@@ -189,6 +206,28 @@ Mibs = LldpTable, ArpTable
             help="Cassandra SSL enable flag")
         parser.add_argument("--config_db_ca_certs",
             help="Cassandra CA certs file path")
+        parser.add_argument("--etcd_user",
+            help="ETCD user")
+        parser.add_argument("--etcd_password",
+            help="ETCD user")
+        parser.add_argument("--etcd_server",
+            help="List of ETCD servers")
+        parser.add_argument("--etcd_port",
+            type=int,
+            help="ETCD server port")
+        parser.add_argument("--etcd_prefix",
+            help="ETCD server prefix")
+        parser.add_argument("--etcd_kv_store",
+            help="ETCD server kv store")
+        parser.add_argument("--etcd_use_ssl",
+            action="store_true",
+            help="Use SSL to access to ETCD server")
+        parser.add_argument("--etcd_ssl_keyfile",
+            help="ETCD server SSL private key file")
+        parser.add_argument("--etcd_ssl_certfile",
+            help="ETCD server SSL cerificate file")
+        parser.add_argument("--etcd_ssl_ca_certs",
+            help="ETCD server SSL path to CA directory")
         parser.add_argument("--zookeeper",
             help="ip:port of zookeeper server")
         parser.add_argument("--cluster_id",
@@ -267,3 +306,15 @@ Mibs = LldpTable, ArpTable
                 'ca_certs': self._args.config_db_ca_certs,
                 'cluster_id': self._args.cluster_id}
     # end cassandra_params
+
+    def etcd_params(self):
+        drivers = self.db_drivers()
+        if drivers['notification_driver'] == 'etcd' or drivers['db_driver'] == 'etcd':
+            return etcd_args(self._args)
+        return None
+
+    def db_drivers(self):
+        return {
+            "notification_driver": self._args.notification_driver,
+            "db_driver": self._args.db_driver,
+        }
