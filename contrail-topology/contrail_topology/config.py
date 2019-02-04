@@ -90,6 +90,7 @@ optional arguments:
             'admin_tenant_name': 'default-domain'
         }
         configdb_opts = {
+            'notification_driver': 'rabbit',
             'rabbitmq_server_list': None,
             'rabbitmq_port': 5672,
             'rabbitmq_user': 'guest',
@@ -101,11 +102,22 @@ optional arguments:
             'rabbitmq_ssl_keyfile': '',
             'rabbitmq_ssl_certfile': '',
             'rabbitmq_ssl_ca_certs': '',
+            'db_driver': 'cassandra',
             'config_db_server_list': None,
             'config_db_username': None,
             'config_db_password': None,
             'config_db_use_ssl': False,
-            'config_db_ca_certs': None
+            'config_db_ca_certs': None,
+            'etcd_user': None,
+            'etcd_password': None,
+            'etcd_server': '127.0.0.1',
+            'etcd_port': 2379,
+            'etcd_prefix': '/contrail',
+            'etcd_kv_store': '',
+            'etcd_use_ssl': False,
+            'etcd_ssl_keyfile': '',
+            'etcd_ssl_certfile': '',
+            'etcd_ssl_ca_certs': '',
         }
         sandesh_opts = SandeshConfig.get_default_options()
 
@@ -177,6 +189,8 @@ optional arguments:
                             help="Password of keystone admin user")
         parser.add_argument("--admin_tenant_name",
                             help="Tenant name for keystone admin user")
+        parser.add_argument("--notification_driver", type=str,
+            help="Notification service driver to use [rabbitmq, etcd]")
         parser.add_argument("--rabbitmq_server_list",
             help="List of Rabbitmq servers in ip:port format")
         parser.add_argument("--rabbitmq_user",
@@ -197,6 +211,8 @@ optional arguments:
             help="Certificate file for SSL RabbitMQ connection")
         parser.add_argument("--rabbitmq_ssl_ca_certs",
             help="CA Certificate file for SSL RabbitMQ connection")
+        parser.add_argument("--db_driver", type=str,
+            help="Config BB service driver to use [cassandra, etcd]")
         parser.add_argument("--config_db_server_list",
             help="List of cassandra servers in ip:port format",
             nargs='+')
@@ -208,6 +224,28 @@ optional arguments:
             help="Cassandra SSL enable flag")
         parser.add_argument("--config_db_ca_certs",
             help="Cassandra CA certs file path")
+        parser.add_argument("--etcd_user",
+            help="ETCD user")
+        parser.add_argument("--etcd_password",
+            help="ETCD user")
+        parser.add_argument("--etcd_server",
+            help="List of ETCD servers")
+        parser.add_argument("--etcd_port",
+            type=int,
+            help="ETCD server port")
+        parser.add_argument("--etcd_prefix",
+            help="ETCD server prefix")
+        parser.add_argument("--etcd_kv_store",
+            help="ETCD server kv store")
+        parser.add_argument("--etcd_use_ssl",
+            action="store_true",
+            help="Use SSL to access to ETCD server")
+        parser.add_argument("--etcd_ssl_keyfile",
+            help="ETCD server SSL private key file")
+        parser.add_argument("--etcd_ssl_certfile",
+            help="ETCD server SSL cerificate file")
+        parser.add_argument("--etcd_ssl_ca_certs",
+            help="ETCD server SSL path to CA directory")
         SandeshConfig.add_parser_arguments(parser)
 
         self._args = parser.parse_args(remaining_argv)
@@ -295,4 +333,15 @@ optional arguments:
                 'use_ssl': self._args.config_db_use_ssl,
                 'ca_certs': self._args.config_db_ca_certs,
                 'cluster_id': self._args.cluster_id}
+    def etcd_params(self):
+        drivers = self.db_drivers()
+        if drivers['notification_driver'] == 'etcd' or drivers['db_driver'] == 'etcd':
+            return etcd_args(self._args)
+        return None
+
+    def db_drivers(self):
+        return {
+            "notification_driver": self._args.notification_driver,
+            "db_driver": self._args.db_driver,
+        }
     # end cassandra_params
