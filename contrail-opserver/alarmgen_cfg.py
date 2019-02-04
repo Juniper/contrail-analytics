@@ -7,6 +7,7 @@ from pysandesh.sandesh_base import *
 from pysandesh.gen_py.sandesh.ttypes import SandeshLevel
 from sandesh_common.vns.constants import SERVICE_ALARM_GENERATOR, \
     ServicesDefaultConfigurationFiles
+from cfgm_common.vnc_etcd import etcd_args
 
 ALARMGEN_REDIS_AGGREGATE_DB_BASE_INDEX = 7
 
@@ -88,7 +89,18 @@ class CfgParser(object):
             'config_db_username': None,
             'config_db_password': None,
             'config_db_use_ssl': False,
-            'config_db_ca_certs': None
+            'config_db_ca_certs': None,
+            'etcd_use': False,
+            'etcd_user': None,
+            'etcd_password': None,
+            'etcd_server': '127.0.0.1',
+            'etcd_port': 2379,
+            'etcd_prefix': '/contrail',
+            'etcd_kv_store': '',
+            'etcd_use_ssl': False,
+            'etcd_ssl_keyfile': '',
+            'etcd_ssl_certfile': '',
+            'etcd_ssl_ca_certs': '',
         }
 
         kafka_opts = {
@@ -193,6 +205,32 @@ class CfgParser(object):
             help="Cassandra SSL enable flag")
         parser.add_argument("--config_db_ca_certs",
             help="Cassandra CA certs file path")
+        # etcd options
+        parser.add_argument("--etcd_use",
+            action="store_true",
+            help="Use config ETCD server")
+        parser.add_argument("--etcd_user",
+            help="ETCD user")
+        parser.add_argument("--etcd_password",
+            help="ETCD user")
+        parser.add_argument("--etcd_server",
+            help="List of ETCD servers")
+        parser.add_argument("--etcd_port",
+            type=int,
+            help="ETCD server port")
+        parser.add_argument("--etcd_prefix",
+            help="ETCD server prefix")
+        parser.add_argument("--etcd_kv_store",
+            help="ETCD server kv store")
+        parser.add_argument("--etcd_use_ssl",
+            action="store_true",
+            help="Use SSL to access to ETCD server")
+        parser.add_argument("--etcd_ssl_keyfile",
+            help="ETCD server SSL private key file")
+        parser.add_argument("--etcd_ssl_certfile",
+            help="ETCD server SSL cerificate file")
+        parser.add_argument("--etcd_ssl_ca_certs",
+            help="ETCD server SSL path to CA directory")
         parser.add_argument("--redis_uve_list",
             help="List of redis-uve in ip:port format. For internal use only",
             nargs="+")
@@ -322,6 +360,11 @@ class CfgParser(object):
                 'ca_certs': self._args.config_db_ca_certs,
                 'cluster_id': self._args.cluster_id}
     # end cassandra_params
+
+    def etcd_params(self):
+        if self._args.etcd_use == True:
+            return etcd_args(self._args)
+        return None
 
     def sandesh_config(self):
         return SandeshConfig.from_parser_arguments(self._args)
