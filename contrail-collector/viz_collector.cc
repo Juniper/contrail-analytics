@@ -35,7 +35,6 @@ using boost::system::error_code;
 using namespace zookeeper::client;
 
 VizCollector::VizCollector(EventManager *evm, unsigned short listen_port,
-            const std::string &listen_ip,
             bool protobuf_collector_enabled,
             unsigned short protobuf_listen_port,
             const std::string protobuf_schema_file_directory,
@@ -78,7 +77,7 @@ VizCollector::VizCollector(EventManager *evm, unsigned short listen_port,
     ruleeng_.reset(new Ruleeng(
                         db_initializer_?db_initializer_->GetDbHandler():DbHandlerPtr(),
                         osp_.get()));
-    collector_ = new Collector(evm, listen_port, listen_ip, sandesh_config,
+    collector_ = new Collector(evm, listen_port, sandesh_config,
                         db_initializer_?db_initializer_->GetDbHandler():DbHandlerPtr(),
                         osp_.get(),
                         boost::bind(&Ruleeng::rule_execute,

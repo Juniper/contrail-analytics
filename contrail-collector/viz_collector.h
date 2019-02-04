@@ -36,7 +36,6 @@ class ZookeeperLock;
 class VizCollector {
 public:
     VizCollector(EventManager *evm, unsigned short listen_port,
-            const std::string &listen_ip,
             bool protobuf_collector_enabled,
             unsigned short protobuf_listen_port,
             const std::string protobuf_schema_file_dir,
