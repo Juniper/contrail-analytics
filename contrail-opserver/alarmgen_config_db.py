@@ -38,19 +38,6 @@ class DBBaseAG(DBBase):
 # end class DBBaseAG
 
 
-class GlobalSystemConfigAG(DBBaseAG):
-    _dict = {}
-    obj_type = 'global_system_config'
-
-    def __init__(self, name, obj=None):
-        self.name = name
-        self.update(obj)
-    # end __init__
-
-
-# end class GlobalSystemConfigAG
-
-
 class AlarmAG(DBBaseAG):
     _dict = {}
     obj_type = 'alarm'
