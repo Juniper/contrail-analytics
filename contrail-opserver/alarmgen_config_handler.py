@@ -32,13 +32,13 @@ class AlarmGenConfigHandler(ConfigHandler):
         }
     }
 
-    def __init__(self, sandesh, module_id, instance_id, rabbitmq_cfg,
-                 cassandra_cfg, alarm_plugins, alarm_config_change_callback,
-                 host_ip):
+    def __init__(self, sandesh, module_id, instance_id, db_drivers_cfg,
+                 rabbitmq_cfg, cassandra_cfg, etcd_cfg, alarm_plugins,
+                 alarm_config_change_callback, host_ip):
         service_id = socket.getfqdn()+':'+module_id+':'+instance_id
         super(AlarmGenConfigHandler, self).__init__(sandesh, service_id,
-              rabbitmq_cfg, cassandra_cfg, DBBaseAG, self.REACTION_MAP,
-              host_ip)
+              db_drivers_cfg, rabbitmq_cfg, cassandra_cfg, etcd_cfg, DBBaseAG,
+              self.REACTION_MAP, host_ip)
         self._alarm_plugins = alarm_plugins
         self._alarm_config_change_callback = alarm_config_change_callback
         self._inbuilt_alarms = {}
