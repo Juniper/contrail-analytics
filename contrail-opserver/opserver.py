@@ -1055,7 +1055,7 @@ class OpServer(object):
             'api_server'        : ['127.0.0.1:8082'],
             'admin_port'        : OpServerAdminPort,
             'cloud_admin_role'  : CLOUD_ADMIN_ROLE,
-            'api_server_use_ssl': False,
+            'api_server_use_ssl': None,
         }
         defaults.update(SandeshConfig.get_default_options(['DEFAULTS']))
         redis_opts = {
