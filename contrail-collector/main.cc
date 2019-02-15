@@ -384,6 +384,7 @@ int main(int argc, char *argv[])
         new ConfigClientCollector(a_evm, hostname, module_id, options);
     analytics = new VizCollector(a_evm,
             options.collector_port(),
+            options.collector_server(),
             protobuf_server_enabled,
             protobuf_port,
             schema_file_directory,
@@ -420,7 +421,7 @@ int main(int argc, char *argv[])
             analytics->name(),
             g_vns_constants.NodeTypeNames.find(node_type)->second,
             instance_id,
-            a_evm, "127.0.0.1", coll_port,
+            a_evm, options.collector_server(), coll_port,
             options.http_server_port(), &vsc, options.sandesh_config()));
     if (!success) {
         LOG(ERROR, "SANDESH: Initialization FAILED ... exiting");
