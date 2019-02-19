@@ -59,7 +59,7 @@ class UVEServer(object):
             self._redis_uve_map[test_elem] = RedisInst()
             ConnectionState.update(ConnectionType.REDIS_UVE,\
                 test_elem.ip+":"+str(test_elem.port), ConnectionStatus.INIT,
-                [test_elem.ip+":"+str(test_elem.port)])
+                [test_elem.ip+":"+str(test_elem.port)],"Redis Instance initialized")
     #end __init__
 
     def fill_redis_uve_info(self, redis_uve_info):
@@ -102,7 +102,8 @@ class UVEServer(object):
                 ConnectionState.update(conn_type = ConnectionType.REDIS_UVE,\
                         name = new_elem[0]+":"+str(new_elem[1]), status = \
                         ConnectionStatus.INIT, server_addrs = \
-                        [new_elem[0]+":"+str(new_elem[1])])
+                        [new_elem[0]+":"+str(new_elem[1])],
+                        message = "Insert New Redis Instance")
     # end update_redis_uve_list
 
     def run(self):
@@ -153,12 +154,12 @@ class UVEServer(object):
                     # Update redis/collector health
                     if old_pid is None and rinst.collector_pid is not None:
                         ConnectionState.update(ConnectionType.REDIS_UVE,\
-                                rkey.ip + ":" + str(rkey.port), ConnectionStatus.UP,
-                        [rkey.ip+":"+str(rkey.port)])
+                            rkey.ip + ":" + str(rkey.port), ConnectionStatus.UP,
+                            [rkey.ip+":"+str(rkey.port)],"Redis Instance is Up")
                     if old_pid is not None and rinst.collector_pid is None:
                         ConnectionState.update(ConnectionType.REDIS_UVE,\
-                                rkey.ip + ":" + str(rkey.port), ConnectionStatus.DOWN,
-                        [rkey.ip+":"+str(rkey.port)])
+                            rkey.ip + ":" + str(rkey.port), ConnectionStatus.DOWN,
+                            [rkey.ip+":"+str(rkey.port)],"Redis Instance is Down")
             if not exitrun:
                 gevent.sleep(self._freq)
 
@@ -180,7 +181,7 @@ class UVEServer(object):
             rik = RedisInstKey(ip=r_ip,port=r_port)
             redish = self._redis_uve_map[rik].redis_handle
             gen_uves = {}
-            for elems in redish.smembers("PART2KEY:" + str(part)): 
+            for elems in redish.smembers("PART2KEY:" + str(part)):
                 info = elems.split(":", 5)
                 gen = info[0] + ":" + info[1] + ":" + info[2] + ":" + info[3]
                 typ = info[4]
@@ -196,7 +197,7 @@ class UVEServer(object):
         return r_ip + ":" + str(r_port) , gen_uves
 
     def get_tables(self):
-        tables = set() 
+        tables = set()
         for r_key, r_inst in self._redis_uve_map.iteritems():
             if  r_inst.redis_handle is None or r_inst.collector_pid is None:
                 continue
@@ -223,7 +224,7 @@ class UVEServer(object):
             return self._uvedbcache.get_uve(key, filters)
 
         is_alarm = False
-        if tfilter == "UVEAlarms": 
+        if tfilter == "UVEAlarms":
             is_alarm = True
 
         state = {}
@@ -269,7 +270,7 @@ class UVEServer(object):
                     ppeval.hgetall("VALUES:" + key + ":" + origs)
                 odictlist = ppeval.execute()
 
-                idx = 0    
+                idx = 0
                 for origs in origins:
 
                     odict = odictlist[idx]
@@ -436,7 +437,7 @@ class UVEServer(object):
         is_alarm = False
         filters = filters or {}
         tfilter = filters.get('cfilt')
-        if tfilter == "UVEAlarms": 
+        if tfilter == "UVEAlarms":
             is_alarm = True
         uve_list = set()
         kfilter = filters.get('kfilt')
