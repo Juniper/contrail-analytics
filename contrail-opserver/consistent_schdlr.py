@@ -29,7 +29,7 @@ class ConsistentScheduler(object):
 
     def __init__(self, service_name=None, zookeeper='127.0.0.1:2181',
                  delete_hndlr=None, add_hndlr=None, bucketsize=47,
-                 item2part_func=None, partitioner=None, logger=None, 
+                 item2part_func=None, partitioner=None, logger=None,
                  cluster_id=''):
         if logger:
             self._logger = logger
@@ -55,7 +55,8 @@ class ConsistentScheduler(object):
         else:
             self._zk_path = '/'.join(['/contrail_cs', self._service_name])
         self._conn_state = None
-        self._sandesh_connection_info_update(status='INIT', message='')
+        self._sandesh_connection_info_update(status='INIT',
+                message='Connection to Zookeeper initialized')
 
         while True:
             self._logger.error("Consistent scheduler zk start")
@@ -93,8 +94,8 @@ class ConsistentScheduler(object):
         new_conn_state = getattr(ConnectionStatus, status)
         ConnectionState.update(conn_type = ConnectionType.ZOOKEEPER,
                 name = 'Zookeeper', status = new_conn_state,
-                message = message,
-                server_addrs = self._zookeeper_srvr.split(','))
+                server_addrs = self._zookeeper_srvr.split(',')
+                message =  message)
 
         if ((self._conn_state and self._conn_state != ConnectionStatus.DOWN) and
             new_conn_state == ConnectionStatus.DOWN):
@@ -112,14 +113,15 @@ class ConsistentScheduler(object):
         self._logger.error("Consistent scheduler listen %s" % str(state))
         if state == KazooState.CONNECTED:
             # Update connection info
-            self._sandesh_connection_info_update(status='UP', message='')
+            self._sandesh_connection_info_update(status='UP', 
+                message='Connection to Zookeeper established')
         elif state == KazooState.LOST:
             self._logger.error("Consistent scheduler connection LOST")
             # Lost the session with ZooKeeper Server
-            # Best of option we have is to exit the process and restart all 
+            # Best of option we have is to exit the process and restart all
             # over again
             self._sandesh_connection_info_update(status='DOWN',
-                                      message='Connection to Zookeeper lost')
+                message='Connection to Zookeeper lost')
             os._exit(2)
         elif state == KazooState.SUSPENDED:
             self._logger.error("Consistent scheduler connection SUSPENDED")
