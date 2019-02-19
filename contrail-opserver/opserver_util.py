@@ -70,8 +70,8 @@ class AnalyticsDiscovery(gevent.Greenlet):
         new_conn_state = getattr(ConnectionStatus, status)
         ConnectionState.update(conn_type = ConnectionType.ZOOKEEPER,
                 name = self._svc_name, status = new_conn_state,
-                message = message,
-                server_addrs = self._zk_server.split(','))
+                server_addrs = self._zk_server.split(','),
+                message = message)
 
         if (self._conn_state and self._conn_state != ConnectionStatus.DOWN and
                 new_conn_state == ConnectionStatus.DOWN):
@@ -88,13 +88,14 @@ class AnalyticsDiscovery(gevent.Greenlet):
     def _zk_listen(self, state):
         self._logger.error("Analytics Discovery listen %s" % str(state))
         if state == KazooState.CONNECTED:
-            self._sandesh_connection_info_update(status='UP', message='')
+            self._sandesh_connection_info_update(status='UP',
+                    message='Connection to Zookeeper re-established')
             self._logger.error("Analytics Discovery to publish %s" % str(self._pubinfo))
             self._reconnect = True
         elif state == KazooState.LOST:
             self._logger.error("Analytics Discovery connection LOST")
             # Lost the session with ZooKeeper Server
-            # Best of option we have is to exit the process and restart all 
+            # Best of option we have is to exit the process and restart all
             # over again
             self._sandesh_connection_info_update(status='DOWN',
                                       message='Connection to Zookeeper lost')
@@ -135,7 +136,8 @@ class AnalyticsDiscovery(gevent.Greenlet):
         else:
             self._logger = logger
         self._conn_state = None
-        self._sandesh_connection_info_update(status='INIT', message='')
+        self._sandesh_connection_info_update(status='INIT',
+                message='Connection to Zookeeper initialized')
         self._zkservers = zkservers
         self._zk = None
         self._pubinfo = None
@@ -185,7 +187,8 @@ class AnalyticsDiscovery(gevent.Greenlet):
                 messag = template.format(type(ex).__name__, ex.args)
                 self._logger.error("%s : traceback %s for %s info %s" % \
                         (messag, traceback.format_exc(), self._svc_name, str(self._pubinfo)))
-                self._sandesh_connection_info_update(status='DOWN', message='')
+                self._sandesh_connection_info_update(status='DOWN',
+                        message='Reconnect to Zookeeper to handle exception')
                 self._reconnect = True
         else:
             self._logger.error("Analytics Discovery cannot publish while down")
@@ -220,7 +223,8 @@ class AnalyticsDiscovery(gevent.Greenlet):
 
         try:
             # Update connection info
-            self._sandesh_connection_info_update(status='UP', message='')
+            self._sandesh_connection_info_update(status='UP',
+                    message='Connection to Zookeeper established')
             self._reconnect = False
             # Done connecting to ZooKeeper
 
