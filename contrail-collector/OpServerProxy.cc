@@ -196,7 +196,7 @@ class OpServerProxy::OpServerImpl {
                 }
                 ConnectionState::GetInstance()->Update(ConnectionType::REDIS_UVE,
                 "To", ConnectionStatus::UP, to_ops_conn_->Endpoint(),
-                std::string());
+                "Redis(To) connecting to CallbackProcess");
                 evm_->io_service()->post(boost::bind(&OpServerProxy::OpServerImpl::ToOpsConnUpPostProcess, this));
                 return;
 
@@ -217,7 +217,7 @@ class OpServerProxy::OpServerImpl {
             if (reply.type != REDIS_REPLY_ERROR) {
                 ConnectionState::GetInstance()->Update(ConnectionType::REDIS_UVE,
                 "From", ConnectionStatus::UP, from_ops_conn_->Endpoint(),
-                std::string());
+                "Redis(From) handling the auth callback");
                 evm_->io_service()->post(boost::bind(&OpServerProxy::OpServerImpl::FromOpsConnUpPostProcess, this));
                 return;
 
@@ -293,7 +293,7 @@ class OpServerProxy::OpServerImpl {
             // Update connection info
             ConnectionState::GetInstance()->Update(ConnectionType::REDIS_UVE,
                 "To", ConnectionStatus::DOWN, to_ops_conn_->Endpoint(),
-                std::string());
+                "Redis(To) reconnecting");
             evm_->io_service()->post(boost::bind(&OpServerProxy::OpServerImpl::RAC_ConnectProcess,
                         this, RAC_CONN_TYPE_TO_OPS));
         }
@@ -303,7 +303,7 @@ class OpServerProxy::OpServerImpl {
             // Update connection info
             ConnectionState::GetInstance()->Update(ConnectionType::REDIS_UVE,
                 "From", ConnectionStatus::DOWN, from_ops_conn_->Endpoint(),
-                std::string());
+                "Redis(From) reconnecting");
             evm_->io_service()->post(boost::bind(&OpServerProxy::OpServerImpl::RAC_ConnectProcess,
                         this, RAC_CONN_TYPE_FROM_OPS));
         }
@@ -441,7 +441,7 @@ class OpServerProxy::OpServerImpl {
             // Update connection 
             ConnectionState::GetInstance()->Update(ConnectionType::REDIS_UVE,
                 "To", ConnectionStatus::INIT, to_ops_conn_->Endpoint(),
-                std::string());
+                "Redis(To) connection initializing");
             to_ops_conn_.get()->RAC_Connect();
             from_ops_conn_.reset(new RedisAsyncConnection(evm_,
                 redis_uve_ip, redis_uve_port,
@@ -450,7 +450,7 @@ class OpServerProxy::OpServerImpl {
             // Update connection info
             ConnectionState::GetInstance()->Update(ConnectionType::REDIS_UVE,
                 "From", ConnectionStatus::INIT, from_ops_conn_->Endpoint(),
-                std::string());
+                "Redis(From) connection initializing");
             from_ops_conn_.get()->RAC_Connect();
         }
 
