@@ -102,7 +102,7 @@ env.Append(ENV = {'BUILDTOP': Dir(env['TOP']).abspath,
                     'COVERAGERUN': str(env['OPT'] == 'coverage')})
 
 test_depends = [
-        '/config/common/dist/cfgm_common-0.1dev.tar.gz',
+        '/config/common/dist/contrail-config-common-0.1dev.tar.gz',
         '/sandesh/common/dist/sandesh-common-0.1dev.tar.gz',
         '/tools/sandesh/library/python/dist/sandesh-0.1dev.tar.gz',
         '/opserver/dist/opserver-0.1dev.tar.gz',
