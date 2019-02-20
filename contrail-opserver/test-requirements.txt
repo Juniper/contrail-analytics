@@ -20,10 +20,9 @@ docker
 ../opserver
 ../sandesh/common/dist/sandesh-common-0.1dev.tar.gz
 ../tools/sandesh/library/python/dist/sandesh-0.1dev.tar.gz
-../config/common/dist/cfgm_common-0.1dev.tar.gz
+contrail-config-common
 contrail-api-client
 ../nodemgr/dist/nodemgr-0.1dev.tar.gz
 ../libpartition/dist/libpartition-0.1dev.tar.gz
-../config/common/dist/cfgm_common-0.1dev.tar.gz
 ../opserver/plugins/test/alarm_partial_sysinfo/dist/alarm_partial_sysinfo-0.1dev.tar.gz
 ../opserver/plugins/test/alarm_process_status/dist/alarm_process_status-0.1dev.tar.gz
