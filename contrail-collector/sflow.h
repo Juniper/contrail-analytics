@@ -12,7 +12,7 @@
 #include <boost/ptr_container/ptr_vector.hpp>
 #include <boost/bind.hpp>
 
-#include "net/address.h"
+#include "base/address.h"
 #include "net/mac_address.h"
 
 
@@ -72,7 +72,7 @@ struct SFlowFlowIpData {
     uint32_t tcp_flags;
     uint32_t tos;
 
-    explicit SFlowFlowIpData() 
+    explicit SFlowFlowIpData()
         : length(), protocol(), src_ip(), dst_ip(), src_port(),
           dst_port(), tcp_flags(), tos() {
     }
