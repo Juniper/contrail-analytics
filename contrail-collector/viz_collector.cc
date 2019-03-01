@@ -17,7 +17,6 @@
 #include "sandesh/sandesh_session.h"
 
 #include "ruleeng.h"
-#include "protobuf_collector.h"
 #include "structured_syslog_collector.h"
 #include "viz_sandesh.h"
 #include <zookeeper/zookeeper_client.h>
@@ -36,9 +35,6 @@ using namespace zookeeper::client;
 
 VizCollector::VizCollector(EventManager *evm, unsigned short listen_port,
             const std::string &listen_ip,
-            bool protobuf_collector_enabled,
-            unsigned short protobuf_listen_port,
-            const std::string protobuf_schema_file_directory,
             bool structured_syslog_collector_enabled,
             unsigned short structured_syslog_listen_port,
             const vector<string> &structured_syslog_tcp_forward_dst,
@@ -89,11 +85,6 @@ VizCollector::VizCollector(EventManager *evm, unsigned short listen_port,
         name_ = ResolveCanonicalName(host_ip) + "dup";
     else
         name_ = ResolveCanonicalName(host_ip);
-    if (protobuf_collector_enabled) {
-        protobuf_collector_.reset(new ProtobufCollector(evm,
-            protobuf_listen_port, protobuf_schema_file_directory,
-            db_initializer_?db_initializer_->GetDbHandler():DbHandlerPtr()));
-    }
     if (structured_syslog_collector_enabled) {
         structured_syslog_collector_.reset(new StructuredSyslogCollector(evm,
             structured_syslog_listen_port, structured_syslog_tcp_forward_dst,
@@ -173,10 +164,6 @@ void VizCollector::Shutdown() {
     osp_->Shutdown();
     WaitForIdle();
 
-    if (protobuf_collector_) {
-        protobuf_collector_->Shutdown();
-        WaitForIdle();
-    }
     if (structured_syslog_collector_) {
         structured_syslog_collector_->Shutdown();
         WaitForIdle();
@@ -189,9 +176,6 @@ void VizCollector::Shutdown() {
 
 void VizCollector::DbInitializeCb() {
     ruleeng_->Init();
-    if (protobuf_collector_) {
-        protobuf_collector_->Initialize();
-    }
     if (structured_syslog_collector_) {
         structured_syslog_collector_->Initialize();
     }
@@ -202,12 +186,6 @@ bool VizCollector::Init() {
         return db_initializer_->Initialize();
     }
     return true;
-}
-
-void VizCollector::SendProtobufCollectorStatistics() {
-    if (protobuf_collector_) {
-        protobuf_collector_->SendStatistics(name_);
-    }
 }
 
 void VizCollector::SendGeneratorStatistics() {

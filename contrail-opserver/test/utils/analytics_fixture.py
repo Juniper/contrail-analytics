@@ -64,7 +64,6 @@ class Query(object):
 class Collector(object):
     def __init__(self, analytics_fixture, redis_uve,
                  logger,
-                 protobuf_port = True,
                  kafka = None, is_dup = False,
                  cassandra_user = None, cassandra_password = None,
                  zookeeper = None, cluster_id='', sandesh_config=None):
@@ -75,7 +74,6 @@ class Collector(object):
             self.kafka_port = kafka.port
         # If these ports are needed, "start" should allocate them
 
-        self.protobuf_port = protobuf_port
         self.http_port = 0
         self.listen_port = 0
         self.hostname = socket.getfqdn("127.0.0.1")
@@ -103,10 +101,6 @@ class Collector(object):
     def get_addr(self):
         return socket.getfqdn("127.0.0.1")+':'+str(self.listen_port)
     # end get_addr
-
-    def get_protobuf_port(self):
-        return self.protobuf_port
-    # end get_protobuf_port
 
     def get_generator_id(self):
         return self._generator_id
@@ -141,12 +135,6 @@ class Collector(object):
             args.append(self.redis_password)
         if self._is_dup is True:
             args.append('--DEFAULT.dup')
-        if (self.protobuf_port):
-            self.protobuf_port = AnalyticsFixture.get_free_port()
-            args.append('--COLLECTOR.protobuf_port')
-            args.append(str(self.protobuf_port))
-        else:
-            self.protobuf_port = None
         if self.cassandra_user is not None and \
             self.cassandra_password is not None:
                 args.append('--CASSANDRA.cassandra_user')
@@ -637,14 +625,13 @@ class AnalyticsFixture(fixtures.Fixture):
     # end set_sandesh_config
 
     def __init__(self, logger, builddir, cassandra_port,
-                 protobuf_port = False, noqed=False, collector_ha_test=False,
+                 noqed=False, collector_ha_test=False,
                  redis_password=None, start_kafka=False,
                  cassandra_user=None, cassandra_password=None, cluster_id="",
                  sandesh_config=None):
 
         self.builddir = builddir
         self.cassandra_port = cassandra_port
-        self.protobuf_port = protobuf_port
         self.logger = logger
         self.noqed = noqed
         self.collector_ha_test = collector_ha_test
@@ -682,7 +669,6 @@ class AnalyticsFixture(fixtures.Fixture):
             self.kafka.start()
 
         self.collectors = [Collector(self, self.redis_uves[0], self.logger,
-                           protobuf_port = self.protobuf_port,
                            kafka = self.kafka,
                            zookeeper = self.zookeeper,
                            cluster_id=self.cluster_id,
