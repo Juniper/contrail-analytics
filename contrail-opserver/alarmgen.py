@@ -156,7 +156,7 @@ class AGKeyInfo(object):
                 self.current_dict[typ] = val
 
     def update(self, new_dict):
-        # A UVE has changed, and we have the entire new 
+        # A UVE has changed, and we have the entire new
         # content of the UVE available in new_dict
         set_current = set(new_dict.keys())
         set_past = set(self.current_dict.keys())
@@ -730,7 +730,7 @@ class AlarmStateMachine:
 
     def run_idle_timer(self, curr_time):
         """
-        This is the handler function for checking timer in Soak_Idle state. 
+        This is the handler function for checking timer in Soak_Idle state.
         State Machine should be deleted by the caller if this timer fires
         """
         idleTimerExpired = 0
@@ -752,7 +752,7 @@ class AlarmStateMachine:
 
     def run_delete_timer(self, curr_time):
         """
-        This is the handler function for checking timer in Idle state. 
+        This is the handler function for checking timer in Idle state.
         State Machine should be deleted by the caller if this timer fires
         """
         delete_alarm = False
@@ -818,7 +818,7 @@ class AlarmStateMachine:
             for timer in update_timers:
                 if timer.timeout_val is not None or timer.delete_alarm:
                     AlarmStateMachine.update_tab_alarms_timer(timer.tab,
-                                    timer.uv, timer.nm, timer.old_to, 
+                                    timer.uv, timer.nm, timer.old_to,
                                     timer.timeout_val, tab_alarms)
         AlarmStateMachine.last_timers_run = curr_time + 1
         return delete_alarms, update_alarms
@@ -939,7 +939,7 @@ class Controller(object):
             {'name':'AlarmgenPartitionTrace', 'size':10000},
             {'name':'AlarmExceptionTrace', 'size':1000}
         ]
-        # Create trace buffers 
+        # Create trace buffers
         for buf in self.trace_buf:
             self._sandesh.trace_buffer_create(name=buf['name'], size=buf['size'])
 
@@ -1024,7 +1024,7 @@ class Controller(object):
 
         PartitionOwnershipReq.handle_request = self.handle_PartitionOwnershipReq
         PartitionStatusReq.handle_request = self.handle_PartitionStatusReq
-        UVETableAlarmReq.handle_request = self.handle_UVETableAlarmReq 
+        UVETableAlarmReq.handle_request = self.handle_UVETableAlarmReq
         UVETableInfoReq.handle_request = self.handle_UVETableInfoReq
         UVETablePerfReq.handle_request = self.handle_UVETablePerfReq
         AlarmConfigRequest.handle_request = self.handle_AlarmConfigRequest
@@ -1112,7 +1112,7 @@ class Controller(object):
 
     def handle_uve_notifq(self, part, uves):
         """
-        uves : 
+        uves :
           This is a dict of UVEs that have changed, as per the following scheme:
           <UVE-Key> : None               # Any of the types may have changed
                                          # Used during stop_partition and GenDelete
@@ -1276,7 +1276,7 @@ class Controller(object):
                         typ, vjson)
         ppe.execute()
 
-        # Find the keys that have no content (all structs have been deleted) 
+        # Find the keys that have no content (all structs have been deleted)
         ppe4 = redish.pipeline()
         check_keys_list = list(check_keys)
         for kk in check_keys_list:
@@ -1374,7 +1374,7 @@ class Controller(object):
         """
         gevent.sleep(300)
         try:
-            # acks = 1 (default) wait for leader to write record to 
+            # acks = 1 (default) wait for leader to write record to
             # local log
             if not self._conf.kafka_use_ssl():
                 producer = KafkaProducer(
@@ -1466,7 +1466,8 @@ class Controller(object):
                         redis_ip = lredis.connection_pool.connection_kwargs['host']
                         ConnectionState.update(conn_type = ConnectionType.REDIS_UVE,
                             name = 'AggregateRedis', status = ConnectionStatus.UP,
-                            server_addrs = [redis_ip + ":" + str(self._conf.redis_server_port())])
+                            server_addrs = [redis_ip + ":" + str(self._conf.redis_server_port())],
+                            message = "Connected to Aggregate Redis")
                 else:
                     redis_changed = False
                     if not lredis.exists(self._moduleid + ':' + self._instance_id):
@@ -1480,7 +1481,9 @@ class Controller(object):
                     if not len(self._uveq[part]):
                         continue
                     self._logger.info("UVE Process for %d" % part)
-                    kafka_topic_down |= self._workers[part].failed()
+                    if self._workers[part].failed() is True:
+                        kafka_part_failed = part
+                        kafka_topic_down = True
 
                     # Allow the partition handlers to queue new UVEs without
                     # interfering with the work of processing the current UVEs
@@ -1496,12 +1499,23 @@ class Controller(object):
 
                     gevs[part] = gevent.spawn(self.handle_uve_notif, part,\
                         pendingset[part])
+                server_list = []
                 if kafka_topic_down:
+                    server_list.append(self._workers[kafka_part_failed]._brokers)
                     ConnectionState.update(conn_type = ConnectionType.KAFKA_PUB,
-                        name = 'KafkaTopic', status = ConnectionStatus.DOWN)
+                        name = 'KafkaTopic', status = ConnectionStatus.DOWN,
+                        server_addrs = server_list,
+                        message = "Some Kafka partitions are not reachable")
                 else:
+                    if pendingset:
+                        valid_part = list(pendingset.keys())[0]
+                        server_list.append(self._workers[valid_part]._brokers)
+                    else:
+                        server_list = None
                     ConnectionState.update(conn_type = ConnectionType.KAFKA_PUB,
-                        name = 'KafkaTopic', status = ConnectionStatus.UP)
+                        name = 'KafkaTopic', status = ConnectionStatus.UP,
+                        server_addrs = server_list,
+                        message = "All Kafka partitions are reachable")
 
                 if len(gevs):
                     gevent.joinall(gevs.values())
@@ -1569,7 +1583,8 @@ class Controller(object):
                 ConnectionState.update(conn_type=ConnectionType.REDIS_UVE,
                     name='AggregateRedis', status=ConnectionStatus.DOWN,
                     server_addrs=[down_redis_ip + ':' + \
-                                  str(self._conf.redis_server_port())])
+                                  str(self._conf.redis_server_port())],
+                    message = messag)
                 lredis = None
                 if self._ad:
                     self._ad.publish(None)
@@ -2041,7 +2056,7 @@ class Controller(object):
                             uai = UVEAlarms(name = uk, alarms = alm_copy),
                             uac = av.get_uac(), uas = av.get_uas()))
             resp = UVETableAlarmResp(table = pt)
-            resp.uves = uves 
+            resp.uves = uves
             if np == len(parts):
                 mr = False
             else:
