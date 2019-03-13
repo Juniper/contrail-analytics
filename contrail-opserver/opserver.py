@@ -266,12 +266,12 @@ def redis_query_result(host, port, redis_password, qid):
         yield bottle.HTTPError(_ERRORS[errno.EIO], 'Error: %s' % e)
     else:
         if status is None:
-            yield bottle.HTTPError(_ERRORS[errno.ENOENT], 
+            yield bottle.HTTPError(_ERRORS[errno.ENOENT],
                     'Invalid query id (or) query result purged from DB')
         if status['progress'] == 100:
             for chunk in status['chunks']:
                 chunk_id = int(chunk['href'].rsplit('/', 1)[1])
-                for gen in redis_query_chunk(host, port, redis_password, qid, 
+                for gen in redis_query_chunk(host, port, redis_password, qid,
                                              chunk_id):
                     yield gen
         else:
@@ -705,7 +705,7 @@ class OpServer(object):
         self.trace_buf = [
             {'name':'DiscoveryMsg', 'size':1000}
         ]
-        # Create trace buffers 
+        # Create trace buffers
         for buf in self.trace_buf:
             self._sandesh.trace_buffer_create(name=buf['name'], size=buf['size'])
 
@@ -738,7 +738,9 @@ class OpServer(object):
 
         self.agp = {}
         ConnectionState.update(conn_type = ConnectionType.UVEPARTITIONS,
-            name = 'UVE-Aggregation', status = ConnectionStatus.UP)
+            name = 'UVE-Aggregation', status = ConnectionStatus.UP,
+            server_addrs = self._args.redis_uve_list,
+            message = "Not using Kafka for UVE Aggregation")
         self._uvepartitions_state = ConnectionStatus.UP
 
         self.redis_uve_list = []
@@ -746,7 +748,7 @@ class OpServer(object):
             self._args.redis_uve_list = self._args.redis_uve_list.split()
         ad_freq = 10
         us_freq = 5
-        is_local = True 
+        is_local = True
         for redis_uve in self._args.redis_uve_list:
             redis_ip_port = redis_uve.split(':')
             if redis_ip_port[0] != "127.0.0.1":
@@ -862,14 +864,14 @@ class OpServer(object):
             tln = stat_query_column(name=STAT_TIME_FIELD, datatype='int', index=False)
             scols.append(tln)
 
-            tcln = stat_query_column(name="CLASS(" + STAT_TIME_FIELD + ")", 
+            tcln = stat_query_column(name="CLASS(" + STAT_TIME_FIELD + ")",
                      datatype='int', index=False)
             scols.append(tcln)
 
             teln = stat_query_column(name=STAT_TIMEBIN_FIELD, datatype='int', index=False)
             scols.append(teln)
 
-            tecln = stat_query_column(name="CLASS(" + STAT_TIMEBIN_FIELD+ ")", 
+            tecln = stat_query_column(name="CLASS(" + STAT_TIMEBIN_FIELD+ ")",
                      datatype='int', index=False)
             scols.append(tecln)
 
@@ -926,7 +928,7 @@ class OpServer(object):
                     scln = stat_query_column(name= "AVG(" + aln["name"] + ")",
                             datatype='avg', index=False)
                     scols.append(scln)
-            if not isname: 
+            if not isname:
                 if "obj_table" in table and table["obj_table"] in \
                         self.ObjectLogTypeToUveType:
                     uve_type = self.ObjectLogTypeToUveType[table["obj_table"]]
@@ -1124,10 +1126,10 @@ class OpServer(object):
         parser.add_argument("--log_local", action="store_true",
             help="Enable local logging of sandesh messages")
         parser.add_argument(
-            "--log_level",  
+            "--log_level",
             help="Severity level for local logging of sandesh messages")
         parser.add_argument(
-            "--log_category", 
+            "--log_category",
             help="Category filter for local logging of sandesh messages")
         parser.add_argument("--log_file",
             help="Filename for the logs to be written to")
@@ -1363,7 +1365,7 @@ class OpServer(object):
     def _get_redis_query_ip_from_qid(qid):
         try:
             ip = qid.rsplit('-', 1)[1]
-            redis_ip = socket.inet_ntop(socket.AF_INET, 
+            redis_ip = socket.inet_ntop(socket.AF_INET,
                             struct.pack('>I', int(ip, 16)))
         except Exception as err:
             return None
@@ -1374,7 +1376,7 @@ class OpServer(object):
         resp = {}
         redis_query_ip = OpServer._get_redis_query_ip_from_qid(qid)
         if redis_query_ip is None:
-            return bottle.HTTPError(_ERRORS[errno.EINVAL], 
+            return bottle.HTTPError(_ERRORS[errno.EINVAL],
                     'Invalid query id')
         try:
             resp = redis_query_status(host=redis_query_ip,
@@ -1389,7 +1391,7 @@ class OpServer(object):
             return bottle.HTTPError(_ERRORS[errno.EIO], 'Error: %s' % e)
         else:
             if resp is None:
-                return bottle.HTTPError(_ERRORS[errno.ENOENT], 
+                return bottle.HTTPError(_ERRORS[errno.ENOENT],
                     'Invalid query id or Abandoned query id')
             resp_header = {'Content-Type': 'application/json'}
             resp_code = 200
@@ -1559,7 +1561,7 @@ class OpServer(object):
                                     if tabn else None)
             if prg is None:
                 self._logger.error('QE Not Responding')
-                yield bottle.HTTPError(_ERRORS[errno.EBUSY], 
+                yield bottle.HTTPError(_ERRORS[errno.EBUSY],
                         'Query Engine is not responding')
                 return
 
@@ -1660,7 +1662,7 @@ class OpServer(object):
                     'Failure in connection to the query DB')
         except Exception as e:
             self._logger.error("Exception: %s" % str(e))
-            yield bottle.HTTPError(_ERRORS[errno.EIO], 
+            yield bottle.HTTPError(_ERRORS[errno.EIO],
                     'Error: %s' % e)
         else:
             self._logger.info(
@@ -1912,7 +1914,7 @@ class OpServer(object):
         if not ok:
             (code, msg) = result
             bottle.abort(code, msg)
-        uve_tbl = table 
+        uve_tbl = table
         if table in UVE_MAP:
             uve_tbl = UVE_MAP[table]
 
@@ -2089,7 +2091,7 @@ class OpServer(object):
             bottle.request.urlparts.netloc + '/analytics/uves/'
         uvetype_links = []
         
-        # Show the list of UVE table-types based on actual raw UVE contents 
+        # Show the list of UVE table-types based on actual raw UVE contents
         tables = self._uve_server.get_tables()
         known = set()
         for apiname,rawname in UVE_MAP.iteritems():
@@ -2134,7 +2136,7 @@ class OpServer(object):
             self._logger.error('Content-type is not JSON')
             return bottle.HTTPError(_ERRORS[errno.EBADMSG],
                 'Content-Type must be JSON')
-        self._logger.info('Alarm Acknowledge request: %s' % 
+        self._logger.info('Alarm Acknowledge request: %s' %
             (bottle.request.json))
         alarm_ack_fields = set(['table', 'name', 'type', 'token'])
         bottle_req_fields = set(bottle.request.json.keys())
@@ -2192,7 +2194,7 @@ class OpServer(object):
         node_type = Module2NodeType[module_id]
         node_type_name = NodeTypeNames[node_type]
         if self._state_server.redis_publish(msg_type='send-tracebuffer',
-                                            destination=source + ':' + 
+                                            destination=source + ':' +
                                             node_type_name + ':' + module +
                                             ':' + instance_id,
                                             msg=trace_req):
@@ -2383,7 +2385,7 @@ class OpServer(object):
                 if (table == stat_table):
                     objtab = t.obj_table
                     break
-            if (objtab != None) and (objtab != "None"): 
+            if (objtab != None) and (objtab != "None"):
                 return list(self._uve_server.get_uve_list(objtab))
 
         return []
@@ -2474,10 +2476,12 @@ class OpServer(object):
 
     def disc_agp(self, clist):
         new_agp = {}
+        server_list = []
         for elem in clist:
             instance_id = elem['instance-id']
             port = int(elem['redis-port']) 
             ip_address = elem['ip-address']
+            server_list.append(str(ip_address)+':'+str(port))
             redis_agg_db = elem['redis-agg-db']
             # If AlarmGenerator sends partitions as NULL, its
             # unable to provide service
@@ -2500,9 +2504,10 @@ class OpServer(object):
                 len(self.agp) != self._args.partitions:
             ConnectionState.update(conn_type = ConnectionType.UVEPARTITIONS,
                 name = 'UVE-Aggregation', status = ConnectionStatus.UP,
+                server_addrs = server_list,
                 message = 'Partitions:%d' % len(new_agp))
             self._uvepartitions_state = ConnectionStatus.UP
-        self.agp = new_agp        
+        self.agp = new_agp
 
     def get_agp(self):
         return self.agp
@@ -2572,7 +2577,7 @@ class OpServer(object):
                         if new_chksum != self._chksum:
                             self._chksum = new_chksum
                             self.random_collectors = random.sample(collectors, len(collectors))
-                        # Reconnect to achieve load-balance irrespective of list 
+                        # Reconnect to achieve load-balance irrespective of list
                         self._sandesh.reconfig_collectors(self.random_collectors)
                 try:
                     api_servers = config.get('DEFAULTS', 'api_server')
