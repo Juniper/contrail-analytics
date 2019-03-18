@@ -3,9 +3,9 @@
  */
 
 /*
- * This file details various data structures used for query 
+ * This file details various data structures used for query
  * engine processing
- * 
+ *
  * Overall the data structure heirarchy is as following:
  *
  * AnalyticsQuery--
@@ -46,7 +46,7 @@
 #include <boost/ptr_container/ptr_map.hpp>
 #include "base/util.h"
 #include "base/task.h"
-#include "net/address.h"
+#include "base/address.h"
 #include "base/parse_object.h"
 #include <tbb/mutex.h>
 #include <boost/bind.hpp>
@@ -152,7 +152,7 @@ extern SandeshTraceBufferPtr QeTraceBuf;
 #endif
 
 // this is to return errors from the member functions of the QueryUnit class
-// and its derived classes. These macros just set the status_details field 
+// and its derived classes. These macros just set the status_details field
 // and return from the function
 #define QE_PARSE_ERROR(cond) if (!(cond)) \
     { QE_LOG(DEBUG, "EBADMSG"); this->status_details = EBADMSG; return;}
@@ -187,7 +187,7 @@ typedef boost::shared_ptr<GenDb::GenDbIf> GenDbIfPtr;
 
 // flow sample stats which is stored in Cassandra flow index tables
 struct flow_stats {
-    flow_stats(uint64_t ibytes=0, uint64_t ipkts=0, bool ishort_flow=false) : 
+    flow_stats(uint64_t ibytes=0, uint64_t ipkts=0, bool ishort_flow=false) :
         bytes(ibytes), pkts(ipkts), short_flow(ishort_flow) {
     }
     bool operator==(const flow_stats &rhs) const {
@@ -215,7 +215,7 @@ struct flow_tuple {
         dest_ip(dip), protocol(proto), source_port(sport),
         dest_port(dport), direction(dir) {
     }
-    
+
     bool operator<(const flow_tuple& rhs) const {
         if (vrouter < rhs.vrouter) return true;
         if (vrouter > rhs.vrouter) return false;
@@ -228,7 +228,7 @@ struct flow_tuple {
 
         if (source_ip < rhs.source_ip) return true;
         if (source_ip > rhs.source_ip) return false;
-        
+
         if (dest_ip < rhs.dest_ip) return true;
         if (dest_ip > rhs.dest_ip) return false;
 
@@ -273,21 +273,21 @@ struct flow_tuple {
 };
 
 struct uuid_flow_stats {
-    uuid_flow_stats(uint64_t t, flow_stats stats) : 
+    uuid_flow_stats(uint64_t t, flow_stats stats) :
         last_timestamp(t), last_stats(stats) {
     }
     // indiates the timestamp when the last_stats was updated
-    uint64_t   last_timestamp; 
+    uint64_t   last_timestamp;
     // indicates the aggregate value of the stats seen @ last_ts
-    flow_stats last_stats; 
+    flow_stats last_stats;
 };
 
 // Result of basic unit of any analytics event query
 struct query_result_unit_t {
     // timestamp of an analytics event (log, flow record sample etc..)
-    uint64_t timestamp; 
+    uint64_t timestamp;
 
-    // this string will be 
+    // this string will be
     // UUID is in case of database queries for flow-records/flow-series
     // stats+UUID after database queries for flow-records WHERE queries
     // stats+UUID+8-tuple afer flow-series WHERE query
@@ -315,7 +315,7 @@ struct query_result_unit_t {
     bool operator<(const query_result_unit_t& rhs) const;
 
     // for printing
-    friend std::ostream &operator<<(std::ostream &out, 
+    friend std::ostream &operator<<(std::ostream &out,
             query_result_unit_t&);
 } ;
 
@@ -339,14 +339,14 @@ public:
     typedef QEOpServerProxy::BufferT BufT;
     typedef QEOpServerProxy::OutRowMultimapT MapBufT;
 
-    // following callback function is called whenever a subquery 
+    // following callback function is called whenever a subquery
     // is prcoessed
     virtual void subquery_processed(QueryUnit *subquery) {};
 
     // list of child queries
     std::vector<QueryUnit *> sub_queries;
 
-    // if this is a child/sub query, then following is pointer to 
+    // if this is a child/sub query, then following is pointer to
     // the parent query
     QueryUnit *parent_query;
     // Pointer to the highest level query
@@ -362,14 +362,14 @@ public:
 
 class QueryResultMetaData {
 public:
-    QueryResultMetaData() { 
+    QueryResultMetaData() {
     }
     virtual ~QueryResultMetaData() = 0;
 };
 
 class fsMetaData : public QueryResultMetaData {
 public:
-    fsMetaData(const std::set<boost::uuids::uuid>& flows) 
+    fsMetaData(const std::set<boost::uuids::uuid>& flows)
     : uuids(flows.begin(), flows.end()) {
     }
     ~fsMetaData() {
@@ -395,7 +395,7 @@ struct GetRowInput {
 class DbQueryUnit : public QueryUnit {
 public:
     DbQueryUnit(QueryUnit *p_query, QueryUnit *m_query):
-        QueryUnit(p_query, m_query) 
+        QueryUnit(p_query, m_query)
         { cr.count_ = MAX_DB_QUERY_ENTRIES;
             t_only_col = false; t_only_row = false;
            sub_query_id = (p_query->sub_queries.size())-1;
@@ -406,12 +406,12 @@ public:
 
     // portion of column family name other than T1
     std::string cfname;
-    // all type of match operations can be representated as 
-    // getrangeslice operations on Cassandra DB. For e.g. 
+    // all type of match operations can be representated as
+    // getrangeslice operations on Cassandra DB. For e.g.
     // NOT_EQUAL operation will be two getrangeslice operation
     GenDb::ColumnNameRange cr;
     GenDb::WhereIndexInfoVec where_vec;
-    // row key suffix will be used to append DIR to flow 
+    // row key suffix will be used to append DIR to flow
     // series/records query
     GenDb::DbDataValueVec row_key_suffix;
     bool t_only_col;    // only T is in column name
@@ -464,7 +464,7 @@ typedef boost::function<void (void *, QEOpServerProxy::QPerfInfo,
      std::auto_ptr<WhereResultT>)> WhereQueryCbT;
 // Where processing class
     // Result is available for SELECT processing in query_result field
-    // It will be an array of timestamp and 
+    // It will be an array of timestamp and
     // UUID is in case of messages/object-trace WHERE queries
     // stats+UUID after database queries for flow-records WHERE queries
     // stats+UUID+8-tuple for flow-series WHERE query
@@ -490,7 +490,7 @@ public:
 
     bool StatTermProcess(const contrail_rapidjson::Value& where_term,
         QueryUnit* pnode, QueryUnit *main_query);
- 
+
     WhereQuery(const std::string& where_json_string, int session_type,
             int is_si,int direction, int32_t or_number, QueryUnit *main_query);
     // construtor for UT
@@ -530,7 +530,7 @@ public:
         const GenDb::WhereIndexInfoVec &remote_labels_vec,
         const GenDb::WhereIndexInfoVec &arbitrary_tags_vec,
         const GenDb::WhereIndexInfoVec &remote_arbitrary_tags_vec);
-    
+
 private:
     tbb::mutex vector_push_mutex_;
 };
@@ -578,16 +578,16 @@ public:
     // Whethere timestamp will be one of the columns
     bool provide_timeseries;
     // relevant only if provide_timeseries is set
-    uint granularity; 
+    uint granularity;
 
-    // column family name (column family to query to get column 
+    // column family name (column family to query to get column
     // fields/NULL for flow series)
-    std::string cfname; 
+    std::string cfname;
     bool unroll_needed;
 
     std::auto_ptr<BufT> result_;
     std::auto_ptr<MapBufT> mresult_;
-   
+
     std::auto_ptr<StatsSelect> stats_;
 
     enum fs_query_type {
@@ -611,7 +611,7 @@ public:
 
     bool is_present_in_select_column_fields(const std::string& field) {
         std::vector<std::string>::iterator it;
-        it = std::find(select_column_fields.begin(), 
+        it = std::find(select_column_fields.begin(),
                        select_column_fields.end(),
                        field);
         if (it == select_column_fields.end()) {
@@ -626,7 +626,7 @@ public:
     friend class SelectTest;
 private:
     bool is_valid_select_field(const std::string& select_field) const;
-    // 
+    //
     // Object table query
     //
     void get_query_column_value(const GenDb::DbDataValueVec &info,
@@ -649,59 +649,59 @@ private:
     // Flow Series Query
     //
     static const uint64_t kMicrosecInSec = 1000 * 1000;
-  
+
     uint8_t fs_query_type_;
     bool is_flow_tuple_specified();
     void evaluate_fs_query_type();
-    typedef void (SelectQuery::*process_fs_query_callback)(const uint64_t&, 
+    typedef void (SelectQuery::*process_fs_query_callback)(const uint64_t&,
             const boost::uuids::uuid&, const flow_stats&, const flow_tuple&);
     typedef void (SelectQuery::*populate_fs_result_callback)();
-    typedef std::map<uint8_t, process_fs_query_callback> 
+    typedef std::map<uint8_t, process_fs_query_callback>
         process_fs_query_cb_map_t;
     static process_fs_query_cb_map_t process_fs_query_cb_map_;
     static process_fs_query_cb_map_t process_fs_query_cb_map_init();
-    typedef std::map<uint8_t, populate_fs_result_callback> 
+    typedef std::map<uint8_t, populate_fs_result_callback>
         populate_fs_result_cb_map_t;
     static populate_fs_result_cb_map_t populate_fs_result_cb_map_;
     static populate_fs_result_cb_map_t populate_fs_result_cb_map_init();
-    typedef std::map<const boost::uuids::uuid, uuid_flow_stats> 
+    typedef std::map<const boost::uuids::uuid, uuid_flow_stats>
         fs_uuid_stats_map_t;
 
-    // Called from process_query() for FLOW SERIES Query 
-    query_status_t process_fs_query(process_fs_query_callback, 
+    // Called from process_query() for FLOW SERIES Query
+    query_status_t process_fs_query(process_fs_query_callback,
             populate_fs_result_callback);
 
-    // flowclass is populated from tuple based on the 
+    // flowclass is populated from tuple based on the
     // tuple fields in the select_column_fields
     void get_flow_class(const flow_tuple& tuple, flow_tuple& flowclass);
 
     void fs_write_final_result_row(const uint64_t *t, const flow_tuple *tuple,
-            const flow_stats *raw_stats, const flow_stats *sum_stats, 
+            const flow_stats *raw_stats, const flow_stats *sum_stats,
             const flow_stats *avg_stats,
             const std::set<boost::uuids::uuid> *flow_list = NULL);
-    
+
     uint64_t fs_get_time_slice(const uint64_t& t);
     // Common Flow series queries
 
     // 1. SELECT with T=<granularity>, stats fields
     typedef std::map<const uint64_t, flow_stats> fs_ts_stats_map_t;
     fs_ts_stats_map_t fs_ts_stats_map_;
-    void process_fs_query_with_ts_stats_fields(const uint64_t&, 
+    void process_fs_query_with_ts_stats_fields(const uint64_t&,
             const boost::uuids::uuid&, const flow_stats&, const flow_tuple&);
     void populate_fs_query_result_with_ts_stats_fields();
 
     // 2. SELECT with flow tuple fields, stats fields
     typedef std::map<const flow_tuple, flow_stats> fs_tuple_stats_map_t;
     fs_tuple_stats_map_t fs_tuple_stats_map_;
-    void process_fs_query_with_tuple_stats_fields(const uint64_t&, 
+    void process_fs_query_with_tuple_stats_fields(const uint64_t&,
             const boost::uuids::uuid&, const flow_stats&, const flow_tuple&);
     void populate_fs_query_result_with_tuple_stats_fields();
 
     // 3. SELECT with T=<granularity>, flow tuple fields, stats fields
-    typedef std::map<const flow_tuple, fs_ts_stats_map_t> 
+    typedef std::map<const flow_tuple, fs_ts_stats_map_t>
         fs_ts_tuple_stats_map_t;
     fs_ts_tuple_stats_map_t fs_ts_tuple_stats_map_;
-    void process_fs_query_with_ts_tuple_stats_fields(const uint64_t&, 
+    void process_fs_query_with_ts_tuple_stats_fields(const uint64_t&,
             const boost::uuids::uuid&, const flow_stats&, const flow_tuple&);
     void populate_fs_query_result_with_ts_tuple_stats_fields();
 
@@ -712,7 +712,7 @@ private:
     void process_fs_query_with_stats_fields(const uint64_t&,
             const boost::uuids::uuid&, const flow_stats&, const flow_tuple&);
     void populate_fs_query_result_with_stats_fields();
-    
+
     // 2. SELECT with T=<granularity>, flow tuple fields
     typedef std::map<const uint64_t, std::set<flow_tuple> > fs_ts_tuple_map_t;
     fs_ts_tuple_map_t fs_ts_tuple_map_;
@@ -728,7 +728,7 @@ private:
     void process_fs_query_with_time(const uint64_t&,
             const boost::uuids::uuid&, const flow_stats&, const flow_tuple&);
     void populate_fs_query_result_with_time();
-    
+
     // 4. SELECT with T=<granularity>
     typedef std::set<uint64_t> fs_ts_t;
     fs_ts_t fs_ts_list_;
@@ -736,9 +736,9 @@ private:
             const boost::uuids::uuid&, const flow_stats&, const flow_tuple&);
     void populate_fs_query_result_with_ts();
 
-    // 5. SELECT with T 
+    // 5. SELECT with T
     // 6. SELECT with T, flow tuple fields
-    // 7. SELECT with T, stats fields 
+    // 7. SELECT with T, stats fields
     // 8. SELECT with T, flow tuple, stats
     void process_fs_query_with_time_tuple_stats_fields(const uint64_t&,
             const boost::uuids::uuid&, const flow_stats&, const flow_tuple&);
@@ -777,7 +777,7 @@ public:
     sort_op sorting_type;
     // fields to sort on (these are actual Cassandra column names)
     std::vector<sort_field_t> sort_fields;
-    int limit; // number of entries 
+    int limit; // number of entries
 
     // result after post processing
 
@@ -788,7 +788,7 @@ public:
                                const QEOpServerProxy::ResultRowT& rhs);
 
     bool merge_processing(
-        const QEOpServerProxy::BufferT& input, 
+        const QEOpServerProxy::BufferT& input,
         QEOpServerProxy::BufferT& output);
     bool final_merge_processing(
 const std::vector<boost::shared_ptr<QEOpServerProxy::BufferT> >& inputs,
@@ -804,7 +804,7 @@ public:
             int or_number,
             const std::vector<query_result_unit_t> * where_info,
             const TtlMap& ttlmap,
-            EventManager *evm, std::vector<std::string> cassandra_ips, 
+            EventManager *evm, std::vector<std::string> cassandra_ips,
             std::vector<int> cassandra_ports, int batch,
             int total_batches, const std::string& cassandra_user,
             const std::string &cassandra_password,
@@ -822,14 +822,14 @@ public:
     // Interface to Cassandra
     GenDbIfPtr dbif_;
     void db_err_handler() {};
-    
+
     //Query related fields
 
     // Query Id
     std::string query_id;
-    
+
     // if the req is to get objectids, the following will contain the key
-    std::string object_value_key; 
+    std::string object_value_key;
 
     std::string sandesh_moduleid; // module id of the query engine itself
     bool  filter_qe_logs;   // whether to filter query engine logs
@@ -840,7 +840,7 @@ public:
 
     std::map<std::string, std::string> json_api_data_;
     const std::vector<query_result_unit_t> * where_info_;
-    
+
     TtlMap ttlmap_;
     uint64_t where_start_;
     uint64_t select_start_;
@@ -855,9 +855,9 @@ public:
     // Values from the original query
     // start time of the time range for the queried records
     uint64_t original_from_time;
-    // end time of the time range for the queried records 
-    uint64_t original_end_time; 
-    // whether results from parallel instances need to be merged 
+    // end time of the time range for the queried records
+    uint64_t original_end_time;
+    // whether results from parallel instances need to be merged
     bool merge_needed; // whether sorting/limit operations are needed
     // which parallel batch number is this
     int parallel_batch_num;
@@ -910,7 +910,7 @@ const std::vector<boost::shared_ptr<QEOpServerProxy::BufferT> >& inputs,
     virtual uint32_t direction_ing() const {
         return wherequery_->direction_ing;
     }
-    
+
     // validation functions
     virtual bool is_object_table_query(const std::string &tname);
     static bool is_message_table_query(const std::string &tname);
@@ -929,21 +929,21 @@ const std::vector<boost::shared_ptr<QEOpServerProxy::BufferT> >& inputs,
     private:
     std::auto_ptr<StatsQuery> stats_;
     // Analytics table to query
-    std::string table_; 
+    std::string table_;
     // query start time requested by the user
     uint64_t req_from_time_;
     // query end time requested by the user
     uint64_t req_end_time_;
     // start time of the time range for the queried records.
-    // If the start time requested by the user is earlier than the 
+    // If the start time requested by the user is earlier than the
     // analytics start time, then this field holds the analytics start time.
     // Else, from_time is same as req_from_time.
-    uint64_t from_time_; 
+    uint64_t from_time_;
     // end time of the time range for the queried records.
-    // If the end time requested by the user is later than the time @ which the 
+    // If the end time requested by the user is later than the time @ which the
     // query was received, then this field holds the time @ which the query
     // was received. Else, end_time is same as req_end_time.
-    uint64_t end_time_; 
+    uint64_t end_time_;
     bool parallelize_query_;
     // Init function
     void Init(const std::string& qid,
@@ -961,9 +961,9 @@ class QueryEngine {
 public:
     static const uint64_t StartTimeDiffInSec = 12*3600;
     static int max_slice_;
-    
+
     struct QueryParams {
-        QueryParams(std::string qi, 
+        QueryParams(std::string qi,
                 std::map<std::string, std::string> qu,
                 uint32_t ch, uint64_t tm) :
             qid(qi), terms(qu), maxChunks(ch), query_starttm(tm) {}
@@ -1011,7 +1011,7 @@ public:
         bool & need_merge, bool & map_output,
         std::string& where, uint32_t& wterms,
         std::string& select, std::string& post,
-        uint64_t& time_period, 
+        uint64_t& time_period,
         std::string &table);
 
     // Query Execution of WHERE term
