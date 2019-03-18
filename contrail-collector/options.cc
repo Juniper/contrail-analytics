@@ -17,7 +17,6 @@
 #include "base/address_util.h"
 #include "base/util.h"
 #include <base/options_util.h>
-#include "net/address_util.h"
 #include <analytics/viz_constants.h>
 #include <database/gendb_constants.h>
 
@@ -640,22 +639,22 @@ void Options::Process(int argc, char *argv[],
                      "DEFAULT.analytics_data_ttl");
     if (analytics_data_ttl_ == (uint64_t)-1) {
         analytics_data_ttl_ = g_viz_constants.TtlValuesDefault.find(TtlType::GLOBAL_TTL)->second;
-    }   
+    }
     GetOptValue<uint64_t>(var_map, analytics_config_audit_ttl_,
                      "DEFAULT.analytics_config_audit_ttl");
     if (analytics_config_audit_ttl_ == (uint64_t)-1) {
         analytics_config_audit_ttl_ = g_viz_constants.TtlValuesDefault.find(TtlType::CONFIGAUDIT_TTL)->second;
-    }   
+    }
     GetOptValue<uint64_t>(var_map, analytics_statistics_ttl_,
                      "DEFAULT.analytics_statistics_ttl");
     if (analytics_statistics_ttl_ == (uint64_t)-1) {
         analytics_statistics_ttl_ = g_viz_constants.TtlValuesDefault.find(TtlType::STATSDATA_TTL)->second;
-    }   
+    }
     GetOptValue<uint64_t>(var_map, analytics_flow_ttl_,
                      "DEFAULT.analytics_flow_ttl");
     if (analytics_flow_ttl_ == (uint64_t)-1) {
         analytics_flow_ttl_ = g_viz_constants.TtlValuesDefault.find(TtlType::FLOWDATA_TTL)->second;
-    }   
+    }
 
     GetOptValue< vector<string> >(var_map, cassandra_server_list_,
                                   "DEFAULT.cassandra_server_list");
