@@ -1,0 +1,6 @@
+- project:
+    name: Juniper/contrail-analytics
+    experimental:
+      jobs:
+        - contrail-base-variant-run
+
