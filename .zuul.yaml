@@ -1,0 +1,6 @@
+- project:
+    name: Juniper/contrail-analytics
+    jobs:
+      check:
+        # firing this job is a signal that we are merged by zuul
+        - ci-test-core-ubuntu-xenial
