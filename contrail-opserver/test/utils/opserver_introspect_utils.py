@@ -91,7 +91,7 @@ class VerificationOpsSrv (IntrospectUtilBase):
 
     def get_ops_collector(self, col=None):
         if (col is None):
-            col = socket.getfqdn("127.0.0.1")
+            col = socket.getfqdn("127.0.0.1").split('.')[0]
         res = None
         try:
             col_dict = self.dict_get('analytics/uves/analytics-node/' + col,
@@ -208,7 +208,7 @@ class VerificationOpsSrv (IntrospectUtilBase):
             return res
 
 if __name__ == '__main__':
-    vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1"))
+    vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1").split('.')[0])
 
     vn = vns.get_ops_vn(vn='abc-corp:vn02')
 

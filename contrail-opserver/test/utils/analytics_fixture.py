@@ -76,7 +76,7 @@ class Collector(object):
 
         self.http_port = 0
         self.listen_port = 0
-        self.hostname = socket.getfqdn("127.0.0.1")
+        self.hostname = socket.getfqdn("127.0.0.1").split('.')[0]
         self._instance = None
         self._redis_uve = redis_uve
         self._logger = logger
@@ -99,7 +99,7 @@ class Collector(object):
     # end set_sandesh_config
 
     def get_addr(self):
-        return socket.getfqdn("127.0.0.1")+':'+str(self.listen_port)
+        return socket.getfqdn("127.0.0.1").split('.')[0]+':'+str(self.listen_port)
     # end get_addr
 
     def get_generator_id(self):
@@ -115,7 +115,7 @@ class Collector(object):
         self._log_file = '/tmp/vizd.messages.%s.%d' % \
                 (os.getenv('USER', 'None'), self._redis_uve.port)
         subprocess.call(['rm', '-rf', self._log_file])
-        server_list = socket.getfqdn("127.0.0.1")+':'
+        server_list = socket.getfqdn("127.0.0.1").split('.')[0]+':'
         if self.analytics_fixture.cassandra_port == '0':
             server_list = ''
         args = [self.analytics_fixture.builddir + '/analytics/vizd',
@@ -143,11 +143,11 @@ class Collector(object):
                 args.append(self.cassandra_password)
         if self.kafka_port:
             args.append('--KAFKA.kafka_broker_list')
-            args.append('%s:%d' % (socket.getfqdn("127.0.0.1"),self.kafka_port))
+            args.append('%s:%d' % (socket.getfqdn("127.0.0.1").split('.')[0],self.kafka_port))
             args.append('--DEFAULT.partitions')
             args.append(str(4))
         args.append('--DEFAULT.zookeeper_server_list')
-        args.append('%s:%d' % (socket.getfqdn("127.0.0.1"),self.zk_port))
+        args.append('%s:%d' % (socket.getfqdn("127.0.0.1").split('.')[0],self.zk_port))
         if self.cluster_id:
             args.append('--DATABASE.cluster_id')
             args.append(self.cluster_id)
@@ -209,7 +209,7 @@ class AlarmGen(object):
         self.http_port = 0
         self.kafka_port = kafka_port
         self._zoo = zoo
-        self.hostname = socket.getfqdn("127.0.0.1")
+        self.hostname = socket.getfqdn("127.0.0.1").split('.')[0]
         self.sandesh_config = sandesh_config
         self._instance = None
         self._logger = logger
@@ -226,7 +226,7 @@ class AlarmGen(object):
 
     def get_introspect(self):
         if self.http_port != 0:
-            return VerificationAlarmGen(socket.getfqdn("127.0.0.1"), self.http_port)
+            return VerificationAlarmGen(socket.getfqdn("127.0.0.1").split('.')[0], self.http_port)
         else:
             return None
 
@@ -247,10 +247,10 @@ class AlarmGen(object):
                 str(self.analytics_fixture.redis_uves[0].port)]
         if self.kafka_port:
             args.append('--kafka_broker_list')
-            args.append(socket.getfqdn("127.0.0.1") + ':' + str(self.kafka_port))
+            args.append(socket.getfqdn("127.0.0.1").split('.')[0] + ':' + str(self.kafka_port))
         args.append('--redis_uve_list')
         for redis_uve in self.analytics_fixture.redis_uves:
-            args.append(socket.getfqdn("127.0.0.1") + ':' +str(redis_uve.port))
+            args.append(socket.getfqdn("127.0.0.1").split('.')[0] + ':' +str(redis_uve.port))
         args.append('--collectors')
         for collector in self.collectors:
             args.append(collector)
@@ -261,7 +261,7 @@ class AlarmGen(object):
         if self._zoo is not None:
             part = "4"
             args.append('--zk_list')
-            args.append(socket.getfqdn("127.0.0.1")+':'+str(self._zoo))
+            args.append(socket.getfqdn("127.0.0.1").split('.')[0]+':'+str(self._zoo))
         args.append('--partitions')
         args.append(part)
         if self.sandesh_config:
@@ -321,7 +321,7 @@ class OpServer(object):
         self.collectors = collectors
         self.analytics_fixture = analytics_fixture
         self.http_port = 0
-        self.hostname = socket.getfqdn("127.0.0.1")
+        self.hostname = socket.getfqdn("127.0.0.1").split('.')[0]
         self._zoo = zoo
         self._instance = None
         self._logger = logger
@@ -367,7 +367,7 @@ class OpServer(object):
         if self._zoo is not None:
             part = "4"
             args.append('--zk_list')
-            args.append(socket.getfqdn("127.0.0.1")+':'+str(self._zoo))
+            args.append(socket.getfqdn("127.0.0.1").split('.')[0]+':'+str(self._zoo))
         args.append('--partitions')
         args.append(part)
         if self.analytics_fixture.redis_uves[0].password:
@@ -375,7 +375,7 @@ class OpServer(object):
             args.append(self.analytics_fixture.redis_uves[0].password)
         args.append('--redis_uve_list') 
         for redis_uve in self.analytics_fixture.redis_uves:
-            args.append(socket.getfqdn("127.0.0.1")+':'+str(redis_uve.port))
+            args.append(socket.getfqdn("127.0.0.1").split('.')[0]+':'+str(redis_uve.port))
         args.append('--collectors')
         for collector in self.collectors:
             args.append(collector)
@@ -425,7 +425,7 @@ class OpServer(object):
     # end stop
 
     def send_tracebuffer_request(self, src, mod, instance, tracebuf):
-        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1"), self.admin_port,
+        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1").split('.')[0], self.admin_port,
             self.admin_user, self.admin_password)
         res = vns.send_tracebuffer_req(src, mod, instance, tracebuf)
         self._logger.info('send_tracebuffer_request: %s' % (str(res)))
@@ -441,7 +441,7 @@ class QueryEngine(object):
         self.analytics_fixture = analytics_fixture
         self.listen_port = AnalyticsFixture.get_free_port()
         self.http_port = 0
-        self.hostname = socket.getfqdn("127.0.0.1")
+        self.hostname = socket.getfqdn("127.0.0.1").split('.')[0]
         self.hostip = '127.0.0.1'
         self.host_ip = '127.0.0.1'
         self._instance = None
@@ -471,11 +471,11 @@ class QueryEngine(object):
                 (os.getenv('USER', 'None'), self.listen_port)
         subprocess.call(['rm', '-rf', self._log_file])
         args = [self.analytics_fixture.builddir + '/query_engine/qedt',
-                '--REDIS.server_list', socket.getfqdn("127.0.0.1") + ':' +
+                '--REDIS.server_list', socket.getfqdn("127.0.0.1").split('.')[0] + ':' +
                 str(self.analytics_fixture.redis_uves[0].port),
                 '--DEFAULT.hostip', "127.0.0.1",
                 '--DEFAULT.hostname', "localhost",
-                '--DEFAULT.cassandra_server_list', socket.getfqdn("127.0.0.1")+':' +
+                '--DEFAULT.cassandra_server_list', socket.getfqdn("127.0.0.1").split('.')[0]+':' +
                 str(self.analytics_fixture.cassandra_port),
                 '--DEFAULT.http_server_port', str(self.listen_port),
                 '--DEFAULT.log_local', '--DEFAULT.log_level', 'SYS_DEBUG',
@@ -720,13 +720,13 @@ class AnalyticsFixture(fixtures.Fixture):
     # end setUp
 
     def get_collector(self):
-        return socket.getfqdn("127.0.0.1")+':'+str(self.collectors[0].listen_port)
+        return socket.getfqdn("127.0.0.1").split('.')[0]+':'+str(self.collectors[0].listen_port)
     # end get_collector
 
     def get_collectors(self):
         collector_ips = []
         for collector in self.collectors:
-            collector_ips.append(socket.getfqdn("127.0.0.1")+':'+str(collector.listen_port))
+            collector_ips.append(socket.getfqdn("127.0.0.1").split('.')[0]+':'+str(collector.listen_port))
         return collector_ips
     # end get_collectors
 
@@ -736,7 +736,7 @@ class AnalyticsFixture(fixtures.Fixture):
 
     def get_generator_list(self, collector):
         generator_list = []
-        vcl = VerificationCollector(socket.getfqdn("127.0.0.1"), collector.http_port, \
+        vcl = VerificationCollector(socket.getfqdn("127.0.0.1").split('.')[0], collector.http_port, \
                 self.sandesh_config_struct)
         try:
            genlist = vcl.get_generators()['generators']
@@ -782,7 +782,7 @@ class AnalyticsFixture(fixtures.Fixture):
         See if the SandeshClient within vizd has been able to register
         with the collector within vizd
         '''
-        vcl = VerificationCollector(socket.getfqdn("127.0.0.1"), collector.http_port, \
+        vcl = VerificationCollector(socket.getfqdn("127.0.0.1").split('.')[0], collector.http_port, \
                 self.sandesh_config_struct)
         self.logger.info("verify_collector_gen port %s : %s" % \
             (collector.http_port, str(vcl)))
@@ -804,7 +804,7 @@ class AnalyticsFixture(fixtures.Fixture):
         Verify that the opserver is accepting client requests
         '''
         data = {}
-        url = 'http://' + socket.getfqdn("127.0.0.1") +':' + str(self.opserver_port) + '/'
+        url = 'http://' + socket.getfqdn("127.0.0.1").split('.')[0] +':' + str(self.opserver_port) + '/'
         data = OpServerUtils.get_url_http(url, self.admin_user,
             self.admin_password, headers={'X-Auth-Token':'user:admin'})
         self.logger.info("Checking OpServer %s" % str(data))
@@ -885,13 +885,13 @@ class AnalyticsFixture(fixtures.Fixture):
 
     @retry(delay=2, tries=10)
     def verify_collector_obj_count(self):
-        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1"), self.opserver_port,
+        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1").split('.')[0], self.opserver_port,
             self.admin_user, self.admin_password)
         res = vns.post_query('ObjectCollectorInfo',
                              start_time='-10m', end_time='now',
                              select_fields=["ObjectLog"],
                              where_clause=str(
-                                 'ObjectId=' + socket.getfqdn("127.0.0.1")),
+                                 'ObjectId=' + socket.getfqdn("127.0.0.1").split('.')[0]),
                              sync=False)
         self.logger.info("res %s" % str(res))
         if res == []:
@@ -912,7 +912,7 @@ class AnalyticsFixture(fixtures.Fixture):
     @retry(delay=2, tries=30)
     def verify_generator_uve_list(self, exp_gen_list):
         self.logger.info('verify_generator_uve_list')
-        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1"), self.opserver_port,
+        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1").split('.')[0], self.opserver_port,
             self.admin_user, self.admin_password)
         # get generator list
         gen_list = vns.uve_query('generators',
@@ -933,7 +933,7 @@ class AnalyticsFixture(fixtures.Fixture):
     @retry(delay=1, tries=5)
     def verify_generator_connected_times(self, generator, times):
         self.logger.info('verify_generator_connected_times')
-        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1"), self.opserver_port,
+        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1").split('.')[0], self.opserver_port,
             self.admin_user, self.admin_password)
         try:
             ModuleClientState  = vns.uve_query('generator/%s' % generator,
@@ -953,7 +953,7 @@ class AnalyticsFixture(fixtures.Fixture):
     @retry(delay=1, tries=6)
     def verify_message_table_messagetype(self):
         self.logger.info("verify_message_table_messagetype")
-        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1"), self.opserver_port,
+        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1").split('.')[0], self.opserver_port,
             self.admin_user, self.admin_password)
         # query for CollectorInfo logs
         res = vns.post_query(MESSAGE_TABLE,
@@ -977,7 +977,7 @@ class AnalyticsFixture(fixtures.Fixture):
     @retry(delay=1, tries=6)
     def verify_message_table_select_uint_type(self):
         self.logger.info("verify_message_table_select_uint_type")
-        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1"), self.opserver_port,
+        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1").split('.')[0], self.opserver_port,
             self.admin_user, self.admin_password)
         # query for CollectorInfo logs
         res = vns.post_query(MESSAGE_TABLE,
@@ -1001,7 +1001,7 @@ class AnalyticsFixture(fixtures.Fixture):
     @retry(delay=1, tries=6)
     def verify_message_table_moduleid(self):
         self.logger.info("verify_message_table_moduleid")
-        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1"), self.opserver_port,
+        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1").split('.')[0], self.opserver_port,
             self.admin_user, self.admin_password)
         # query for contrail-query-engine logs
         res_qe = vns.post_query(MESSAGE_TABLE,
@@ -1024,10 +1024,10 @@ class AnalyticsFixture(fixtures.Fixture):
     @retry(delay=1, tries=6)
     def verify_message_table_where_or(self):
         self.logger.info("verify_message_table_where_or")
-        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1"), self.opserver_port,
+        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1").split('.')[0], self.opserver_port,
             self.admin_user, self.admin_password)
         where_clause1 = "ModuleId = contrail-query-engine"
-        where_clause2 = str("Source =" + socket.getfqdn("127.0.0.1"))
+        where_clause2 = str("Source =" + socket.getfqdn("127.0.0.1").split('.')[0])
         res = vns.post_query(
             MESSAGE_TABLE,
             start_time='-10m', end_time='now',
@@ -1048,10 +1048,10 @@ class AnalyticsFixture(fixtures.Fixture):
     @retry(delay=1, tries=6)
     def verify_message_table_where_and(self):
         self.logger.info("verify_message_table_where_and")
-        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1"), self.opserver_port,
+        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1").split('.')[0], self.opserver_port,
             self.admin_user, self.admin_password)
         where_clause1 = "ModuleId = contrail-query-engine"
-        where_clause2 = str("Source =" + socket.getfqdn("127.0.0.1"))
+        where_clause2 = str("Source =" + socket.getfqdn("127.0.0.1").split('.')[0])
         res = vns.post_query(
             MESSAGE_TABLE,
             start_time='-10m', end_time='now',
@@ -1071,9 +1071,9 @@ class AnalyticsFixture(fixtures.Fixture):
     @retry(delay=1, tries=6)
     def verify_message_table_where_prefix(self):
         self.logger.info('verify_message_table_where_prefix')
-        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1"), self.opserver_port,
+        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1").split('.')[0], self.opserver_port,
             self.admin_user, self.admin_password)
-        prefix_key_value_map = {'Source': socket.getfqdn("127.0.0.1")[:-1],
+        prefix_key_value_map = {'Source': socket.getfqdn("127.0.0.1").split('.')[0][:-1],
             'ModuleId': 'contrail-', 'Messagetype': 'Collector'}
         for key, value in prefix_key_value_map.iteritems():
             self.logger.info('verify where_prefix: %s = %s*' % (key, value))
@@ -1091,10 +1091,10 @@ class AnalyticsFixture(fixtures.Fixture):
     @retry(delay=1, tries=6)
     def verify_message_table_filter(self):
         self.logger.info("verify_message_table_where_filter")
-        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1"), self.opserver_port,
+        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1").split('.')[0], self.opserver_port,
             self.admin_user, self.admin_password)
         where_clause1 = "ModuleId = contrail-query-engine"
-        where_clause2 = str("Source =" + socket.getfqdn("127.0.0.1"))
+        where_clause2 = str("Source =" + socket.getfqdn("127.0.0.1").split('.')[0])
         res = vns.post_query(MESSAGE_TABLE,
                              start_time='-10m', end_time='now',
                              select_fields=["ModuleId"],
@@ -1125,7 +1125,7 @@ class AnalyticsFixture(fixtures.Fixture):
     @retry(delay=1, tries=6)
     def verify_message_table_filter2(self):
         self.logger.info("verify_message_table_filter2")
-        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1"), self.opserver_port,
+        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1").split('.')[0], self.opserver_port,
             self.admin_user, self.admin_password)
         a_query = Query(table=MESSAGE_TABLE,
                 start_time='now-10m',
@@ -1166,10 +1166,10 @@ class AnalyticsFixture(fixtures.Fixture):
     @retry(delay=1, tries=1)
     def verify_message_table_sort(self):
         self.logger.info("verify_message_table_sort:Ascending Sort")
-        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1"), self.opserver_port,
+        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1").split('.')[0], self.opserver_port,
             self.admin_user, self.admin_password)
         where_clause1 = "ModuleId = contrail-query-engine"
-        where_clause2 = str("Source =" + socket.getfqdn("127.0.0.1"))
+        where_clause2 = str("Source =" + socket.getfqdn("127.0.0.1").split('.')[0])
 
         exp_moduleids = ['contrail-analytics-api',
                          'contrail-collector', 'contrail-query-engine']
@@ -1247,7 +1247,7 @@ class AnalyticsFixture(fixtures.Fixture):
 
     def verify_message_table_limit(self):
         self.logger.info("verify_message_table_limit")
-        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1"), self.opserver_port,
+        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1").split('.')[0], self.opserver_port,
             self.admin_user, self.admin_password)
         res = vns.post_query(MESSAGE_TABLE,
                              start_time='-10m', end_time='now',
@@ -1261,7 +1261,7 @@ class AnalyticsFixture(fixtures.Fixture):
     @retry(delay=1, tries=8)
     def verify_intervn_all(self, gen_obj):
         self.logger.info("verify_intervn_all")
-        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1"), self.opserver_port,
+        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1").split('.')[0], self.opserver_port,
             self.admin_user, self.admin_password)
         res = vns.post_query('StatTable.UveVirtualNetworkAgent.vn_stats',
                              start_time='-10m',
@@ -1276,7 +1276,7 @@ class AnalyticsFixture(fixtures.Fixture):
     @retry(delay=1, tries=8)
     def verify_intervn_sum(self, gen_obj):
         self.logger.info("verify_intervn_sum")
-        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1"), self.opserver_port,
+        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1").split('.')[0], self.opserver_port,
             self.admin_user, self.admin_password)
         res = vns.post_query('StatTable.UveVirtualNetworkAgent.vn_stats',
                              start_time='-10m',
@@ -1293,7 +1293,7 @@ class AnalyticsFixture(fixtures.Fixture):
     def verify_where_query_prefix(self,generator_obj):
         
         self.logger.info('verify where query in FlowSeriesTable')
-        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1"), self.opserver_port,
+        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1").split('.')[0], self.opserver_port,
             self.admin_user, self.admin_password)
         vrouter = generator_obj._hostname
         a_query = Query(table="FlowSeriesTable",
@@ -1328,7 +1328,7 @@ class AnalyticsFixture(fixtures.Fixture):
         vrouter = generator_obj._hostname
         # query flow records
         self.logger.info('verify_flow_table')
-        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1"), self.opserver_port,
+        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1").split('.')[0], self.opserver_port,
             self.admin_user, self.admin_password)
         res = vns.post_query('FlowRecordTable',
                              start_time=str(generator_obj.session_start_time),
@@ -1603,7 +1603,7 @@ class AnalyticsFixture(fixtures.Fixture):
     @retry(delay=1, tries=10)
     def verify_session_samples(self, generator_obj):
         self.logger.info("verify_session_samples")
-        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1"), self.opserver_port,
+        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1").split('.')[0], self.opserver_port,
             self.admin_user, self.admin_password)
         vrouter = generator_obj._hostname
         res = vns.post_query('SessionSeriesTable',
@@ -1616,7 +1616,7 @@ class AnalyticsFixture(fixtures.Fixture):
                 (len(res), generator_obj.client_session_cnt))
             return False
 
-        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1"), self.opserver_port,
+        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1").split('.')[0], self.opserver_port,
             self.admin_user, self.admin_password)
         vrouter = generator_obj._hostname
         result = vns.post_query('SessionSeriesTable',
@@ -1635,7 +1635,7 @@ class AnalyticsFixture(fixtures.Fixture):
     def verify_session_table(self, generator_obj):
 
         self.logger.info('verify_session_table')
-        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1"), self.opserver_port,
+        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1").split('.')[0], self.opserver_port,
             self.admin_user, self.admin_password)
         # query session records
         res = vns.post_query('SessionRecordTable',
@@ -1805,7 +1805,7 @@ class AnalyticsFixture(fixtures.Fixture):
     def verify_session_series_aggregation_binning(self, generator_obj):
         vrouter = generator_obj._hostname
         self.logger.info('verify_session_series_aggregation_binning')
-        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1"), self.opserver_port,
+        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1").split('.')[0], self.opserver_port,
             self.admin_user, self.admin_password)
 
         #Helper function for stats aggregation
@@ -2270,7 +2270,7 @@ class AnalyticsFixture(fixtures.Fixture):
         generator_obj = generator_object[0]
         vrouter = generator_obj._hostname
         self.logger.info('verify_flow_series_aggregation_binning')
-        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1"), self.opserver_port,
+        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1").split('.')[0], self.opserver_port,
             self.admin_user, self.admin_password)
 
         # 1. stats
@@ -2632,7 +2632,7 @@ class AnalyticsFixture(fixtures.Fixture):
     @retry(delay=2, tries=5)
     def verify_fieldname_messagetype(self):
         self.logger.info('Verify stats table for stats name field');
-        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1"), self.opserver_port,
+        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1").split('.')[0], self.opserver_port,
             self.admin_user, self.admin_password)
         query = Query(table="StatTable.FieldNames.fields",
                             start_time="now-10m",
@@ -2650,7 +2650,7 @@ class AnalyticsFixture(fixtures.Fixture):
     @retry(delay=2, tries=5)
     def verify_generator_collector_connection(self, gen_http_port):
         self.logger.info('verify_generator_collector_connection')
-        vgen = VerificationGenerator(socket.getfqdn("127.0.0.1"), gen_http_port)
+        vgen = VerificationGenerator(socket.getfqdn("127.0.0.1").split('.')[0], gen_http_port)
         try:
             conn_status = vgen.get_collector_connection_status()
         except Exception as err:
@@ -2663,7 +2663,7 @@ class AnalyticsFixture(fixtures.Fixture):
     @retry(delay=2, tries=5)
     def verify_collector_redis_uve_connection(self, collector, connected=True):
         self.logger.info('verify_collector_redis_uve_connection')
-        vcl = VerificationCollector(socket.getfqdn("127.0.0.1"), collector.http_port,
+        vcl = VerificationCollector(socket.getfqdn("127.0.0.1").split('.')[0], collector.http_port,
                 self.sandesh_config_struct)
         try:
             redis_uve = vcl.get_redis_uve_info()['RedisUveInfo']
@@ -2682,7 +2682,7 @@ class AnalyticsFixture(fixtures.Fixture):
                                  pending_compaction_tasks_level_out = None):
 
         self.logger.info('verify_collector_db_info')
-        vcl = VerificationCollector(socket.getfqdn("127.0.0.1"), collector.http_port,
+        vcl = VerificationCollector(socket.getfqdn("127.0.0.1").split('.')[0], collector.http_port,
                 self.sandesh_config_struct)
         try:
             db_info_dict = vcl.get_db_info()
@@ -2723,7 +2723,7 @@ class AnalyticsFixture(fixtures.Fixture):
     @retry(delay=2, tries=5)
     def verify_opserver_redis_uve_connection(self, opserver, connected=True):
         self.logger.info('verify_opserver_redis_uve_connection')
-        vops = VerificationOpsSrvIntrospect(socket.getfqdn("127.0.0.1"), opserver.http_port)
+        vops = VerificationOpsSrvIntrospect(socket.getfqdn("127.0.0.1").split('.')[0], opserver.http_port)
         try:
             redis_uve = vops.get_redis_uve_info()['RedisUveInfo']
             if redis_uve['status'] == 'Connected':
@@ -2735,7 +2735,7 @@ class AnalyticsFixture(fixtures.Fixture):
 
     def get_opserver_vns(self):
         self.logger.info('get_opserver_vns')
-        vops = VerificationOpsSrv(socket.getfqdn("127.0.0.1"), self.opserver.rest_api_port)
+        vops = VerificationOpsSrv(socket.getfqdn("127.0.0.1").split('.')[0], self.opserver.rest_api_port)
         try:
             return vops.get_ops_vns()
         except Exception as err:
@@ -2745,13 +2745,13 @@ class AnalyticsFixture(fixtures.Fixture):
 
     def get_opserver_vns_response(self):
         self.logger.info('get_opserver_vns_response')
-        vops = VerificationOpsSrv(socket.getfqdn("127.0.0.1"), self.opserver.rest_api_port)
+        vops = VerificationOpsSrv(socket.getfqdn("127.0.0.1").split('.')[0], self.opserver.rest_api_port)
         return vops.get_ops_vns_response()
     #end get_opserver_vns_response
  
     def get_opserver_alarms(self):
         self.logger.info('get_opserver_alarms')
-        vops = VerificationOpsSrv(socket.getfqdn("127.0.0.1"), self.opserver.rest_api_port)
+        vops = VerificationOpsSrv(socket.getfqdn("127.0.0.1").split('.')[0], self.opserver.rest_api_port)
         return vops.get_alarms(filters=None)
     #end get_opserver_alarms
 
@@ -2762,7 +2762,7 @@ class AnalyticsFixture(fixtures.Fixture):
                              disk_usage_percentage_out = None,
                              pending_compaction_tasks_out = None):
         self.logger.info('set_opserver_db_info')
-        vops = VerificationOpsSrvIntrospect(socket.getfqdn("127.0.0.1"), opserver.http_port)
+        vops = VerificationOpsSrvIntrospect(socket.getfqdn("127.0.0.1").split('.')[0], opserver.http_port)
         try:
             vops.db_info_set_request(disk_usage_percentage_in,
                                      pending_compaction_tasks_in)
@@ -2789,7 +2789,7 @@ class AnalyticsFixture(fixtures.Fixture):
     @retry(delay=2, tries=5)
     def verify_tracebuffer_in_analytics_db(self, src, mod, tracebuf):
         self.logger.info('verify trace buffer data in analytics db')
-        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1"), self.opserver_port,
+        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1").split('.')[0], self.opserver_port,
             self.admin_user, self.admin_password)
         where_clause = []
         where_clause.append('Source = ' + src)
@@ -2807,7 +2807,7 @@ class AnalyticsFixture(fixtures.Fixture):
     @retry(delay=1, tries=5)
     def verify_table_source_module_list(self, exp_src_list, exp_mod_list):
         self.logger.info('verify source/module list')
-        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1"), self.opserver_port,
+        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1").split('.')[0], self.opserver_port,
             self.admin_user, self.admin_password)
         try:
             src_list = vns.get_table_column_values(MESSAGE_TABLE,
@@ -2831,7 +2831,7 @@ class AnalyticsFixture(fixtures.Fixture):
     @retry(delay=1, tries=5)
     def verify_where_query(self):
         self.logger.info('Verify where query with int type works');
-        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1"), self.opserver_port,
+        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1").split('.')[0], self.opserver_port,
             self.admin_user, self.admin_password)
         query = Query(table="StatTable.QueryPerfInfo.query_stats",
                             start_time="now-1h",
@@ -2846,7 +2846,7 @@ class AnalyticsFixture(fixtures.Fixture):
 
     def verify_collector_object_log(self, start_time, end_time):
         self.logger.info('verify_collector_object_log')
-        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1"), self.opserver_port,
+        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1").split('.')[0], self.opserver_port,
             self.admin_user, self.admin_password)
         query = Query(table='ObjectCollectorInfo',
                              start_time=start_time, end_time=end_time,
@@ -2861,7 +2861,7 @@ class AnalyticsFixture(fixtures.Fixture):
     def verify_object_table_sandesh_types(self, table, object_id,
                                           exp_msg_types):
         self.logger.info('verify_object_table_sandesh_types')
-        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1"), self.opserver_port,
+        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1").split('.')[0], self.opserver_port,
             self.admin_user, self.admin_password)
         res = vns.post_query(table, start_time='-1m', end_time='now',
                 select_fields=['MessageTS','Messagetype', 'ObjectLog', 'SystemLog'],
@@ -2880,7 +2880,7 @@ class AnalyticsFixture(fixtures.Fixture):
     @retry(delay=1, tries=5)
     def verify_object_table_objectid_values(self, table, exp_object_id ):
         self.logger.info('verify_object_table_objectid_values')
-        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1"), self.opserver_port,
+        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1").split('.')[0], self.opserver_port,
             self.admin_user, self.admin_password)
         res = vns.post_query(table, start_time='-1m', end_time='now',
                 select_fields=['Messagetype', 'ObjectLog', 'SystemLog',
@@ -2901,7 +2901,7 @@ class AnalyticsFixture(fixtures.Fixture):
     @retry(delay=1, tries=10)
     def verify_object_value_table_query(self, table, exp_object_values):
         self.logger.info('verify_object_value_table_query')
-        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1"), self.opserver_port,
+        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1").split('.')[0], self.opserver_port,
             self.admin_user, self.admin_password)
         res = vns.post_query(table, start_time='-10m', end_time='now',
                              select_fields=['ObjectId'],
@@ -2920,7 +2920,7 @@ class AnalyticsFixture(fixtures.Fixture):
     @retry(delay=1, tries=5)
     def verify_keyword_query(self, line, keywords=[]):
         self.logger.info('Verify where query with keywords');
-        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1"), self.opserver_port,
+        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1").split('.')[0], self.opserver_port,
             self.admin_user, self.admin_password)
 
         query = Query(table=MESSAGE_TABLE,
@@ -2972,7 +2972,7 @@ class AnalyticsFixture(fixtures.Fixture):
         to ensure that the 2 entries are present in the table
         '''
         self.logger.info("verify_fieldname_table")
-        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1"), self.opserver_port,
+        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1").split('.')[0], self.opserver_port,
             self.admin_user, self.admin_password)
         self.logger.info("VerificationOpsSrv")
         res = vns.post_query('StatTable.FieldNames.fields',
@@ -3008,7 +3008,7 @@ class AnalyticsFixture(fixtures.Fixture):
 
     @retry(delay=1, tries=4)
     def verify_uve_list(self, table, filts=None, exp_uve_list=[]):
-        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1"), self.opserver_port,
+        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1").split('.')[0], self.opserver_port,
             self.admin_user, self.admin_password)
         filters = self._get_filters_url_param(filts)
         table_query = table+'s'
@@ -3075,7 +3075,7 @@ class AnalyticsFixture(fixtures.Fixture):
 
     @retry(delay=1, tries=6)
     def verify_get_alarms(self, table, filts=None, exp_uves=None):
-        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1"), self.opserver_port,
+        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1").split('.')[0], self.opserver_port,
             self.admin_user, self.admin_password)
         filters = self._get_filters_url_param(filts)
         self.logger.info('verify_get_alarms: %s' % str(filters))
@@ -3090,7 +3090,7 @@ class AnalyticsFixture(fixtures.Fixture):
 
     @retry(delay=1, tries=4)
     def verify_multi_uve_get(self, table, filts=None, exp_uves=None):
-        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1"), self.opserver_port,
+        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1").split('.')[0], self.opserver_port,
             self.admin_user, self.admin_password)
         filters = self._get_filters_url_param(filts)
         table_query = table+'/*'
@@ -3109,7 +3109,7 @@ class AnalyticsFixture(fixtures.Fixture):
 
     @retry(delay=1, tries=8)
     def verify_uve_timestamp(self, table, typ, expected_t_count):
-        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1"), self.opserver_port,
+        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1").split('.')[0], self.opserver_port,
             self.admin_user, self.admin_password)
         # first step: querry without flat
         table_query = table
@@ -3135,7 +3135,7 @@ class AnalyticsFixture(fixtures.Fixture):
 
     @retry(delay=1, tries=4)
     def verify_uve_post(self, table, filts=None, exp_uves=None):
-        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1"), self.opserver_port,
+        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1").split('.')[0], self.opserver_port,
             self.admin_user, self.admin_password)
         filter_json = self._get_filters_json(filts)
         self.logger.info('verify_uve_post: %s: %s' % (table, filter_json))
@@ -3150,7 +3150,7 @@ class AnalyticsFixture(fixtures.Fixture):
 
     @retry(delay=1, tries=5)
     def verify_alarm_list_include(self, table, filts=None, expected_alarms=[]):
-        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1"), self.opserver_port,
+        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1").split('.')[0], self.opserver_port,
             self.admin_user, self.admin_password)
         yfilts = filts or {}
         yfilts['cfilt'] = ["UVEAlarms"] 
@@ -3175,7 +3175,7 @@ class AnalyticsFixture(fixtures.Fixture):
 
     @retry(delay=1, tries=5)
     def verify_alarm_list_exclude(self, table, filts=None, unexpected_alms=[]):
-        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1"), self.opserver_port,
+        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1").split('.')[0], self.opserver_port,
             self.admin_user, self.admin_password)
         yfilts = filts or {}
         yfilts['cfilt'] = ["UVEAlarms"]
@@ -3201,7 +3201,7 @@ class AnalyticsFixture(fixtures.Fixture):
     @retry(delay=1, tries=3)
     def verify_alarm(self, table, key, expected_alarm):
         self.logger.info('verify_alarm: %s:%s' % (table, key))
-        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1"), self.opserver_port,
+        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1").split('.')[0], self.opserver_port,
             self.admin_user, self.admin_password)
         table_query = table+'/'+key
         filters = {'cfilt':'UVEAlarms'}
@@ -3228,7 +3228,7 @@ class AnalyticsFixture(fixtures.Fixture):
     # end verify_alarm_data
 
     def get_db_read_stats_from_qe(self, qe, table_name, is_stats_table=False, field_name='reads'):
-        qe_introspect = VerificationGenerator(socket.getfqdn("127.0.0.1"), qe.http_port)
+        qe_introspect = VerificationGenerator(socket.getfqdn("127.0.0.1").split('.')[0], qe.http_port)
         try:
             stats_info = qe_introspect.get_db_read_stats()
             table_stat_info=''
@@ -3417,7 +3417,7 @@ class AnalyticsFixture(fixtures.Fixture):
 
         self.logger.info('verify_analytics_api_info_uve: %s:%s:%s:%s' \
                 % (hostname, analytics_table, rest_api_ip, host_ip))
-        verify_ops = VerificationOpsSrv(socket.getfqdn("127.0.0.1"), self.opserver_port,
+        verify_ops = VerificationOpsSrv(socket.getfqdn("127.0.0.1").split('.')[0], self.opserver_port,
                 self.admin_user, self.admin_password)
         yfilts = {}
         yfilts['cfilt'] = ["AnalyticsApiInfo"]

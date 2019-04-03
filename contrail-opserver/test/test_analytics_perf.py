@@ -105,7 +105,7 @@ class AnalyticsTest(testtools.TestCase, fixtures.TestWithFixtures):
 
         opserver_port = vizd_obj.get_opserver_port()
 
-        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1"), opserver_port)
+        vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1").split('.')[0], opserver_port)
         
         # message table
         a_query = Query(table="MessageTable",
@@ -182,7 +182,7 @@ class AnalyticsTest(testtools.TestCase, fixtures.TestWithFixtures):
 
     @staticmethod 
     def _check_skip_test():
-        if (socket.getfqdn("127.0.0.1") == 'build01'):
+        if (socket.getfqdn("127.0.0.1").split('.')[0] == 'build01'):
             logging.info("Skipping test")
             return True
         return False

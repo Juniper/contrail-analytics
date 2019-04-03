@@ -869,7 +869,7 @@ class Controller(object):
         node_type = Module2NodeType[module]
         self._node_type_name = NodeTypeNames[node_type]
         self.table = "ObjectAnalyticsAlarmInfo"
-        self._hostname = socket.getfqdn(self._conf.host_ip())
+        self._hostname = socket.getfqdn(self._conf.host_ip()).split('.')[0]
         self._instance_id = self._conf.worker_id()
         self._disable_cb = False
 

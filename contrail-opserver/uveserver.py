@@ -72,7 +72,7 @@ class UVEServer(object):
         self._active_collectors = children
         redis_uve_list = []
         for redis_cfg in self._redis_cfg_info:
-            redis_fqdn = socket.getfqdn(redis_cfg[0])
+            redis_fqdn = socket.getfqdn(redis_cfg[0]).split('.')[0]
             if redis_fqdn in self._active_collectors:
                 redis_elem = (socket.gethostbyname(redis_cfg[0]),
                         redis_cfg[1])
@@ -179,7 +179,7 @@ class UVEServer(object):
                     if rkey in self._redis_uve_map.keys():
                         if rinst.redis_handle is None:
                             if rkey.ip != '127.0.0.1':
-                                rkey_fqdn = socket.getfqdn(rkey.ip)
+                                rkey_fqdn = socket.getfqdn(rkey.ip).split('.')[0]
                             else:
                                 rkey_fqdn = socket.getfqdn()
                             if (self._active_collectors is not None and

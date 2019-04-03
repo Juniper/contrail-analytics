@@ -74,7 +74,7 @@ class AnalyticsTest(testtools.TestCase, fixtures.TestWithFixtures):
         self.addCleanup(mock_is_role_cloud_admin.stop)
 
     def _update_analytics_start_time(self, start_time):
-        cluster = Cluster([socket.getfqdn("127.0.0.1")],
+        cluster = Cluster([socket.getfqdn("127.0.0.1").split('.')[0]],
             port=int(self.__class__.cassandra_port))
         session = cluster.connect(COLLECTOR_KEYSPACE_CQL)
         query = "INSERT INTO {0} (key, \"{1}\") VALUES ('{2}', {3})".format(
@@ -275,7 +275,7 @@ class AnalyticsTest(testtools.TestCase, fixtures.TestWithFixtures):
         # MessageTable:Messagetype and for objectlog it is stored as
         # <ObjectTableName>:Messagetype. Send only systemlog
         logging.info("Starting sandesh types gen " + str(UTCTimestampUsec()))
-        generator_obj.send_sandesh_types_object_logs(socket.getfqdn("127.0.0.1"),
+        generator_obj.send_sandesh_types_object_logs(socket.getfqdn("127.0.0.1").split('.')[0],
             types=[SandeshType.SYSTEM])
         logging.info("Ending sandesh types gen " + str(UTCTimestampUsec()))
         # Sends 2 different vn uves in 1 sec spacing
@@ -385,16 +385,16 @@ class AnalyticsTest(testtools.TestCase, fixtures.TestWithFixtures):
                              sandesh_config={'system_logs_rate_limit':10}))
         assert generator_obj.verify_on_setup()
         msg_types = generator_obj.send_sandesh_types_object_logs(
-                        socket.getfqdn("127.0.0.1"))
+                        socket.getfqdn("127.0.0.1").split('.')[0])
         assert vizd_obj.verify_object_table_sandesh_types('ObjectBgpRouter',
-                socket.getfqdn("127.0.0.1"), msg_types)
+                socket.getfqdn("127.0.0.1").split('.')[0], msg_types)
         # Check if ObjectId's can be fetched properly for ObjectTable queries
         vm_generator_obj = self.useFixture(
             GeneratorFixture("contrail-vrouter-agent", collectors,
                              logging, vizd_obj.get_opserver_port()))
         assert vm_generator_obj.verify_on_setup()
         assert vizd_obj.verify_object_table_objectid_values('ObjectBgpRouter',
-            [socket.getfqdn("127.0.0.1")])
+            [socket.getfqdn("127.0.0.1").split('.')[0]])
         vm1_name = 'vm1'
         vm2_name = 'vm2'
         vm_generator_obj.send_vm_uve(vm_id=vm1_name,
@@ -454,7 +454,7 @@ class AnalyticsTest(testtools.TestCase, fixtures.TestWithFixtures):
             GeneratorFixture('contrail-vrouter-agent-12', collectors,
                              logging, None, node_type='Compute'))
         assert generator_obj.verify_on_setup()
-        generator_obj.send_vrouterinfo(socket.getfqdn("127.0.0.1"),
+        generator_obj.send_vrouterinfo(socket.getfqdn("127.0.0.1").split('.')[0],
             b_info = True, deleted = False, non_ascii=True)
         # Verify vizd is still running
         assert analytics.verify_collector_gen(analytics.collectors[0])
@@ -482,7 +482,7 @@ class AnalyticsTest(testtools.TestCase, fixtures.TestWithFixtures):
         assert vizd_obj.verify_on_setup()
         assert vizd_obj.verify_collector_obj_count()
 
-        source = socket.getfqdn("127.0.0.1")
+        source = socket.getfqdn("127.0.0.1").split('.')[0]
         exp_genlist = [
             source+':Analytics:contrail-collector:0',
             source+':Analytics:contrail-analytics-api:0',
@@ -702,7 +702,7 @@ class AnalyticsTest(testtools.TestCase, fixtures.TestWithFixtures):
 
     @staticmethod
     def _check_skip_test():
-        if (socket.getfqdn("127.0.0.1") == 'build01'):
+        if (socket.getfqdn("127.0.0.1").split('.')[0] == 'build01'):
             logging.info("Skipping test")
             return True
         return False
