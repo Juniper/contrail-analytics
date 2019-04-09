@@ -240,6 +240,7 @@ WhereQuery::StatTermParse(QueryUnit *main_query, const contrail_rapidjson::Value
                 std::string vstr = datatype.GetString();
                 cdesc.datatype = ToDbDataType(vstr);
                 cdesc.index = index.GetBool()? true : false;
+                cdesc.output = false;
 
                 if (suffixes.IsArray() && suffixes.Size() > 0) {
                     for (contrail_rapidjson::SizeType k = 0; k<suffixes.Size(); k++) {
