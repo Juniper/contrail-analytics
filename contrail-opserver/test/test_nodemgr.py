@@ -47,6 +47,10 @@ class config:
         self.hostip = '0.0.0.0'
         self.http_server_ip = '0.0.0.0'
         self.corefile_path = '/var/crashes/'
+        self.tcp_keepalive_enable = None
+        self.tcp_keepalive_idle_time = None
+        self.tcp_keepalive_interval = None
+        self.tcp_keepalive_probes = None
 
 class NodemgrTest(unittest.TestCase):
 
