@@ -35,13 +35,14 @@ class OpserverSandeshReqImpl(object):
     # end send_db_info_resp
 
     def handle_db_info_set_req(self, req):
-        self._opserver.handle_db_info(req.disk_usage_percentage,
-                                      req.pending_compaction_tasks)
-        self.send_db_info_resp(req.context())
+        pass
     # end handle_db_info_set_req
 
     def handle_db_info_get_req(self, req):
-        self.send_db_info_resp(req.context())
+        pass
     # end handle_db_info_get_req
 
+    def handle_log_statistic_config_info_get_request(self, req):
+        pass
+    #end handle_log_statistic_config_info_get_request
 # end class OpserverSandeshReqImpl

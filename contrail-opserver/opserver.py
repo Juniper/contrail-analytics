@@ -67,7 +67,7 @@ from opserver_util import OpServerUtils
 from opserver_util import AnalyticsDiscovery
 from sandesh_req_impl import OpserverSandeshReqImpl
 from sandesh.analytics.ttypes import DbInfoSetRequest, \
-     DbInfoGetRequest, DbInfoResponse
+     DbInfoGetRequest, DbInfoResponse,LogStatisticConfigInfoGetRequest
 from overlay_to_underlay_mapper import OverlayToUnderlayMapper, \
      OverlayToUnderlayMapperError
 from generator_introspect_util import GeneratorIntrospectUtil
@@ -663,7 +663,7 @@ class OpServer(object):
         else:
             self._instance_id = INSTANCE_ID_DEFAULT
         self.table = "ObjectCollectorInfo"
-        self._hostname = socket.getfqdn(self._args.host_ip).split('.')[0]
+        self._hostname = socket.getfqdn(self._args.host_ip)
         if self._args.dup:
             self._hostname += 'dup'
         self._sandesh = Sandesh()
@@ -1714,7 +1714,7 @@ class OpServer(object):
             queries['pending_queries'] = pending_queries_info
 
             processing_queries = redish.lrange(
-                'ENGINE:' + socket.getfqdn(self._args.host_ip).split('.')[0], 0, -1)
+                'ENGINE:' + socket.getfqdn(self._args.host_ip), 0, -1)
             processing_queries_info = []
             abandoned_queries_info = []
             error_queries_info = []

@@ -68,6 +68,7 @@ import redis
 from collections import namedtuple
 from strict_redis_wrapper import StrictRedisWrapper
 from kafka import common, KafkaProducer
+from sandesh_req_impl import OpserverSandeshReqImpl
 
 OutputRow = namedtuple("OutputRow",["key","typ","val"])
 
@@ -869,7 +870,7 @@ class Controller(object):
         node_type = Module2NodeType[module]
         self._node_type_name = NodeTypeNames[node_type]
         self.table = "ObjectAnalyticsAlarmInfo"
-        self._hostname = socket.getfqdn(self._conf.host_ip()).split('.')[0]
+        self._hostname = socket.getfqdn(self._conf.host_ip())
         self._instance_id = self._conf.worker_id()
         self._disable_cb = False
 
@@ -897,6 +898,7 @@ class Controller(object):
                                       connect_to_collector = is_collector,
                                       alarm_ack_callback=self.alarm_ack_callback,
                                       config=self._conf.sandesh_config())
+        alarmgen_sandesh_req_impl = OpserverSandeshReqImpl(self) 
         if test_logger is not None:
             self._logger = test_logger
         else:
