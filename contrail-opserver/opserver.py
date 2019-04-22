@@ -67,7 +67,7 @@ from opserver_util import OpServerUtils
 from opserver_util import AnalyticsDiscovery
 from sandesh_req_impl import OpserverSandeshReqImpl
 from sandesh.analytics.ttypes import DbInfoSetRequest, \
-     DbInfoGetRequest, DbInfoResponse
+     DbInfoGetRequest, DbInfoResponse, LogStatisticConfigInfoGetRequest
 from overlay_to_underlay_mapper import OverlayToUnderlayMapper, \
      OverlayToUnderlayMapperError
 from generator_introspect_util import GeneratorIntrospectUtil

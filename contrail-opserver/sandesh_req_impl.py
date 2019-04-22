@@ -8,7 +8,7 @@
 
 from sandesh.redis.ttypes import RedisUveInfo, RedisUVERequest, RedisUVEResponse
 from sandesh.analytics.ttypes import DbInfoSetRequest, \
-     DbInfoGetRequest, DbInfoResponse, DbInfo
+     DbInfoGetRequest, DbInfoResponse, DbInfo, LogStatisticConfigInfoGetRequest
 
 class OpserverSandeshReqImpl(object):
     def __init__(self, opserver):
@@ -16,6 +16,7 @@ class OpserverSandeshReqImpl(object):
         RedisUVERequest.handle_request = self.handle_redis_uve_info_req
         DbInfoSetRequest.handle_request = self.handle_db_info_set_req
         DbInfoGetRequest.handle_request = self.handle_db_info_get_req
+        LogStatisticConfigInfoGetRequest.handle_request = self.handle_log_statistic_config_info_get_request
     # end __init__
 
     def handle_redis_uve_info_req(self, req):
@@ -35,13 +36,14 @@ class OpserverSandeshReqImpl(object):
     # end send_db_info_resp
 
     def handle_db_info_set_req(self, req):
-        self._opserver.handle_db_info(req.disk_usage_percentage,
-                                      req.pending_compaction_tasks)
-        self.send_db_info_resp(req.context())
+        pass
     # end handle_db_info_set_req
 
     def handle_db_info_get_req(self, req):
-        self.send_db_info_resp(req.context())
+        pass
     # end handle_db_info_get_req
 
+    def handle_log_statistic_config_info_get_request(self, req): 
+        pass
+    #end handle_log_statistic_config_info_get_request
 # end class OpserverSandeshReqImpl

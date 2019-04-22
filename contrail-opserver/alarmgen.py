@@ -68,6 +68,7 @@ import redis
 from collections import namedtuple
 from strict_redis_wrapper import StrictRedisWrapper
 from kafka import common, KafkaProducer
+from sandesh_req_impl import OpserverSandeshReqImpl
 
 OutputRow = namedtuple("OutputRow",["key","typ","val"])
 
@@ -897,6 +898,7 @@ class Controller(object):
                                       connect_to_collector = is_collector,
                                       alarm_ack_callback=self.alarm_ack_callback,
                                       config=self._conf.sandesh_config())
+        alarmgen_sandesh_req_impl = OpserverSandeshReqImpl(self) 
         if test_logger is not None:
             self._logger = test_logger
         else:
