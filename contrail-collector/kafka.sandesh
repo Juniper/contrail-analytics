@@ -4,7 +4,7 @@
 
 /**
  *  Definitions of structures used to report UVE Aggregate topic stats
- *  stats 
+ *  stats
  */
 
 struct KafkaAggPartOffset {
@@ -27,4 +27,3 @@ struct KafkaAggStatus {
 uve sandesh KafkaAggStatusTrace {
     1: KafkaAggStatus data
 }
-

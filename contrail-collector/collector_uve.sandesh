@@ -27,7 +27,7 @@ struct SandeshStats {
  * structure to store sandesh stats on a per level
  */
 struct SandeshLogLevelStats {
-    1: string     level 
+    1: string     level
     2: u64        messages
     3: u64        bytes
     4: u64        last_msg_timestamp
@@ -39,7 +39,7 @@ struct SandeshLogLevelStats {
 struct SandeshStatsInfo {
     1: string                          hostname
     2: list<SandeshStats>              msgtype_stats
-    3: list<SandeshLogLevelStats>      log_level_stats 
+    3: list<SandeshLogLevelStats>      log_level_stats
 }
 
 /**
@@ -100,7 +100,7 @@ struct SessionTableDbInfo {
  */
 struct GeneratorSummaryInfo {
     1: string                              source
-    2: string                              module_id    
+    2: string                              module_id
     3: string                              state
     4: string                              instance_id
     5: string                              node_type
@@ -247,7 +247,7 @@ trace sandesh generator_getseq {
 trace sandesh generator_deluves {
     1: string source
     2: string mdule
-    3: bool success    
+    3: bool success
 }
 
 /**
@@ -261,7 +261,7 @@ request sandesh DbQueueParamsSet {
     2: optional u32 queue_count;
     /** highest message level for this watermark */
     3: optional string drop_level;
-}    
+}
 
 /**
  * @description: sandesh request to reset Database Queue params
@@ -288,7 +288,7 @@ request sandesh SmQueueParamsSet {
     2: optional u32 queue_count;
     /** highest message level for this watermark */
     3: optional string drop_level;
-}    
+}
 
 /**
  * @description: sandesh request to reset State Machine Queue params

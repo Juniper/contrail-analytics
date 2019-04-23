@@ -13,7 +13,7 @@
 struct RedisUveInfo {
     1:  string             ip
     2:  u16                port
-    3:  string             status 
+    3:  string             status
     6:  u64                update_no_conn;
     7:  u64                update_failed;
     8:  u64                update_succeeded;

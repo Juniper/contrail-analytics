@@ -18,13 +18,13 @@ struct QueryStats {
     24: string                     error
     3: u32                         chunks
     4: string                      chunk_where_time;
-    5: string                      chunk_select_time; 
-    6: string                      chunk_postproc_time; 
-    7: string                      chunk_merge_time; 
+    5: string                      chunk_select_time;
+    6: string                      chunk_postproc_time;
+    7: string                      chunk_merge_time;
     8: u32                         final_merge_time;
     9: u32                         time
     10: u32                        rows
-    11: u32                        enq_delay 
+    11: u32                        enq_delay
 }
 
 /**

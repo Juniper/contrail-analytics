@@ -5534,7 +5534,7 @@ const list<map<string, string> > session2flow_maps = [
         'forward_flow_uuid'     : FLOW_TABLE_UUID,
         'forward_setup_time'    : 'setup_time',
         'forward_teardown_time' : 'teardown_time',
-        'forward_teardown_bytes': FLOW_TABLE_AGG_BYTES, 
+        'forward_teardown_bytes': FLOW_TABLE_AGG_BYTES,
         'forward_teardown_pkts' : FLOW_TABLE_AGG_PKTS,
         'forward_action'        : 'action',
         'forward_sg_rule_uuid'  : 'sg_rule_uuid',
@@ -5860,4 +5860,3 @@ const query_schema_type _OBJECT_TABLE_SCHEMA =
                ]
         }
 const list<string> _OBJECT_TABLE_COLUMN_VALUES = [ MODULE, SOURCE, CATEGORY, LEVEL ]
-
