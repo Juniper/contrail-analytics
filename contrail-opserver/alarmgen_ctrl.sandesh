@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2014 Juniper Networks, Inc. All rights reserved.
  */
- 
+
 /**
  *  Definitions of structures used by contrail-alarm-gen to send information to
  *  the collector
@@ -142,11 +142,11 @@ struct UVEAlarmStateMachineInfo {
 
 trace sandesh AlarmStateChangeTrace {
     1: "State change info for alarm:"
-    2: string		table
-    3: string		uv
-    4: string		alarm_type
-    5: UVEAlarmState	old_state
-    6: UVEAlarmState	new_state
+    2: string           table
+    3: string           uv
+    4: string           alarm_type
+    5: UVEAlarmState    old_state
+    6: UVEAlarmState    new_state
 }
 
 /**
