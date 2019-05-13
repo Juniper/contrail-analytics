@@ -35,9 +35,10 @@ def sse_pack(d):
     return buffer + '\n'
 
 class UveCacheProcessor(object):
-    def __init__(self, logger, rpass):
+    def __init__(self, logger, rpass, redis_ssl_params):
         self._logger = logger
         self._rpass = rpass
+        self._redis_ssl_params = redis_ssl_params;
         self._partkeys = {}
         self._typekeys = {}
         self._uvedb = {} 
@@ -48,7 +49,7 @@ class UveCacheProcessor(object):
         agg_redis = self._agg_redis_map.get((ip, port, redis_agg_db))
         if not agg_redis:
             agg_redis = StrictRedisWrapper(host=ip, port=port,
-                password=self._rpass, db=redis_agg_db, socket_timeout=30)
+                password=self._rpass, db=redis_agg_db, socket_timeout=30, **self._redis_ssl_params)
             self._agg_redis_map[(ip, port, redis_agg_db)] = agg_redis
         return agg_redis
     # end _get_agg_redis_instance
@@ -301,9 +302,8 @@ class UveCacheProcessor(object):
 
 
 class UveStreamPart(gevent.Greenlet):
-    def __init__(self, partno, logger, cb, pi, rpass, content = True, 
-                tablefilt = None, cfilter = None, patterns = None, token =
-                None):
+    def __init__(self, partno, logger, cb, pi, rpass, redis_ssl_params, content = True, 
+                tablefilt = None, cfilter = None, patterns = None, token = None):
         gevent.Greenlet.__init__(self)
         self._logger = logger
         self._cb = cb
@@ -312,6 +312,7 @@ class UveStreamPart(gevent.Greenlet):
         # We need to keep track of UVE contents only for streaming case
         self._content = content
         self._rpass = rpass
+        self._redis_ssl_params = redis_ssl_params
         self._tablefilt = None
         if tablefilt:
             self._tablefilt = set(tablefilt)
@@ -442,7 +443,8 @@ class UveStreamPart(gevent.Greenlet):
                         host=self._pi.ip_address,
                         port=self._pi.port,
                         password=self._rpass,
-                        db=self._pi.redis_agg_db, socket_timeout=30)
+                        db=self._pi.redis_agg_db, socket_timeout=30,
+                        **self._redis_ssl_params)
                 pb = lredis.pubsub()
                 inst = self._pi.instance_id
                 part = self._partno
@@ -562,7 +564,7 @@ class UveStreamPart(gevent.Greenlet):
         return None
 
 class UveStreamer(gevent.Greenlet):
-    def __init__(self, logger, q, rfile, agp_cb, rpass,\
+    def __init__(self, logger, q, rfile, agp_cb, rpass, redis_ssl_params, \
             tablefilt = None, cfilter = None, patterns = None,
             USP_class = UveStreamPart, token=None):
         gevent.Greenlet.__init__(self)
@@ -573,8 +575,9 @@ class UveStreamer(gevent.Greenlet):
         self._agp = {}
         self._parts = {}
         self._rpass = rpass
+        self._redis_ssl_params = redis_ssl_params
         self._ccb = None
-        self._uvedbcache = UveCacheProcessor(self._logger, rpass)
+        self._uvedbcache = UveCacheProcessor(self._logger, rpass, redis_ssl_params)
         self._USP_class = USP_class
         self._tablefilt = tablefilt
         self._cfilter = cfilter
@@ -679,7 +682,7 @@ class UveStreamer(gevent.Greenlet):
         else:
             content = False
         self._parts[partno] = self._USP_class(partno, self._logger,
-            self.partition_callback, pi, self._rpass, content,
+            self.partition_callback, pi, self._rpass, self._redis_ssl_params, content,
             self._tablefilt, self._cfilter, self._patterns, self._token)
         self._parts[partno].start()
 

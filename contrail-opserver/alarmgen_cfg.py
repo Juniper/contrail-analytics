@@ -69,7 +69,11 @@ class CfgParser(object):
         redis_opts = {
             'redis_server_port'  : 6379,
             'redis_password'     : None,
-            'redis_uve_list'    : ['127.0.0.1:6379'],
+            'redis_uve_list'     : ['127.0.0.1:6379'],
+            'redis_use_ssl'      : False,
+            'redis_keyfile'      : None,
+            'redis_certfile'     : None,
+            'redis_ca_cert'      : None
         }
 
         configdb_opts = {
@@ -163,6 +167,14 @@ class CfgParser(object):
             help="Redis server port")
         parser.add_argument("--redis_password",
             help="Redis server password")
+        parser.add_argument("--redis_use_ssl", action='store_true',
+            help="Enable SSL encryption for REDIS connection")
+        parser.add_argument("--redis_certfile", type=str,
+            help="Location of redis ssl host certificate")
+        parser.add_argument("--redis_keyfile", type=str,
+            help="Location of redis ssl private key")
+        parser.add_argument("--redis_ca_cert", type=str,
+            help="Location of redis ssl CA certificate")
         parser.add_argument("--kafka_broker_list",
             help="List of bootstrap kafka brokers in ip:port format",
             nargs="+")
@@ -230,6 +242,7 @@ class CfgParser(object):
                                    int(redis_agg_db_offset) - 1
         self._args.kafka_ssl_enable = (str(self._args.kafka_ssl_enable).lower() == 'true')
         self._args.config_db_use_ssl = (str(self._args.config_db_use_ssl).lower() == 'true')
+        self._args.redis_use_ssl = (str(self._args.redis_use_ssl).lower() == 'true')
 
     def _pat(self):
         if self.__pat is None:
@@ -286,6 +299,15 @@ class CfgParser(object):
 
     def redis_server_port(self):
         return self._args.redis_server_port
+
+    def redis_use_ssl(self):
+        return self._args.redis_use_ssl
+
+    def redis_ssl_params(self):
+        return {'ssl': self._args.redis_use_ssl,
+                'ssl_keyfile': self._args.redis_keyfile,
+                'ssl_certfile': self._args.redis_certfile,
+                'ssl_ca_certs': self._args.redis_ca_cert}
 
     def host_ip(self):
         return self._args.host_ip

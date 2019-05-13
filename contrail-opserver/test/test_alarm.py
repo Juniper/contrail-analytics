@@ -154,7 +154,7 @@ class Mock_agp(Mock_base):
         return val
 
 class Mock_usp(object):
-    def __init__(self, partno, logger, cb, pi, rpass, content,\
+    def __init__(self, partno, logger, cb, pi, rpass, redis_ssl_params, content,\
             tablefilt, cfilter, patterns, token=None):
         self._cb = cb
         self._partno = partno
@@ -188,7 +188,7 @@ class TestUveStreamer(unittest.TestCase, TestChecker):
     def setUp(self):
         self.mock_agp = Mock_agp()
         self.ustr = UveStreamer(logging, None, None, self.mock_agp, None,\
-                None, None, None, Mock_usp)
+                None, None, None, None, Mock_usp)
         self.ustr.start()
         self.mock_agp[0] = PartInfo(ip_address=socket.getfqdn("127.0.0.1"),
                                     acq_time=666,
