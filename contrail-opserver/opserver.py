@@ -142,9 +142,10 @@ def obj_to_dict(obj):
 # end obj_to_dict
 
 
-def redis_query_start(host, port, redis_password, qid, inp, columns):
+def redis_query_start(host, port, redis_password, redis_ssl_params, qid, inp, columns):
     redish = StrictRedisWrapper(db=0, host=host, port=port,
-                               password=redis_password)
+                               password=redis_password,
+                               **redis_ssl_params)
     for key, value in inp.items():
         redish.hset("QUERY:" + qid, key, json.dumps(value))
     col_list = []
@@ -171,9 +172,10 @@ def redis_query_start(host, port, redis_password, qid, inp, columns):
 # end redis_query_start
 
 
-def redis_query_status(host, port, redis_password, qid):
+def redis_query_status(host, port, redis_password, redis_ssl_params, qid):
     redish = StrictRedisWrapper(db=0, host=host, port=port,
-                               password=redis_password)
+                               password=redis_password,
+                               **redis_ssl_params)
     resp = {"progress": 0}
     chunks = []
     # For now, the number of chunks will be always 1
@@ -196,9 +198,10 @@ def redis_query_status(host, port, redis_password, qid):
 # end redis_query_status
 
 
-def redis_query_chunk_iter(host, port, redis_password, qid, chunk_id):
+def redis_query_chunk_iter(host, port, redis_password, redis_ssl_params, qid, chunk_id):
     redish = StrictRedisWrapper(db=0, host=host, port=port,
-                               password=redis_password)
+                               password=redis_password,
+                               **redis_ssl_params)
 
     iters = 0
     fin = False
@@ -219,8 +222,8 @@ def redis_query_chunk_iter(host, port, redis_password, qid, chunk_id):
 # end redis_query_chunk_iter
 
 
-def redis_query_chunk(host, port, redis_password, qid, chunk_id):
-    res_iter = redis_query_chunk_iter(host, port, redis_password, qid, chunk_id)
+def redis_query_chunk(host, port, redis_password, redis_ssl_params, qid, chunk_id):
+    res_iter = redis_query_chunk_iter(host, port, redis_password, redis_ssl_params, qid, chunk_id)
 
     dli = u''
     starter = True
@@ -255,9 +258,9 @@ def redis_query_chunk(host, port, redis_password, qid, chunk_id):
 
 
 
-def redis_query_result(host, port, redis_password, qid):
+def redis_query_result(host, port, redis_password, redis_ssl_params, qid):
     try:
-        status = redis_query_status(host, port, redis_password, qid)
+        status = redis_query_status(host, port, redis_password, redis_ssl_params, qid)
     except redis.exceptions.ConnectionError:
         yield bottle.HTTPError(_ERRORS[errno.EIO],
                 'Failure in connection to the query DB')
@@ -271,7 +274,7 @@ def redis_query_result(host, port, redis_password, qid):
         if status['progress'] == 100:
             for chunk in status['chunks']:
                 chunk_id = int(chunk['href'].rsplit('/', 1)[1])
-                for gen in redis_query_chunk(host, port, redis_password, qid,
+                for gen in redis_query_chunk(host, port, redis_password, redis_ssl_params, qid,
                                              chunk_id):
                     yield gen
         else:
@@ -279,16 +282,16 @@ def redis_query_result(host, port, redis_password, qid):
     return
 # end redis_query_result
 
-def redis_query_result_dict(host, port, redis_password, qid):
+def redis_query_result_dict(host, port, redis_password, redis_ssl_params, qid):
 
-    stat = redis_query_status(host, port, redis_password, qid)
+    stat = redis_query_status(host, port, redis_password, redis_ssl_params, qid)
     prg = int(stat["progress"])
     res = []
 
     if (prg < 0) or (prg == 100):
 
         done = False
-        gen = redis_query_result(host, port, redis_password, qid)
+        gen = redis_query_result(host, port, redis_password, redis_ssl_params, qid)
         result = u''
         while not done:
             try:
@@ -316,10 +319,11 @@ def redis_query_info(redish, qid):
 
 class OpStateServer(object):
 
-    def __init__(self, logger, redis_password=None):
+    def __init__(self, logger, redis_password=None, redis_ssl_params=None):
         self._logger = logger
         self._redis_list = []
         self._redis_password= redis_password
+        self._redis_ssl_params = redis_ssl_params
     # end __init__
 
     def update_redis_list(self, redis_list):
@@ -336,7 +340,8 @@ class OpStateServer(object):
         for redis_server in self._redis_list:
             redis_inst = StrictRedisWrapper(redis_server[0],
                                            redis_server[1], db=0,
-                                           password=self._redis_password)
+                                           password=self._redis_password,
+                                           **self._redis_ssl_params)
             try:
                 redis_inst.publish('analytics', redis_msg)
             except redis.exceptions.ConnectionError:
@@ -716,7 +721,8 @@ class OpServer(object):
         self._post_common = self._http_post_common
 
         self._collector_pool = None
-        self._state_server = OpStateServer(self._logger, self._args.redis_password)
+        self._state_server = OpStateServer(self._logger, self._args.redis_password,
+			                   self.redis_ssl_params())
 
         body = gevent.queue.Queue()
 
@@ -762,6 +768,7 @@ class OpServer(object):
         self._uve_server = UVEServer(self.redis_uve_list,
                                  self._logger,
                                  self._args.redis_password,
+                                 self.redis_ssl_params(),
                                  None, False,
                                  freq = us_freq)
         self._state_server.update_redis_list(self.redis_uve_list) 
@@ -1064,6 +1071,10 @@ class OpServer(object):
             'redis_query_port'   : 6379,
             'redis_password'       : None,
             'redis_uve_list'     : ['127.0.0.1:6379'],
+            'redis_use_ssl'      : False,
+            'redis_keyfile'  : '/etc/contrail/ssl/private/server-privkey.pem',
+            'redis_certfile' : '/etc/contrail/ssl/certs/server.pem',
+            'redis_ca_cert' : '/etc/contrail/ssl/certs/ca-cert.pem' 
         }
         keystone_opts = {
             'auth_host': '127.0.0.1',
@@ -1112,6 +1123,14 @@ class OpServer(object):
             help="Redis query port")
         parser.add_argument("--redis_password",
             help="Redis server password")
+        parser.add_argument("--redis_use_ssl", action='store_true',
+            help="Enable SSL encryption for REDIS connection")
+        parser.add_argument("--redis_certfile", type=str,
+            help="Location of redis ssl host certificate")
+        parser.add_argument("--redis_keyfile", type=str,
+            help="Location of redis ssl private key")
+        parser.add_argument("--redis_ca_cert", type=str,
+            help="Location of redis ssl CA certificate")
         parser.add_argument("--collectors",
             help="List of Collector IP addresses in ip:port format",
             nargs="+")
@@ -1193,6 +1212,7 @@ class OpServer(object):
         if type(self._args.api_server) is str:
             self._args.api_server = self._args.api_server.split()
 
+        self._args.redis_use_ssl = (str(self._args.redis_use_ssl).lower() == 'true')
         auth_conf_info = {}
         auth_conf_info['admin_user'] = self._args.admin_user
         auth_conf_info['admin_password'] = self._args.admin_password
@@ -1225,6 +1245,12 @@ class OpServer(object):
     def get_uve_server(self):
         return self._uve_server
     # end get_uve_server
+
+    def redis_ssl_params(self):
+        return {'ssl': self._args.redis_use_ssl,
+                'ssl_keyfile': self._args.redis_keyfile,
+                'ssl_certfile': self._args.redis_certfile,
+                'ssl_ca_certs': self._args.redis_ca_cert}
 
     def get_uve_cfg_type(self, uve_type):
         if uve_type in self.UveTypeToConfigObjectType:
@@ -1312,7 +1338,7 @@ class OpServer(object):
 
         body = gevent.queue.Queue()
         ph = UveStreamer(self._logger, body, rfile, self.get_agp,
-            self._args.redis_password,
+            self._args.redis_password, self.redis_ssl_params(),
             filters['tablefilt'], filters['cfilt'], patterns, token=token)
         ph.set_cleanup_callback(self.cleanup_uve_streamer)
         self.gevs.append(ph)
@@ -1382,6 +1408,7 @@ class OpServer(object):
             resp = redis_query_status(host=redis_query_ip,
                                       port=int(self._args.redis_query_port),
                                       redis_password=self._args.redis_password,
+				      redis_ssl_params=self.redis_ssl_params(),
                                       qid=qid)
         except redis.exceptions.ConnectionError:
             return bottle.HTTPError(_ERRORS[errno.EIO],
@@ -1410,6 +1437,7 @@ class OpServer(object):
             gen = redis_query_chunk(host=redis_query_ip,
                                     port=int(self._args.redis_query_port),
                                     redis_password=self._args.redis_password,
+				                    redis_ssl_params=self.redis_ssl_params(),
                                     qid=qid, chunk_id=chunk_id)
             bottle.response.set_header('Content-Type', 'application/json')
             while not done:
@@ -1556,6 +1584,7 @@ class OpServer(object):
             prg = redis_query_start('127.0.0.1',
                                     int(self._args.redis_query_port),
                                     self._args.redis_password,
+				    self.redis_ssl_params(),
                                     qid, request.json,
                                     self._VIRTUAL_TABLES[tabn].schema.columns
                                     if tabn else None)
@@ -1613,6 +1642,7 @@ class OpServer(object):
                                           port=int(
                                               self._args.redis_query_port),
                                           redis_password=self._args.redis_password,
+					  redis_ssl_params=self.redis_ssl_params(),
                                           qid=qid)
 
                 # We want to print progress only if it has changed
@@ -1641,6 +1671,7 @@ class OpServer(object):
             gen = redis_query_result(host='127.0.0.1',
                                      port=int(self._args.redis_query_port),
                                      redis_password=self._args.redis_password,
+				                     redis_ssl_params=self.redis_ssl_params(),
                                      qid=qid)
             bottle.response.set_header('Content-Type', 'application/json')
             while not done:
@@ -1653,6 +1684,7 @@ class OpServer(object):
             prg, final_res['value'] =\
                 redis_query_result_dict(host=self._args.redis_server_ip,
                                         port=int(self._args.redis_query_port),
+                                        redis_ssl_params=self.redis_ssl_params(),
                                         qid=qid)
             yield json.dumps(final_res)
             '''
@@ -1705,7 +1737,8 @@ class OpServer(object):
         try:
             redish = StrictRedisWrapper(db=0, host='127.0.0.1',
                                        port=int(self._args.redis_query_port),
-                                       password=self._args.redis_password)
+                                       password=self._args.redis_password,
+                                       **self.redis_ssl_params())
             pending_queries = redish.lrange('QUERYQ', 0, -1)
             pending_queries_info = []
             for query_id in pending_queries:
@@ -1723,6 +1756,7 @@ class OpServer(object):
                                             port=int(
                                                 self._args.redis_query_port),
                                             redis_password=self._args.redis_password,
+					    redis_ssl_params=self.redis_ssl_params(),
                                             qid=query_id)
                 query_data = redis_query_info(redish, query_id)
                 if status is None:
@@ -2356,7 +2390,8 @@ class OpServer(object):
                     db=1,
                     host=redis_uve[0],
                     port=redis_uve[1],
-                    password=self._args.redis_password)
+                    password=self._args.redis_password,
+                    **self.redis_ssl_params())
                 try:
                     for key in redish.smembers("NGENERATORS"):
                         source = key.split(':')[0]
