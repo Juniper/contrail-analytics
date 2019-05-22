@@ -91,7 +91,7 @@ else:
 testr_str = 'bash -c "set -o pipefail && cd ' + Dir(top_dir).path + \
             ' && tools_path=../config/common/tests/' + \
             ' omit_list="contrail_topology/gen_py"' \
-            ' build_top=' + Dir(env['TOP']).path + \
+            ' build_top=' + Dir(env['TOP']).abspath + \
             ' CFLAGS= LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:../../../build/lib' \
             ' python setup.py run_tests %s 2>&1 |' \
             ' tee %s.log"'
