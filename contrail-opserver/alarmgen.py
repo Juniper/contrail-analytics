@@ -990,7 +990,7 @@ class Controller(object):
             us_freq = 2
             ad_freq = 2
         self._us = UVEServer(redis_uve_list, self._logger,
-                self._conf.redis_password(), freq=us_freq)
+                self._conf.redis_password(), self._conf.redis_ssl_params(), freq=us_freq)
 
         # Start AnalyticsDiscovery to monitor AlarmGen instances
         if self._conf.zk_list():
@@ -2466,7 +2466,8 @@ class Controller(object):
                 lredis = StrictRedisWrapper(host=redis_ip,
                                             port=self._conf.redis_server_port(),
                                             password=self._conf.redis_password(),
-                                            db=self._conf.get_redis_agg_db())
+                                            db=self._conf.get_redis_agg_db(),
+                                            **self._conf.redis_ssl_params())
                 # Check a dummy exists to check if this redis is UP
                 lredis.exists(self._moduleid + ':' + self._instance_id)
                 self._logger.debug('Got a new redis instance %s' %(redis_ip))

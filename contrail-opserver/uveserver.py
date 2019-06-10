@@ -42,7 +42,7 @@ class RedisInst(object):
 class UVEServer(object):
 
     def __init__(self, redis_uve_list, logger,
-            redis_password=None, \
+            redis_password=None, redis_ssl_params=None, \
             uvedbcache=None, usecache=False, freq=5):
         self._logger = logger
         self._redis = None
@@ -50,6 +50,7 @@ class UVEServer(object):
         self._usecache = usecache
         self._redis_cfg_info = []
         self._redis_password = redis_password
+        self._redis_ssl_params = redis_ssl_params;
         self._uve_reverse_map = {}
         self._freq = freq
         self._active_collectors = []
@@ -143,7 +144,7 @@ class UVEServer(object):
                         rinst.redis_handle = StrictRedisWrapper(
                             host=rkey.ip, port=rkey.port,
                             password=self._redis_password, db=1,
-                            socket_timeout=30)
+                            socket_timeout=30, **self._redis_ssl_params)
                         rinst.collector_pid = None
 
                     # check for known collector pid string
