@@ -2,6 +2,9 @@
  * Copyright (c) 2013 Juniper Networks, Inc. All rights reserved.
  */
 
+#ifndef QE_OPTIONS_H_
+#define QE_OPTIONS_H_
+
 #include <boost/program_options.hpp>
 #include "io/event_manager.h"
 #include "sandesh/sandesh.h"
@@ -35,9 +38,14 @@ public:
     const std::vector<std::string> redis_server_list() const {
         return redis_server_list_;
     }
+
     const std::string redis_server() const { return redis_server_; }
     const uint16_t redis_port() const { return redis_port_; }
     const std::string redis_password() const { return redis_password_; }
+    const bool redis_ssl_enable() const { return redis_ssl_enable_; }
+    const std::string redis_keyfile() const { return redis_keyfile_; }
+    const std::string redis_certfile() const { return redis_certfile_; }
+    const std::string redis_ca_cert() const { return redis_ca_cert_; }
     const std::string hostname() const { return hostname_; }
     const std::string host_ip() const { return host_ip_; }
     const uint16_t http_server_port() const { return http_server_port_; }
@@ -78,6 +86,10 @@ private:
     std::string redis_server_;
     uint16_t redis_port_;
     std::string redis_password_;
+    bool redis_ssl_enable_;
+    std::string redis_keyfile_;
+    std::string redis_certfile_;
+    std::string redis_ca_cert_;
     std::string hostname_;
     std::string host_ip_;
     uint16_t http_server_port_;
@@ -111,3 +123,5 @@ private:
     bool cassandra_use_ssl_;
     std::string cassandra_ca_certs_;
 };
+
+#endif /* QE_OPTIONS_H_ */
