@@ -45,7 +45,11 @@ public:
 
     RedisAsyncConnection(EventManager *evm, const std::string & redis_ip,
             unsigned short redis_port, ClientConnectCbFn client_connect_cb = NULL,
-            ClientDisconnectCbFn client_disconnect_cb = NULL);
+            ClientDisconnectCbFn client_disconnect_cb = NULL,
+            const bool redis_ssl_enable = false,
+            const std::string & redis_keyfile = std::string(),
+            const std::string & redis_certfile = std::string(),
+            const std::string & redis_ca_cert = std::string());
     virtual ~RedisAsyncConnection();
 
     bool RAC_Connect(void);
@@ -82,6 +86,10 @@ private:
     EventManager *evm_;
     const std::string hostname_;
     const unsigned short port_;
+    const bool redis_ssl_enable_;
+    const std::string redis_keyfile_;
+    const std::string redis_certfile_;
+    const std::string redis_ca_cert_;
 
     uint64_t callDisconnected_;
     uint64_t callFailed_;
