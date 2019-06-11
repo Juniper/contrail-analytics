@@ -47,11 +47,13 @@ using process::Endpoint;
 
 extern RedisAsyncConnection * rac_alloc(EventManager *, const std::string & ,unsigned short,
 RedisAsyncConnection::ClientConnectCbFn ,
-RedisAsyncConnection::ClientDisconnectCbFn );
+RedisAsyncConnection::ClientDisconnectCbFn,
+const bool, const std::string &, const std::string &, const std::string &);
 
 extern RedisAsyncConnection * rac_alloc_nocheck(EventManager *, const std::string & ,unsigned short,
 RedisAsyncConnection::ClientConnectCbFn ,
-RedisAsyncConnection::ClientDisconnectCbFn );
+RedisAsyncConnection::ClientDisconnectCbFn,
+const bool, const std::string &, const std::string &, const std::string &);
 
 SandeshTraceBufferPtr QeTraceBuf(SandeshTraceBufferCreate(QE_TRACE_BUF, 10000));
 
@@ -715,6 +717,19 @@ public:
             redisFree(c);
             return;
         }
+
+        /* Secure the connection if SSL enabled */
+        if (redis_ssl_enable_) {
+            int rc = redisSecureConnection(c, redis_ca_cert_.c_str(),
+                      redis_certfile_.c_str(), redis_keyfile_.c_str(), "sni");
+            if (rc != REDIS_OK) {
+                QE_LOG_NOQID(ERROR, "Cannot report query error for " << qid <<
+                             " SSL Connection Error: " << c->errstr);
+                redisFree(c);
+                return;
+            }
+        }
+
         //Authenticate the context with password
         if (!redis_password_.empty()) {
             redisReply * reply = (redisReply *) redisCommand(c, "AUTH %s",
@@ -766,6 +781,20 @@ public:
                                  "__UNKNOWN__",     // table
                                  qs);
             return;
+        }
+
+        /* Secure the connection if SSL enabled */
+        if (redis_ssl_enable_) {
+            int rc = redisSecureConnection(c, redis_ca_cert_.c_str(),
+                       redis_certfile_.c_str(), redis_keyfile_.c_str(), "sni");
+            if (rc != REDIS_OK) {
+                QE_LOG_NOQID(ERROR, "Cannot start pipeline for " << qid <<
+                                " SSL Connection Error: " << c->errstr);
+                redisFree(c);
+                qs.set_error("Redis SSL Connection Error");
+                QUERY_PERF_INFO_SEND(Sandesh::source(), "__UNKNOWN__", qs);
+                return;
+            }
         }
 
         //Authenticate the context with password
@@ -1086,10 +1115,19 @@ public:
     }
 
     QEOpServerImpl(vector<string> redis_ip_ports,
-                   const string & redis_password, QEOpServerProxy * qosp,
-                   int max_tasks, int max_rows, const string &host_ip) :
+                   const string & redis_password,
+                   const bool redis_ssl_enable,
+                   const string & redis_keyfile,
+                   const string & redis_certfile,
+                   const string & redis_ca_cert,
+                   QEOpServerProxy * qosp, int max_tasks,
+                   int max_rows, const string &host_ip) :
             hostname_(ResolveCanonicalName(host_ip)),
             redis_password_(redis_password),
+            redis_ssl_enable_(redis_ssl_enable),
+            redis_keyfile_(redis_keyfile),
+            redis_certfile_(redis_certfile),
+            redis_ca_cert_(redis_ca_cert),
             qosp_(qosp),
             max_tasks_(max_tasks),
             max_rows_(max_rows) {
@@ -1112,12 +1150,14 @@ public:
                 connState_[redis_host_idx][i] = false;
                 if (i) {
                     conns_[redis_host_idx][i].reset(rac_alloc(qosp->evm_, redis_host, redis_port,
-                                    boost::bind(&QEOpServerImpl::ConnUp, this, redis_host_idx, i),
-                                    boost::bind(&QEOpServerImpl::ConnDown, this, redis_host_idx, i)));
+                                  boost::bind(&QEOpServerImpl::ConnUp, this, redis_host_idx, i),
+                                  boost::bind(&QEOpServerImpl::ConnDown, this, redis_host_idx, i),
+                                  redis_ssl_enable, redis_keyfile, redis_certfile, redis_ca_cert));
                 } else {
                     conns_[redis_host_idx][i].reset(rac_alloc_nocheck(qosp->evm_, redis_host, redis_port,
-                                    boost::bind(&QEOpServerImpl::ConnUp, this, redis_host_idx, i),
-                                    boost::bind(&QEOpServerImpl::ConnDown, this, redis_host_idx, i)));
+                                  boost::bind(&QEOpServerImpl::ConnUp, this, redis_host_idx, i),
+                                  boost::bind(&QEOpServerImpl::ConnDown, this, redis_host_idx, i),
+                                  redis_ssl_enable, redis_keyfile, redis_certfile, redis_ca_cert));
                 }
                 // The cnum with index 0 is only used for receiving new queries
                 // It does not host any pipelines
@@ -1147,6 +1187,10 @@ private:
     const string hostname_;
     map<string, string> redis_status_maps;
     const string redis_password_;
+    const bool redis_ssl_enable_;
+    const string redis_keyfile_;
+    const string redis_certfile_;
+    const string redis_ca_cert_;
     QEOpServerProxy * const qosp_;
     boost::shared_ptr<RedisAsyncConnection> *conns_[kConnections+1];
     RedisAsyncConnection::ClientAsyncCmdCbFn *cb_proc_fn_[kConnections+1];
@@ -1165,12 +1209,17 @@ private:
 
 QEOpServerProxy::QEOpServerProxy(EventManager *evm, QueryEngine *qe,
             vector<string> redis_ip_ports,
-            const string & redis_password, const std::string &host_ip,
-            int max_tasks, int max_rows) :
+            const string & redis_password,
+            const bool redis_ssl_enable,
+            const string & redis_keyfile,
+            const string & redis_certfile,
+            const string & redis_ca_cert,
+            const std::string &host_ip, int max_tasks, int max_rows) :
         evm_(evm),
         qe_(qe),
-        impl_(new QEOpServerImpl(redis_ip_ports, redis_password, this,
-            max_tasks, max_rows, host_ip)) {}
+        impl_(new QEOpServerImpl(redis_ip_ports, redis_password, redis_ssl_enable,
+            redis_keyfile, redis_certfile, redis_ca_cert,
+            this, max_tasks, max_rows, host_ip)) {}
 
 QEOpServerProxy::~QEOpServerProxy() {}
 

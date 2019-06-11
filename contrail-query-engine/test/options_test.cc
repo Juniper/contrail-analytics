@@ -72,6 +72,8 @@ TEST_F(OptionsTest, NoArguments) {
     TASK_UTIL_EXPECT_VECTOR_EQ(default_redis_server_list_,
                                options_.redis_server_list());
     EXPECT_EQ(options_.redis_port(), default_redis_port);
+    EXPECT_EQ(options_.redis_password(), "");
+    EXPECT_EQ(options_.redis_ssl_enable(), false);
     TASK_UTIL_EXPECT_VECTOR_EQ(default_conf_files_,
                      options_.config_file());
     EXPECT_EQ(options_.hostname(), hostname_);
@@ -254,6 +256,11 @@ TEST_F(OptionsTest, CustomConfigFile) {
         "[REDIS]\n"
         "port=200\n"
         "server_list=10.10.10.1:6379 20.20.20.2:6379 30.30.30.3:6379\n"
+        "password=redis123\n"
+        "redis_ssl_enable=True\n"
+        "redis_keyfile=/tmp/redis_keyfile\n"
+        "redis_certfile=/tmp/redis_certfile\n"
+        "redis_ca_cert=/tmp/redis_ca_cert\n"
         "\n"
         "\n"
         "[SANDESH]\n"
@@ -313,6 +320,11 @@ TEST_F(OptionsTest, CustomConfigFile) {
     TASK_UTIL_EXPECT_VECTOR_EQ(redis_server_list,
                                options_.redis_server_list());
     EXPECT_EQ(options_.redis_port(), 200);
+    EXPECT_EQ(options_.redis_password(), "redis123");
+    EXPECT_EQ(options_.redis_ssl_enable(), true);
+    EXPECT_EQ(options_.redis_keyfile(), "/tmp/redis_keyfile");
+    EXPECT_EQ(options_.redis_certfile(), "/tmp/redis_certfile");
+    EXPECT_EQ(options_.redis_ca_cert(), "/tmp/redis_ca_cert");
     TASK_UTIL_EXPECT_VECTOR_EQ(options_.config_file(),
                                input_conf_files);
     EXPECT_EQ(options_.hostname(), "test");
@@ -367,6 +379,8 @@ TEST_F(OptionsTest, CustomConfigFileAndOverrideFromCommandLine) {
         "[REDIS]\n"
         "port=200\n"
         "server_list=10.10.10.1 20.20.20.2 30.30.30.3\n"
+        "password=redis123\n"
+        "redis_ssl_enable=True\n"
         "\n"
         "[SANDESH]\n"
         "disable_object_logs=0\n"
@@ -389,7 +403,7 @@ TEST_F(OptionsTest, CustomConfigFileAndOverrideFromCommandLine) {
     config_file << cassandra_config;
     config_file.close();
 
-    int argc = 22;
+    int argc = 24;
     char *argv[argc];
     char argv_0[] = "options_test";
     char argv_1[] = "--conf_file=./options_test_query_engine.conf";
@@ -413,6 +427,8 @@ TEST_F(OptionsTest, CustomConfigFileAndOverrideFromCommandLine) {
     char argv_19[] = "--DEFAULT.sandesh_send_rate_limit=7";
     char argv_20[] = "--SANDESH.disable_object_logs";
     char argv_21[] = "--REDIS.server_list=11.10.10.1:6379 21.20.20.2:6379 31.30.30.3:6379";
+    char argv_22[] = "--REDIS.password=testredis123";
+    char argv_23[] = "--REDIS.redis_ssl_enable=False";
     argv[0] = argv_0;
     argv[1] = argv_1;
     argv[2] = argv_2;
@@ -435,6 +451,8 @@ TEST_F(OptionsTest, CustomConfigFileAndOverrideFromCommandLine) {
     argv[19] = argv_19;
     argv[20] = argv_20;
     argv[21] = argv_21;
+    argv[22] = argv_22;
+    argv[23] = argv_23;
 
     options_.Parse(evm_, argc, argv);
 
@@ -459,6 +477,8 @@ TEST_F(OptionsTest, CustomConfigFileAndOverrideFromCommandLine) {
     TASK_UTIL_EXPECT_VECTOR_EQ(redis_server_list,
                                options_.redis_server_list());
     EXPECT_EQ(options_.redis_port(), 200);
+    EXPECT_EQ(options_.redis_password(), "testredis123");
+    EXPECT_EQ(options_.redis_ssl_enable(), false);
     vector<string> input_conf_files;
     input_conf_files.push_back("./options_test_query_engine.conf");
     input_conf_files.push_back("./options_test_cassandra_config_file.conf");
