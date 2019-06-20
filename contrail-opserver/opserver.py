@@ -122,17 +122,35 @@ class OpserverStdLog(object):
         sys.stderr.write('[' + self._server_name + ':' + str(self._port) + ']' + text)
 
 class ContrailGeventServer(bottle.GeventServer):
-    def __init__(self, host, port, sock):
+    def __init__(self, args, sock):
         self._socket = sock
-        super(ContrailGeventServer, self).__init__(host, port)
+        self._args = args
+        super(ContrailGeventServer, self).__init__(args.rest_api_ip,
+                                                   args.rest_api_port)
     def run(self, handler):
-        from gevent import wsgi as wsgi_fast, pywsgi, monkey, local
+        from gevent import wsgi as wsgi_fast, pywsgi, monkey, local, ssl
         if self.options.get('monkey', True):
             import threading
             if not threading.local is local.local: monkey.patch_all()
         wsgi = wsgi_fast if self.options.get('fast') else pywsgi
         self._std_log = OpserverStdLog("API", self.port)
-        self.srv = wsgi.WSGIServer(self._socket, handler, backlog=None , log = self._std_log)
+        if (self._args.analytics_api_ssl_enable):
+            if (self._args.analytics_api_insecure_enable):
+                self.srv = wsgi.WSGIServer(self._socket, handler, backlog=None,
+                                log = self._std_log,
+                                ca_certs=self._args.analytics_api_ssl_ca_cert,
+                                keyfile=self._args.analytics_api_ssl_keyfile,
+                                certfile=self._args.analytics_api_ssl_certfile)
+            else:
+                self.srv = wsgi.WSGIServer(self._socket, handler, backlog=None,
+                            log = self._std_log,
+                            ca_certs=self._args.analytics_api_ssl_ca_cert,
+                            keyfile=self._args.analytics_api_ssl_keyfile,
+                            certfile=self._args.analytics_api_ssl_certfile,
+                            cert_reqs=ssl.CERT_REQUIRED)
+        else:
+            self.srv = wsgi.WSGIServer(self._socket, handler, backlog=None,
+                            log = self._std_log)
         self.srv.serve_forever()
     def stop(self):
         if hasattr(self, 'srv'):
@@ -1071,6 +1089,11 @@ class OpServer(object):
             'admin_port'        : OpServerAdminPort,
             'cloud_admin_role'  : CLOUD_ADMIN_ROLE,
             'api_server_use_ssl': None,
+            'analytics_api_ssl_enable'      : False,
+            'analytics_api_insecure_enable' : False,
+            'analytics_api_ssl_certfile'    : None,
+            'analytics_api_ssl_keyfile'     : None,
+            'analytics_api_ssl_ca_cert'     : None,
         }
         defaults.update(SandeshConfig.get_default_options(['DEFAULTS']))
         redis_opts = {
@@ -1207,6 +1230,16 @@ class OpServer(object):
             help="Port with local auth for admin access")
         parser.add_argument("--api_server_use_ssl",
             help="Use SSL to connect with API server")
+        parser.add_argument("--analytics_api_ssl_enable",
+            help="Enable SSL in rest api server")
+        parser.add_argument("--analytics_api_insecure_enable",
+            help="Enable insecure mode")
+        parser.add_argument("--analytics_api_ssl_certfile",
+            help="Location of analytics api ssl host certificate")
+        parser.add_argument("--analytics_api_ssl_keyfile",
+            help="Location of analytics api ssl private key")
+        parser.add_argument("--analytics_api_ssl_ca_cert", type=str,
+            help="Location of analytics api ssl CA certificate")
         SandeshConfig.add_parser_arguments(parser)
         self._args = parser.parse_args(remaining_argv)
         if type(self._args.collectors) is str:
@@ -1219,6 +1252,11 @@ class OpServer(object):
             self._args.api_server = self._args.api_server.split()
 
         self._args.redis_use_ssl = (str(self._args.redis_use_ssl).lower() == 'true')
+        self._args.analytics_api_ssl_enable = \
+                (str(self._args.analytics_api_ssl_enable).lower() == 'true')
+
+        self._args.analytics_api_insecure_enable = \
+                (str(self._args.analytics_api_insecure_enable).lower() == 'true')
         auth_conf_info = {}
         auth_conf_info['admin_user'] = self._args.admin_user
         auth_conf_info['admin_password'] = self._args.admin_password
@@ -2509,9 +2547,7 @@ class OpServer(object):
         self._set_socket_dscp()
         try:
             self._webserver = ContrailGeventServer(
-                                   host=self._args.rest_api_ip,
-                                   port=self._args.rest_api_port,
-                                   sock=self._socket)
+                                   args=self._args, sock=self._socket)
             bottle.run(app=pipe_start_app, server=self._webserver)
         except Exception as e:
             self._logger.error("Exception: %s" % e)
