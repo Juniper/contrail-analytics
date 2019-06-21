@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9f5c4f37_717cc81e",
+        "filename": "contrail-opserver/opserver.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 213
+      },
+      "writtenOn": "2019-06-21T02:08:55Z",
+      "side": 1,
+      "message": "please wrap after 80 chars",
+      "range": {
+        "startLine": 143,
+        "startChar": 93,
+        "endLine": 143,
+        "endChar": 101
+      },
+      "revId": "4bc30b83e0b59a65dbecabe6dbe027b612b6c48f",
+      "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9f5c4f37_917f3c14",
+        "filename": "contrail-opserver/opserver.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 213
+      },
+      "writtenOn": "2019-06-21T02:08:55Z",
+      "side": 1,
+      "message": "you can make them nested with outer condition checking if self._args.analytics_api_ssl_enable and inner condition checking if self._args.analytics_api_insecure_enable\n\nthat way, same condition would not be repeated",
+      "range": {
+        "startLine": 137,
+        "startChar": 21,
+        "endLine": 144,
+        "endChar": 24
+      },
+      "revId": "4bc30b83e0b59a65dbecabe6dbe027b612b6c48f",
+      "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
+      "unresolved": false
+    }
+  ]
+}
