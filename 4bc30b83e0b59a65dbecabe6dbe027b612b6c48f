@@ -45,6 +45,52 @@
       "revId": "4bc30b83e0b59a65dbecabe6dbe027b612b6c48f",
       "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9f5c4f37_3172d04a",
+        "filename": "contrail-opserver/opserver.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 1254,
+      "author": {
+        "id": 213
+      },
+      "writtenOn": "2019-06-21T02:11:10Z",
+      "side": 1,
+      "message": "I think we need to put \\ here otherwise it may not work",
+      "range": {
+        "startLine": 1254,
+        "startChar": 43,
+        "endLine": 1254,
+        "endChar": 45
+      },
+      "revId": "4bc30b83e0b59a65dbecabe6dbe027b612b6c48f",
+      "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9f5c4f37_11910c48",
+        "filename": "contrail-opserver/opserver.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 1257,
+      "author": {
+        "id": 213
+      },
+      "writtenOn": "2019-06-21T02:11:10Z",
+      "side": 1,
+      "message": "same here, append \\",
+      "range": {
+        "startLine": 1257,
+        "startChar": 47,
+        "endLine": 1257,
+        "endChar": 50
+      },
+      "revId": "4bc30b83e0b59a65dbecabe6dbe027b612b6c48f",
+      "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
+      "unresolved": false
     }
   ]
 }
