@@ -174,6 +174,18 @@ void Options::Initialize(EventManager &evm,
            "IP address of Redis Server")
         ("REDIS.password", opt::value<string>()->default_value(""),
              "password for Redis Server")
+        ("REDIS.redis_ssl_enable",
+             opt::value<bool>()->default_value(false),
+             "Enable SSL Encryptions for Redis connection")
+        ("REDIS.redis_keyfile", opt::value<std::string>()->default_value(
+         "/etc/contrail/ssl/private/server-privkey.pem"),
+         "Redis SSL private key")
+        ("REDIS.redis_certfile", opt::value<std::string>()->default_value(
+         "/etc/contrail/ssl/certs/server.pem"),
+         "Redis SSL certificate")
+        ("REDIS.redis_ca_cert", opt::value<std::string>()->default_value(
+         "/etc/contrail/ssl/certs/ca-cert.pem"),
+         "Redis CA SSL certificate")
         ;
 
     // Command line and config file options.
@@ -263,6 +275,10 @@ void Options::Process(int argc, char *argv[],
     GetOptValue<string>(var_map, redis_server_, "REDIS.server");
     GetOptValue<uint16_t>(var_map, redis_port_, "REDIS.port");
     GetOptValue<string>(var_map, redis_password_, "REDIS.password");
+    GetOptValue<bool>(var_map,   redis_ssl_enable_, "REDIS.redis_ssl_enable");
+    GetOptValue<string>(var_map, redis_keyfile_, "REDIS.redis_keyfile");
+    GetOptValue<string>(var_map, redis_certfile_, "REDIS.redis_certfile");
+    GetOptValue<string>(var_map, redis_ca_cert_, "REDIS.redis_ca_cert");
     GetOptValue<string>(var_map, cluster_id_, "DATABASE.cluster_id");
     GetOptValue<string>(var_map, cassandra_user_, "CASSANDRA.cassandra_user");
     GetOptValue<string>(var_map, cassandra_password_, "CASSANDRA.cassandra_password");

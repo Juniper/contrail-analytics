@@ -22,10 +22,17 @@ RedisAsyncConnection::RAC_CbFnsMap RedisAsyncConnection::rac_cb_fns_map_;
 tbb::mutex RedisAsyncConnection::rac_cb_fns_map_mutex_;
 
 RedisAsyncConnection::RedisAsyncConnection(EventManager *evm, const std::string & redis_ip,
-        unsigned short redis_port, ClientConnectCbFn client_connect_cb, ClientDisconnectCbFn client_disconnect_cb) :
+        unsigned short redis_port, ClientConnectCbFn client_connect_cb,
+        ClientDisconnectCbFn client_disconnect_cb,
+        const bool redis_ssl_enable, const string & redis_keyfile,
+        const string & redis_certfile, const string & redis_ca_cert) :
     evm_(evm),
     hostname_(redis_ip),
     port_(redis_port),
+    redis_ssl_enable_(redis_ssl_enable),
+    redis_keyfile_(redis_keyfile),
+    redis_certfile_(redis_certfile),
+    redis_ca_cert_(redis_ca_cert),
     callDisconnected_(0),
     callFailed_(0),
     callSucceeded_(0),
@@ -200,6 +207,23 @@ bool RedisAsyncConnection::RAC_Connect(void) {
         context_ = NULL;
         return true;
     }
+
+    /* Secure the connection if SSL enabled */
+    if (redis_ssl_enable_) {
+        int rc = redisSecureConnection(&context_->c, redis_ca_cert_.c_str(),
+                        redis_certfile_.c_str(), redis_keyfile_.c_str(), "sni");
+        if (rc != REDIS_OK) {
+            LOG(DEBUG, "RAC_Connect: redisSecureConnection() failed: " << (&context_->c)->errstr);
+            boost::system::error_code ec;
+            reconnect_timer_.expires_from_now(
+                         boost::posix_time::seconds(RedisAsyncConnection::RedisReconnectTime), ec);
+            reconnect_timer_.async_wait(boost::bind(&RedisAsyncConnection::RAC_Reconnect, this,
+                                   boost::asio::placeholders::error));
+            context_ = NULL;
+            return true;
+        }
+    }
+
     client_.reset(new redisBoostClient(*evm_->io_service(), context_, mutex_));
 
     tbb::mutex::scoped_lock fns_lock(rac_cb_fns_map_mutex_);
