@@ -175,17 +175,26 @@ class Controller(object):
 
     def bms_links(self, prouter, ifm):
         try:
-            for lif_fqname, lif in self._config_handler.get_logical_interfaces():
+            lifs = self._config_handler.get_logical_interfaces()
+            if not lifs:
+                return
+            for lif_fqname, lif in lifs:
                 if prouter.name in lif_fqname:
-                    for vmif in lif.obj.get_virtual_machine_interface_refs():
+                    vmi_refs = lif.obj.get_virtual_machine_interface_refs()
+                    if not vmi_refs:
+                        continue
+                    for vmif in vmi_refs:
                         vmi = self._config_handler.\
                                 get_virtual_machine_interface(fq_name=None,
                                                               uuid=vmif['uuid'])
                         if not vmi:
                             continue
                         vmi = vmi.obj
-                        for mc in vmi.virtual_machine_interface_mac_addresses.\
-                                get_mac_address():
+                        macs = vmi.virtual_machine_interface_mac_addresses.\
+                               get_mac_address()
+                        if not macs:
+                            continue
+                        for mc in macs:
                             ifi = [k for k in ifm if ifm[k] in lif_fqname][0]
                             rsys = '-'.join(['bms', 'host'] + mc.split(':'))
                             self._add_link(prouter=prouter,
