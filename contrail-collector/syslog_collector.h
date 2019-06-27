@@ -184,6 +184,7 @@ class SyslogParser
         virtual void MakeSandesh (syslog_m_t v);
 
         bool ClientParse (SyslogQueueEntry *sqe);
+        const uint8_t * MakeSane(const uint8_t *p);
     private:
         WorkQueue<SyslogQueueEntry*>                 work_queue_;
         boost::uuids::random_generator               umn_gen_;
