@@ -532,10 +532,23 @@ void SyslogParser::MakeSandesh (syslog_m_t v) {
     vmsg.msg = NULL;
     delete smessage;
 }
+const uint8_t *
+SyslogParser::MakeSane(const uint8_t *p) {
+    std::string str((const char*)p);
+    std::ostringstream s;
+    for (std::string::const_iterator it = str.begin(); it != str.end();
+                    it++) {
+        if (0x80 & *it)
+            s << "&#" << (int)((uint8_t)*it) << ";";
+        else
+            s << *it;
+    }
+    return (const uint8_t *)(s.str()).c_str();
+}
 
 bool SyslogParser::ClientParse (SyslogQueueEntry *sqe) {
   std::string ip = sqe->ip;
-  const uint8_t *p = buffer_cast<const uint8_t *>(sqe->data);
+  const uint8_t *p = MakeSane(buffer_cast<const uint8_t *>(sqe->data));
 #ifdef SYSLOG_DEBUG
   LOG(DEBUG, "cnt parser " << sqe->length << " bytes from (" <<
       ip << ":" << sqe->port << ")[");

@@ -37,10 +37,23 @@ class SyslogParserTestHelper : public SyslogParser
             body_ = "<Syslog>" + GetMsgBody (v) + "</Syslog>";
         }
 
+        std::string MakeSane(const std::string &text) {
+            std::ostringstream s;
+            for (std::string::const_iterator it = text.begin(); it != text.end();
+                               ++it) {
+                if (0x80 & *it)
+                    s << "&#" << (int)((uint8_t)*it) << ";";
+                else
+                    s << *it;
+            }
+            return s.str();
+        }
+
         bool TestParse(std::string s) {
             syslog_m_t v;
             bool r;
-            if ((r = parse_syslog (s.begin(), s.end(), v))) {
+            std::string st = MakeSane(s);
+            if ((r = parse_syslog (st.begin(), st.end(), v))) {
                 v.insert(std::pair<std::string, Holder>("ip",
                       Holder("ip", "10.0.0.42")));
                 PostParsing(v);
@@ -257,6 +270,13 @@ TEST_F(SyslogParserTest, ParseWithHostOne)
     bool r = Parse("<84>Feb 25 13:44:21 a3s45 sudo: pam_limits(sudo:session): invalid line 'cassandra - nofile 100000' - skipped]");
     EXPECT_TRUE(r);
     EXPECT_TRUE(0 == strncmp ("a3s45", hostname().c_str(), 5));
+}
+
+//This TestCase should not Crash/assert at isspace.
+TEST_F(SyslogParserTest, NonAscii)
+{
+    bool a = Parse("£¥€");
+    EXPECT_FALSE(a);
 }
 
 TEST_F(SyslogCollectorTest, End2End)
