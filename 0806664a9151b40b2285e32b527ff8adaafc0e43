@@ -46,6 +46,30 @@
       "revId": "0806664a9151b40b2285e32b527ff8adaafc0e43",
       "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1f485f77_83177eee",
+        "filename": "contrail-collector/test/syslog_test.cc",
+        "patchSetId": 2
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 213
+      },
+      "writtenOn": "2019-06-28T15:50:03Z",
+      "side": 1,
+      "message": "i did not get it. Why does UT call different function when the test class derives from same class? Ideally, there should not be a need to redefined the function here otherwise it defeats the purpose of testing. Lets sync up if you are not able to figure it out with Pradeep",
+      "parentUuid": "1f485f77_2327aa67",
+      "range": {
+        "startLine": 40,
+        "startChar": 17,
+        "endLine": 42,
+        "endChar": 17
+      },
+      "revId": "0806664a9151b40b2285e32b527ff8adaafc0e43",
+      "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
+      "unresolved": false
     }
   ]
 }
