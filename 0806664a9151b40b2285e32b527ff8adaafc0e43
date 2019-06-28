@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9f5c4f37_6cdf45d6",
+        "filename": "contrail-collector/test/syslog_test.cc",
+        "patchSetId": 2
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 213
+      },
+      "writtenOn": "2019-06-28T03:44:19Z",
+      "side": 1,
+      "message": "do we need to define it again here? If so, do we test real function or this test function? Or is the assumption here that these functions will be same?",
+      "range": {
+        "startLine": 40,
+        "startChar": 17,
+        "endLine": 42,
+        "endChar": 17
+      },
+      "revId": "0806664a9151b40b2285e32b527ff8adaafc0e43",
+      "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
+      "unresolved": false
+    }
+  ]
+}
