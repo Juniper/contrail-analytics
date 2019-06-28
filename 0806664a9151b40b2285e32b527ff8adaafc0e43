@@ -22,6 +22,30 @@
       "revId": "0806664a9151b40b2285e32b527ff8adaafc0e43",
       "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1f485f77_2327aa67",
+        "filename": "contrail-collector/test/syslog_test.cc",
+        "patchSetId": 2
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 750
+      },
+      "writtenOn": "2019-06-28T15:22:13Z",
+      "side": 1,
+      "message": "Yes, this function I defined for UT because Ut calls the different function.\nThese functions are same, the only difference is that this function takes string as input and other function takes uint8_t as input.\n\nI tested with both functions and it worked fine.\n\nAnyway, Pradeep has suggested some change, I will try that too.",
+      "parentUuid": "9f5c4f37_6cdf45d6",
+      "range": {
+        "startLine": 40,
+        "startChar": 17,
+        "endLine": 42,
+        "endChar": 17
+      },
+      "revId": "0806664a9151b40b2285e32b527ff8adaafc0e43",
+      "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
+      "unresolved": false
     }
   ]
 }
