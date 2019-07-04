@@ -207,6 +207,7 @@ AnalyticsEnv.Default(vizd)
 
 AnalyticsEnv.Requires(vizd, '#/build/include/boost')
 AnalyticsEnv.Requires(vizd, '#/build/include/ipfix.h')
+AnalyticsEnv.Requires(vizd, '#/build/lib/libipfix.so')
 
 AnalyticsEnv.SConscript('ruleparser/SConscript', exports='AnalyticsEnv', duplicate = 0)
 #AnalyticsEnv.SConscript('database/SConscript', exports='AnalyticsEnv', duplicate = 0)
