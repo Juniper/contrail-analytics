@@ -149,15 +149,6 @@ env.Alias('install', env.Install(env['INSTALL_CONF'],
 env.Alias('install', env.Install(env['INSTALL_CONF'], 'snmp.conf'))
 env.Alias('install', env.Install(env['INSTALL_DOC'] + '/../mibs/netsnmp',
             mibs))
-env.Alias('install', env.InstallAs(
-            env['INSTALL_INITD'] + '/contrail-snmp-collector',
-            'contrail-snmp-collector.initd.supervisord'))
-env.Alias('install', env.InstallAs(
-            env['INSTALL_SYSTEMD'] + '/contrail-snmp-collector.service',
-            'systemd/contrail-snmp-collector.service'))
-env.Alias('install', env.Install(
-            env['INSTALL_CONF'] + '/supervisord_analytics_files',
-            'contrail-snmp-collector.ini'))
 env.Alias('install', env.Install(
     env['INSTALL_MESSAGE_DOC'] + '/contrail-snmp-collector/', doc_files))
 
