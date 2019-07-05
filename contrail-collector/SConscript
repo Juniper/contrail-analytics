@@ -269,41 +269,8 @@ AnalyticsEnv.Alias('install', AnalyticsEnv.InstallAs(
             AnalyticsEnv['INSTALL_BIN'] + '/contrail-collector', vizd))
 AnalyticsEnv.Alias('install', AnalyticsEnv.Install(
             AnalyticsEnv['INSTALL_CONF'], 'contrail-collector.conf'))
-AnalyticsEnv.Alias('install', AnalyticsEnv.InstallAs(
-            AnalyticsEnv['INSTALL_INITD'] + '/contrail-collector',
-            'contrail-collector.initd.supervisord'))
-AnalyticsEnv.Alias('install', AnalyticsEnv.InstallAs(
-            AnalyticsEnv['INSTALL_SYSTEMD'] + '/contrail-collector.service',
-            'systemd/contrail-collector.service'))
-AnalyticsEnv.Alias('install', AnalyticsEnv.InstallAs(
-            AnalyticsEnv['INSTALL_SYSTEMD'] + '/contrail-analytics-nodemgr.service',
-            'systemd/contrail-analytics-nodemgr.service'))
-AnalyticsEnv.Alias('install', AnalyticsEnv.Install(
-            AnalyticsEnv['INSTALL_CONF'], 'supervisord_analytics.conf'))
-AnalyticsEnv.Alias('install', AnalyticsEnv.Install(
-            AnalyticsEnv['INSTALL_CONF'] + 
-            '/supervisord_analytics_files', 'contrail-analytics.rules'))
-AnalyticsEnv.Alias('install', AnalyticsEnv.Install(
-            AnalyticsEnv['INSTALL_CONF'] + 
-            '/supervisord_analytics_files', 'contrail-collector.ini'))
 AnalyticsEnv.Alias('install', AnalyticsEnv.Install(
             AnalyticsEnv['INSTALL_MESSAGE_DOC'] + '/contrail-collector/', CollectorDocFiles))
-
-#AnalyticsEnv.SConscript(dirs=['contrail-snmp-collector'],
-#        exports='AnalyticsEnv',
-#        variant_dir=BuildEnv['TOP'] + '/contrail-snmp-collector',
-#        duplicate=1)
-
-#AnalyticsEnv.SConscript(dirs=['contrail-topology'],
-#        exports='AnalyticsEnv',
-#        variant_dir=BuildEnv['TOP'] + '/contrail-topology',
-#        duplicate=1)
-#
-# Not yet
-#AnalyticsEnv.SConscript(dirs=['contrail-broadview'],
-#       exports='AnalyticsEnv',
-#       variant_dir=BuildEnv['TOP'] + '/contrail-broadview',
-#       duplicate=1)
 
 # Local Variables:
 # mode: python

@@ -142,15 +142,6 @@ if 'install' in BUILD_TARGETS:
     env.Alias('install', install_cmd)
 env.Alias('install', env.Install(env['INSTALL_CONF'],
             'contrail-topology.conf'))
-env.Alias('install', env.InstallAs(
-            env['INSTALL_INITD'] + '/contrail-topology',
-            'contrail-topology.initd.supervisord'))
-env.Alias('install', env.InstallAs(
-            env['INSTALL_SYSTEMD'] + '/contrail-topology.service',
-            'systemd/contrail-topology.service'))
-env.Alias('install', env.Install(
-            env['INSTALL_CONF'] + '/supervisord_analytics_files',
-            'contrail-topology.ini'))
 env.Alias('install', env.Install(
     env['INSTALL_MESSAGE_DOC'] + '/contrail-topology/', doc_files))
 

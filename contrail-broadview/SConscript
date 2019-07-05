@@ -120,12 +120,6 @@ if 'install' in BUILD_TARGETS:
     env.Alias('install', install_cmd)
 env.Alias('install', env.Install(env['INSTALL_CONF'],
             'contrail-broadview.conf'))
-env.Alias('install', env.InstallAs(
-            env['INSTALL_INITD'] + '/contrail-broadview',
-            'contrail-broadview.initd.supervisord'))
-env.Alias('install', env.Install(
-            env['INSTALL_CONF'] + '/supervisord_analytics_files',
-            'contrail-broadview.ini'))
 env.Alias('install', env.Install(
     env['INSTALL_MESSAGE_DOC'] + '/contrail-broadview/', doc_files))
 

@@ -28,9 +28,9 @@ env.Prepend(LIBS=[  'cpuinfo',
                     'hiredis',
                     'process_info',
                     'io',
-		    'net',
-		    'ssl',
-		    'crypto',
+                    'net',
+                    'ssl',
+                    'crypto',
                     'base',
                     'sandeshvns',
                     'boost_regex',
@@ -196,15 +196,5 @@ env.Alias('install',
         env.InstallAs(env['INSTALL_BIN'] + '/contrail-query-engine', qed))
 env.Alias('install', env.Install(env['INSTALL_CONF'],
             'contrail-query-engine.conf'))
-env.Alias('install',
-        env.InstallAs(env['INSTALL_INITD'] + '/contrail-query-engine',
-        'contrail-qe.initd.supervisord'))
-env.Alias('install',
-        env.InstallAs(env['INSTALL_SYSTEMD'] + '/contrail-query-engine.service',
-        'systemd/contrail-query-engine.service'))
-env.Alias('install',
-        env.InstallAs(env['INSTALL_CONF'] + 
-        '/supervisord_analytics_files' + '/contrail-query-engine.ini',
-        'contrail-query-engine.ini'))
 env.Alias('install', env.Install(
     env['INSTALL_MESSAGE_DOC'] + '/contrail-query-engine/', doc_files))
