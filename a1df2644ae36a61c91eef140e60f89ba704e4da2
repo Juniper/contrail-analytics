@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3cd80c57_0216536e",
+        "filename": "contrail-collector/test/utils/mockstunnel/mockstunnel/mockstunnel.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 213
+      },
+      "writtenOn": "2019-07-05T09:59:54Z",
+      "side": 1,
+      "message": "change it to 2019",
+      "range": {
+        "startLine": 4,
+        "startChar": 15,
+        "endLine": 4,
+        "endChar": 22
+      },
+      "revId": "a1df2644ae36a61c91eef140e60f89ba704e4da2",
+      "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "947ec51a_bc86bc56",
+        "filename": "contrail-collector/test/utils/mockstunnel/mockstunnel/mockstunnel.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 213
+      },
+      "writtenOn": "2019-07-05T09:59:54Z",
+      "side": 1,
+      "message": "can we not use installed version if it is present? We can ask CI team to install on all CI servers to make it faster.",
+      "range": {
+        "startLine": 27,
+        "startChar": 0,
+        "endLine": 27,
+        "endChar": 11
+      },
+      "revId": "a1df2644ae36a61c91eef140e60f89ba704e4da2",
+      "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "95f6f12d_afa599bd",
+        "filename": "contrail-collector/test/utils/mockstunnel/mockstunnel/mockstunnel.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 213
+      },
+      "writtenOn": "2019-07-05T09:59:54Z",
+      "side": 1,
+      "message": "Nit: This should be stunnelPort?\nAlso, should we mention all the arguments?",
+      "range": {
+        "startLine": 71,
+        "startChar": 8,
+        "endLine": 71,
+        "endChar": 14
+      },
+      "revId": "a1df2644ae36a61c91eef140e60f89ba704e4da2",
+      "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dbac155d_6304f93e",
+        "filename": "contrail-collector/test/utils/mockstunnel/mockstunnel/mockstunnel.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 213
+      },
+      "writtenOn": "2019-07-05T09:59:54Z",
+      "side": 1,
+      "message": "where is it called from?",
+      "range": {
+        "startLine": 107,
+        "startChar": 5,
+        "endLine": 107,
+        "endChar": 14
+      },
+      "revId": "a1df2644ae36a61c91eef140e60f89ba704e4da2",
+      "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ecc2399e_bb7b6d34",
+        "filename": "contrail-collector/test/utils/mockstunnel/mockstunnel/mockstunnel.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 213
+      },
+      "writtenOn": "2019-07-05T09:59:54Z",
+      "side": 1,
+      "message": "will this work for CI where multiple jobs run in parallel?",
+      "range": {
+        "startLine": 114,
+        "startChar": 20,
+        "endLine": 114,
+        "endChar": 41
+      },
+      "revId": "a1df2644ae36a61c91eef140e60f89ba704e4da2",
+      "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
+      "unresolved": true
+    }
+  ]
+}
