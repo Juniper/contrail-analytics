@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "6bf415aa_9a36579a",
+        "filename": "contrail-collector/test/utils/mockstunnel/mockstunnel/mockstunnel.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 752
+      },
+      "writtenOn": "2019-07-08T07:01:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3cd80c57_0216536e",
+      "range": {
+        "startLine": 4,
+        "startChar": 15,
+        "endLine": 4,
+        "endChar": 22
+      },
+      "revId": "a1df2644ae36a61c91eef140e60f89ba704e4da2",
+      "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "947ec51a_bc86bc56",
         "filename": "contrail-collector/test/utils/mockstunnel/mockstunnel/mockstunnel.py",
         "patchSetId": 1
@@ -45,6 +69,30 @@
       "revId": "a1df2644ae36a61c91eef140e60f89ba704e4da2",
       "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "40a90809_5a7f0bb7",
+        "filename": "contrail-collector/test/utils/mockstunnel/mockstunnel/mockstunnel.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 752
+      },
+      "writtenOn": "2019-07-08T07:01:26Z",
+      "side": 1,
+      "message": "Done. Please check get_stunnel_path function.",
+      "parentUuid": "947ec51a_bc86bc56",
+      "range": {
+        "startLine": 27,
+        "startChar": 0,
+        "endLine": 27,
+        "endChar": 11
+      },
+      "revId": "a1df2644ae36a61c91eef140e60f89ba704e4da2",
+      "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "df5e31e5_45c465f8",
+        "filename": "contrail-collector/test/utils/mockstunnel/mockstunnel/mockstunnel.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 752
+      },
+      "writtenOn": "2019-07-08T07:01:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "95f6f12d_afa599bd",
+      "range": {
+        "startLine": 71,
+        "startChar": 8,
+        "endLine": 71,
+        "endChar": 14
+      },
+      "revId": "a1df2644ae36a61c91eef140e60f89ba704e4da2",
+      "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "dbac155d_6304f93e",
         "filename": "contrail-collector/test/utils/mockstunnel/mockstunnel/mockstunnel.py",
         "patchSetId": 1
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "13238e7f_cb7b8fcb",
+        "filename": "contrail-collector/test/utils/mockstunnel/mockstunnel/mockstunnel.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 752
+      },
+      "writtenOn": "2019-07-08T07:01:26Z",
+      "side": 1,
+      "message": "It is called from https://review.opencontrail.org/c/Juniper/contrail-analytics/+/52283/1/contrail-opserver/test/utils/analytics_fixture.py#3354",
+      "parentUuid": "dbac155d_6304f93e",
+      "range": {
+        "startLine": 107,
+        "startChar": 5,
+        "endLine": 107,
+        "endChar": 14
+      },
+      "revId": "a1df2644ae36a61c91eef140e60f89ba704e4da2",
+      "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ecc2399e_bb7b6d34",
         "filename": "contrail-collector/test/utils/mockstunnel/mockstunnel/mockstunnel.py",
         "patchSetId": 1
@@ -114,6 +210,30 @@
       "revId": "a1df2644ae36a61c91eef140e60f89ba704e4da2",
       "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1835e944_27e94274",
+        "filename": "contrail-collector/test/utils/mockstunnel/mockstunnel/mockstunnel.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 752
+      },
+      "writtenOn": "2019-07-08T07:01:26Z",
+      "side": 1,
+      "message": "I believe each job will have different stunnelPort since it is allocated at run time. It should work.",
+      "parentUuid": "ecc2399e_bb7b6d34",
+      "range": {
+        "startLine": 114,
+        "startChar": 20,
+        "endLine": 114,
+        "endChar": 41
+      },
+      "revId": "a1df2644ae36a61c91eef140e60f89ba704e4da2",
+      "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
+      "unresolved": false
     }
   ]
 }
