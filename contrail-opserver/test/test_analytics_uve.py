@@ -2181,6 +2181,87 @@ class AnalyticsUveTest(testtools.TestCase, fixtures.TestWithFixtures):
         assert(vizd_obj.verify_get_alarms(None, exp_uves = expected_uves))
     # end test_12_uve_get_alarm
 
+    #@unittest.skip('Skipping redis_ssl_basic_wrong_cacert test')
+    def test_13_redis_ssl_basic_wrong_cacert(self):
+        '''
+        This test starts redis,vizd,opserver and qed in
+        SSL enabled environment.
+        Then it checks that the opserver is not able to 
+        connect to redis if wrong SSL cacerts are provided
+        '''
+        logging.info("%%% test_13_redis_ssl_basic_wrong_cacert %%%")
+        redis_ssl_params = {
+            'keyfile': builddir+'/opserver/test/data/ssl/server-privkey.pem',
+            'certfile': builddir+'/opserver/test/data/ssl/server.pem',
+            'ca_cert': builddir+'/opserver/test/data/ssl/server.pem',
+            'ssl_enable': True
+        }
+
+        vizd_obj = self.useFixture(
+            AnalyticsFixture(logging, builddir, 0, redis_ssl_params=redis_ssl_params))
+        assert vizd_obj.verify_on_setup()
+        assert vizd_obj.verify_opserver_redis_uve_connection(
+                            vizd_obj.opserver, False)
+
+    # end test_13_redis_ssl_basic_wrong_cacert
+
+    #@unittest.skip('Skipping redis_ssl_basic_correct_cacert test')
+    def test_14_redis_ssl_basic_correct_cacert(self):
+        '''
+        This test starts redis,vizd,opserver and qed in
+        SSL enabled environment.
+        Then it checks that the opserver is able to 
+        connect to redis if correct SSL cacerts are provided
+        '''
+        logging.info("%%% test_14_redis_ssl_basic_correct_cacert  %%%")
+        redis_ssl_params = {
+            'keyfile': builddir+'/opserver/test/data/ssl/server-privkey.pem',
+            'certfile': builddir+'/opserver/test/data/ssl/server.pem',
+            'ca_cert': builddir+'/opserver/test/data/ssl/ca-cert.pem',
+            'ssl_enable': True
+        }
+
+        vizd_obj = self.useFixture(
+            AnalyticsFixture(logging, builddir, 0, redis_ssl_params=redis_ssl_params))
+        assert vizd_obj.verify_on_setup()
+        assert vizd_obj.verify_opserver_redis_uve_connection(
+                            vizd_obj.opserver)
+
+    # end test_14_redis_ssl_basic_correct_cacert
+
+    #@unittest.skip('Skipping redis_ssl_verify_uve test')
+    def test_15_redis_ssl_verify_vm_uve(self):
+        '''
+        This test starts redis,vizd,opserver and qed in
+        SSL enabled environment.
+        Then it checks that the VM UVE can be accessed
+        from opserver via redis using stunnel
+        '''
+        logging.info("%%% test_15_redis_ssl_verify_vm_uve %%%")
+        redis_ssl_params = {
+            'keyfile': builddir+'/opserver/test/data/ssl/server-privkey.pem',
+            'certfile': builddir+'/opserver/test/data/ssl/server.pem',
+            'ca_cert': builddir+'/opserver/test/data/ssl/ca-cert.pem',
+            'ssl_enable': True
+        }
+
+        vizd_obj = self.useFixture(
+            AnalyticsFixture(logging, builddir, 0, redis_ssl_params=redis_ssl_params))
+        assert vizd_obj.verify_on_setup()
+        collectors = [vizd_obj.get_collector()]
+        generator_obj = self.useFixture(
+            GeneratorFixture("contrail-vrouter-agent", collectors,
+                             logging, vizd_obj.get_opserver_port()))
+        assert generator_obj.verify_on_setup()
+        generator_obj.send_vm_uve(vm_id='abcd',
+                                  num_vm_ifs=5,
+                                  msg_count=5)
+        assert generator_obj.verify_vm_uve(vm_id='abcd',
+                                           num_vm_ifs=5,
+                                           msg_count=5)
+
+    # end test_15_redis_ssl_verify_vm_uve
+
     @staticmethod
     def get_free_port():
         cs = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
