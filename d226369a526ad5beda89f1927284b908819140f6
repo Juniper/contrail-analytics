@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e5799fef_a58246ec",
+        "filename": "contrail-opserver/opserver.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 752
+      },
+      "writtenOn": "2019-07-18T06:45:58Z",
+      "side": 1,
+      "message": "Please check if we need to pass TLS version as this story is specific about TLSv1.2",
+      "revId": "d226369a526ad5beda89f1927284b908819140f6",
+      "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
+      "unresolved": true
+    }
+  ]
+}
