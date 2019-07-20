@@ -101,7 +101,7 @@ class Controller(object):
         return if_cdata
 
     def _delete_if_data(self, dev):
-        if dev in self._if_data:
+        if self._if_data and dev in self._if_data:
             del self._if_data[dev]
 
     def _set_status(self, _dict, dev, intf, val):
