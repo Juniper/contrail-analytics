@@ -520,17 +520,24 @@ class OpServerUtils(object):
     # end post_url_http
 
     @staticmethod
-    def get_url_http(url, user, password, headers=None):
+    def get_url_http(url, user, password, cert=None, ca_cert=None, headers=None):
         data = {}
+        if user and password:
+            auth=HTTPBasicAuth(user, password)
+        else:
+            auth=None
+
         try:
             if int(pkg_resources.get_distribution("requests").version[0]) != 0:
                 data = requests.get(url, stream=True,
-                                    auth=HTTPBasicAuth(user, password),
+                                    auth=auth,
+                                    cert=cert,
+                                    verify=ca_cert,
                                     headers=headers)
             else:
-                data = requests.get(url, prefetch=False,
-                                    auth=HTTPBasicAuth(user, password),
-                                    headers=headers)
+                data = requests.get(url, prefetch=False, auth=auth,
+                                    cert=cert, verify=ca_cert,headers=headers)
+
         except requests.exceptions.ConnectionError, e:
             print "Connection to %s failed %s" % (url, str(e))
 
