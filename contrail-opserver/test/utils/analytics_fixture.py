@@ -707,7 +707,10 @@ class AnalyticsFixture(fixtures.Fixture):
                  redis_password=None, start_kafka=False,
                  cassandra_user=None, cassandra_password=None, cluster_id="",
                  sandesh_config=None, redis_ssl_params={'ssl_enable':False, \
-                 'keyfile':None, 'certfile':None, 'ca_cert':None}):
+                 'keyfile':None, 'certfile':None, 'ca_cert':None},
+                 analytics_ssl_params={'ssl_enable':False, \
+                 'insecure_enable':False, 'keyfile':None,
+                 'certfile':None, 'ca_cert':None}):
 
         self.builddir = builddir
         self.cassandra_port = cassandra_port
@@ -727,6 +730,7 @@ class AnalyticsFixture(fixtures.Fixture):
         self.admin_password = AnalyticsFixture.ADMIN_PASSWORD
         self.cluster_id = cluster_id
         self.redis_ssl_params = redis_ssl_params
+        self.analytics_ssl_params = analytics_ssl_params
         self.set_sandesh_config(sandesh_config)
 
     def setUp(self):
@@ -892,9 +896,28 @@ class AnalyticsFixture(fixtures.Fixture):
         Verify that the opserver is accepting client requests
         '''
         data = {}
-        url = 'http://' + socket.getfqdn("127.0.0.1") +':' + str(self.opserver_port) + '/'
-        data = OpServerUtils.get_url_http(url, self.admin_user,
-            self.admin_password, headers={'X-Auth-Token':'user:admin'})
+        if (self.analytics_ssl_params and self.analytics_ssl_params['ssl_enable']):
+            url = 'https://' + socket.getfqdn("127.0.0.1") +':' + str(self.opserver_port) + '/'
+            certfile = self.analytics_ssl_params['certfile']
+            keyfile = self.analytics_ssl_params['keyfile']
+            self._cert = (certfile, keyfile)
+            ca_cert = self.analytics_ssl_params['ca_cert']
+            if (self.analytics_ssl_params['insecure_enable']):
+               data = OpServerUtils.get_url_http(url,
+                                                 None,
+                                                 None,
+                                                 cert = self._cert,
+                                                 ca_cert = False)
+            else:
+                data = OpServerUtils.get_url_http(url,
+                                                  None,
+                                                  None,
+                                                  cert = self._cert,
+                                                  ca_cert = ca_cert)
+        else:
+            url = 'http://' + socket.getfqdn("127.0.0.1") +':' + str(self.opserver_port) + '/'
+            data = OpServerUtils.get_url_http(url, self.admin_user,
+                self.admin_password, headers={'X-Auth-Token':'user:admin'})
         self.logger.info("Checking OpServer %s" % str(data))
         if data == {}:
             return False
