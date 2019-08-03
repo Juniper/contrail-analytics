@@ -337,7 +337,8 @@ class OpServer(object):
     def __init__(self, collectors, analytics_fixture, logger,
                  admin_user, admin_password, zoo=None, is_dup=False,
                  sandesh_config=None, redis_ssl_params={'ssl_enable':False, \
-                 'keyfile':None, 'certfile':None, 'ca_cert':None}):
+                 'keyfile':None, 'certfile':None, 'ca_cert':None},
+                 opserver_redis_ssl=True):
         self.collectors = collectors
         self.analytics_fixture = analytics_fixture
         self.http_port = 0
@@ -360,6 +361,8 @@ class OpServer(object):
         self.sandesh_config = sandesh_config
         self.redis_ssl_params = redis_ssl_params
         self.redis_query_port = str(self.analytics_fixture.redis_uves[0].port)
+        if opserver_redis_ssl is False:
+            self.redis_ssl_params['ssl_enable'] = False
         if self.redis_ssl_params['ssl_enable']:
             self.redis_query_port = str(self.analytics_fixture.stunnel_obj[0].stunnel_port)
     # end __init__
@@ -707,7 +710,8 @@ class AnalyticsFixture(fixtures.Fixture):
                  redis_password=None, start_kafka=False,
                  cassandra_user=None, cassandra_password=None, cluster_id="",
                  sandesh_config=None, redis_ssl_params={'ssl_enable':False, \
-                 'keyfile':None, 'certfile':None, 'ca_cert':None}):
+                 'keyfile':None, 'certfile':None, 'ca_cert':None},
+                 opserver_redis_ssl=True):
 
         self.builddir = builddir
         self.cassandra_port = cassandra_port
@@ -727,6 +731,7 @@ class AnalyticsFixture(fixtures.Fixture):
         self.admin_password = AnalyticsFixture.ADMIN_PASSWORD
         self.cluster_id = cluster_id
         self.redis_ssl_params = redis_ssl_params
+        self.opserver_redis_ssl = opserver_redis_ssl
         self.set_sandesh_config(sandesh_config)
 
     def setUp(self):
@@ -784,7 +789,8 @@ class AnalyticsFixture(fixtures.Fixture):
                                  self, self.logger, self.admin_user,
                                  self.admin_password, zkport,
                                  sandesh_config=self.sandesh_config,
-                                 redis_ssl_params=self.redis_ssl_params)
+                                 redis_ssl_params=self.redis_ssl_params,
+                                 opserver_redis_ssl=self.opserver_redis_ssl)
         if not self.opserver.start():
             self.logger.error("OpServer did NOT start")
         self.opserver_port = self.get_opserver_port()
