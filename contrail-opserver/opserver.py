@@ -1258,6 +1258,11 @@ class OpServer(object):
                 'ssl_certfile': self._args.redis_certfile,
                 'ssl_ca_certs': self._args.redis_ca_cert}
 
+    def default_redis_ssl_params(self):
+        return {'ssl': False,
+                'ssl_keyfile': None,
+                'ssl_certfile': None,
+                'ssl_ca_certs': None}
     def get_uve_cfg_type(self, uve_type):
         if uve_type in self.UveTypeToConfigObjectType:
             cfg_type = self.UveTypeToConfigObjectType[uve_type]
@@ -1590,7 +1595,7 @@ class OpServer(object):
             prg = redis_query_start('127.0.0.1',
                                     int(self._args.redis_query_port),
                                     self._args.redis_password,
-                    self.redis_ssl_params(),
+                                    self.default_redis_ssl_params(),
                                     qid, request.json,
                                     self._VIRTUAL_TABLES[tabn].schema.columns
                                     if tabn else None)
@@ -1648,7 +1653,7 @@ class OpServer(object):
                                           port=int(
                                               self._args.redis_query_port),
                                           redis_password=self._args.redis_password,
-                                          redis_ssl_params=self.redis_ssl_params(),
+                                          redis_ssl_params=self.default_redis_ssl_params(),
                                           qid=qid)
 
                 # We want to print progress only if it has changed
@@ -1677,7 +1682,7 @@ class OpServer(object):
             gen = redis_query_result(host='127.0.0.1',
                                      port=int(self._args.redis_query_port),
                                      redis_password=self._args.redis_password,
-                                     redis_ssl_params=self.redis_ssl_params(),
+                                     redis_ssl_params=self.default_redis_ssl_params(),
                                      qid=qid)
             bottle.response.set_header('Content-Type', 'application/json')
             while not done:
@@ -1744,7 +1749,7 @@ class OpServer(object):
             redish = StrictRedisWrapper(db=0, host='127.0.0.1',
                                        port=int(self._args.redis_query_port),
                                        password=self._args.redis_password,
-                                       **self.redis_ssl_params())
+                                       **self.default_redis_ssl_params())
             pending_queries = redish.lrange('QUERYQ', 0, -1)
             pending_queries_info = []
             for query_id in pending_queries:
@@ -1762,7 +1767,7 @@ class OpServer(object):
                                             port=int(
                                                 self._args.redis_query_port),
                                             redis_password=self._args.redis_password,
-                                            redis_ssl_params=self.redis_ssl_params(),
+                                            redis_ssl_params=self.default_redis_ssl_params(),
                                             qid=query_id)
                 query_data = redis_query_info(redish, query_id)
                 if status is None:
