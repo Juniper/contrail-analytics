@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6e874ae0_605dca35",
+        "filename": "contrail-opserver/opserver_util.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 526,
+      "author": {
+        "id": 213
+      },
+      "writtenOn": "2019-08-06T08:09:46Z",
+      "side": 0,
+      "message": "dont we need to check for request package version any more?",
+      "range": {
+        "startLine": 526,
+        "startChar": 15,
+        "endLine": 526,
+        "endChar": 79
+      },
+      "revId": "ee640c2d761f21bf588a10aed8f8ffd2b1c19ecc",
+      "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
+      "unresolved": true
+    }
+  ]
+}
