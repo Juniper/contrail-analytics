@@ -112,6 +112,36 @@ class AnalyticsTest(testtools.TestCase, fixtures.TestWithFixtures):
         assert vizd_obj.verify_collector_obj_count()
         return True
 
+    #@unittest.skip('Test QE when redis is ssl enabled')
+    def test_18_query_with_redis_ssl(self):
+        '''
+        This test starts redis,vizd,opserver and qed in
+        redis ssl enabled environment.
+        It then posts query to opserver to get syslog from
+        query-engine.
+        '''
+        logging.info("%%% test_18_query_with_redis_ssl %%%")
+        if AnalyticsTest._check_skip_test() is True:
+            return True
+
+        redis_ssl_params = {
+            'keyfile': builddir+'/opserver/test/data/ssl/server-privkey.pem',
+            'certfile': builddir+'/opserver/test/data/ssl/server.pem',
+            'ca_cert': builddir+'/opserver/test/data/ssl/ca-cert.pem',
+            'ssl_enable': True
+        }
+
+        vizd_obj = self.useFixture(
+            AnalyticsFixture(logging, builddir,
+                             self.__class__.cassandra_port,
+                             redis_ssl_params = redis_ssl_params,
+                             opserver_redis_ssl=False))
+        assert vizd_obj.verify_on_setup()
+        assert vizd_obj.verify_collector_obj_count()
+        assert vizd_obj.verify_message_table_moduleid()
+        return True
+    # end test_18_query_with_redis_ssl
+
     #@unittest.skip('Query query engine logs to test QE')
     def test_02_message_table_query(self):
         '''
@@ -691,36 +721,6 @@ class AnalyticsTest(testtools.TestCase, fixtures.TestWithFixtures):
             return True
         return False
     # end test_17_rbac_alarms
-
-    #@unittest.skip('Test QE when redis is ssl enabled')
-    def test_18_query_with_redis_ssl(self):
-        '''
-        This test starts redis,vizd,opserver and qed in
-        redis ssl enabled environment.
-        It then posts query to opserver to get syslog from
-        query-engine.
-        '''
-        logging.info("%%% test_18_query_with_redis_ssl %%%")
-        if AnalyticsTest._check_skip_test() is True:
-            return True
-
-        redis_ssl_params = {
-            'keyfile': builddir+'/opserver/test/data/ssl/server-privkey.pem',
-            'certfile': builddir+'/opserver/test/data/ssl/server.pem',
-            'ca_cert': builddir+'/opserver/test/data/ssl/ca-cert.pem',
-            'ssl_enable': True
-        }
-
-        vizd_obj = self.useFixture(
-            AnalyticsFixture(logging, builddir,
-                             self.__class__.cassandra_port,
-                             redis_ssl_params = redis_ssl_params,
-                             opserver_redis_ssl=False))
-        assert vizd_obj.verify_on_setup()
-        assert vizd_obj.verify_collector_obj_count()
-        assert vizd_obj.verify_message_table_moduleid()
-        return True
-    # end test_18_query_with_redis_ssl
 
     @staticmethod
     def get_free_port():
