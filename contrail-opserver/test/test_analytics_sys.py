@@ -693,14 +693,14 @@ class AnalyticsTest(testtools.TestCase, fixtures.TestWithFixtures):
     # end test_17_rbac_alarms
 
     #@unittest.skip('Test QE when redis is ssl enabled')
-    def test_18_query_with_redis_ssl(self):
+    def test_19_query_with_redis_ssl(self):
         '''
         This test starts redis,vizd,opserver and qed in
         redis ssl enabled environment.
         It then posts query to opserver to get syslog from
         query-engine.
         '''
-        logging.info("%%% test_18_query_with_redis_ssl %%%")
+        logging.info("%%% test_19_query_with_redis_ssl %%%")
         if AnalyticsTest._check_skip_test() is True:
             return True
 
@@ -717,10 +717,9 @@ class AnalyticsTest(testtools.TestCase, fixtures.TestWithFixtures):
                              redis_ssl_params = redis_ssl_params,
                              opserver_redis_ssl=False))
         assert vizd_obj.verify_on_setup()
-        assert vizd_obj.verify_collector_obj_count()
         assert vizd_obj.verify_message_table_moduleid()
         return True
-    # end test_18_query_with_redis_ssl
+    # end test_19_query_with_redis_ssl
 
     @staticmethod
     def get_free_port():
