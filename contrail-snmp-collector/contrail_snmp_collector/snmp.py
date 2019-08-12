@@ -1,6 +1,7 @@
 #
 # Copyright (c) 2015 Juniper Networks, Inc. All rights reserved.
 #
+from __future__ import print_function
 import struct, netsnmp, string
 
 class SnmpTable(object):
@@ -61,10 +62,10 @@ class SnmpTable(object):
             getattr(self, k + '_translator')(snmpvars[k])
 
     def py_obj(self):
-        raise NotImplementedError, "Virtual funtion"
+        raise NotImplementedError("Virtual funtion")
 
     def table_names(self):
-        raise NotImplementedError, "Virtual funtion"
+        raise NotImplementedError("Virtual funtion")
 
 class LldpLocSysNameTable(SnmpTable):
     def table_names(self):
@@ -112,7 +113,7 @@ class LldpTable(SnmpTable):
         try:
             return self.lldpLocalSystemData['lldpLocSysName']
         except KeyError:
-            print 'No name from lldpLocalSystemData =', self.lldpLocalSystemData
+            print('No name from lldpLocalSystemData =', self.lldpLocalSystemData)
             return '__no_resp__'
 
     def py_obj(self):

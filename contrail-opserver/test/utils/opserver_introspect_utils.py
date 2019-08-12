@@ -2,6 +2,8 @@
 # Copyright (c) 2013 Juniper Networks, Inc. All rights reserved.
 #
 
+from __future__ import print_function
+from __future__ import absolute_import
 import sys
 vizdtestdir = sys.path[0]
 
@@ -12,7 +14,7 @@ import requests
 import socket
 from lxml import etree
 from opserver.introspect_util import *
-from opserver_results import *
+from .opserver_results import *
 from opserver.opserver_util import OpServerUtils
 
 class VerificationOpsSrvIntrospect (IntrospectUtilBase):
@@ -67,7 +69,7 @@ class VerificationOpsSrv (IntrospectUtilBase):
                 headers=self._headers)
             res = OpVNResult(vn_dict)
         except Exception as e:
-            print e
+            print(e)
         finally:
             return res
 
@@ -78,7 +80,7 @@ class VerificationOpsSrv (IntrospectUtilBase):
                 user=self._user, password=self._password,
                 headers=self._headers)
         except Exception as e:
-            print e
+            print(e)
         finally:
             return res
 
@@ -99,7 +101,7 @@ class VerificationOpsSrv (IntrospectUtilBase):
                 headers=self._headers)
             res = OpCollectorResult(col_dict)
         except Exception as e:
-            print e
+            print(e)
         finally:
             return res
 
@@ -128,7 +130,7 @@ class VerificationOpsSrv (IntrospectUtilBase):
                 password=self._password, sync=True, headers=self._headers)
             res = json.loads(res)
         except Exception as e:
-            print 'Error: POST uve request: %s' % str(e)
+            print('Error: POST uve request: %s' % str(e))
             return None
         else:
             return res
@@ -142,8 +144,8 @@ class VerificationOpsSrv (IntrospectUtilBase):
         try:
             flows_url = OpServerUtils.opserver_query_url(self._ip,
                 str(self._port))
-            print flows_url
-            print "query is: ", json_str
+            print(flows_url)
+            print("query is: ", json_str)
             res = []
             resp = OpServerUtils.post_url_http(flows_url, json_str,
                 self._user, self._password, sync, headers=self._headers)
@@ -161,7 +163,7 @@ class VerificationOpsSrv (IntrospectUtilBase):
                     for item in result:
                         res.append(item)
         except Exception as e:
-            print str(e) 
+            print(str(e)) 
         finally:
             return res        
 
@@ -174,7 +176,7 @@ class VerificationOpsSrv (IntrospectUtilBase):
         try:
             flows_url = OpServerUtils.opserver_query_url(
                 self._ip, str(self._port))
-            print flows_url
+            print(flows_url)
             query_dict = OpServerUtils.get_query_dict(
                 table, start_time=start_time, end_time=end_time,
                 select_fields=select_fields,
@@ -184,7 +186,7 @@ class VerificationOpsSrv (IntrospectUtilBase):
                 is_service_instance=is_service_instance,
                 session_type=session_type)
 
-            print json.dumps(query_dict)
+            print(json.dumps(query_dict))
             res = []
             resp = OpServerUtils.post_url_http(
                 flows_url, json.dumps(query_dict), self._user, self._password,
@@ -203,7 +205,7 @@ class VerificationOpsSrv (IntrospectUtilBase):
                     for item in result:
                         res.append(item)
         except Exception as e:
-            print str(e)
+            print(str(e))
         finally:
             return res
 
@@ -212,42 +214,42 @@ if __name__ == '__main__':
 
     vn = vns.get_ops_vn(vn='abc-corp:vn02')
 
-    print "%%% Verify VN Cfg %%%"
+    print("%%% Verify VN Cfg %%%")
 
-    print vn.get_attr('Config', 'attached_policies', 'abc-default-policy')
+    print(vn.get_attr('Config', 'attached_policies', 'abc-default-policy'))
     '''
     [{u'vnp_major': u'10', u'vnp_name': u'abc-default-policy',
       u'vnp_minor': u'50'}]
     '''
 
-    print vn.get_attr('Config', 'connected_networks')
+    print(vn.get_attr('Config', 'connected_networks'))
     '''
     [u'abc-corp:vn04']
     '''
 
-    print vn.get_attr('Config', 'total_interfaces')
+    print(vn.get_attr('Config', 'total_interfaces'))
     '''
     10
     '''
 
-    print vn.get_attr('Config', 'total_acl_rules')
+    print(vn.get_attr('Config', 'total_acl_rules'))
     '''
     60
     '''
 
-    print "%%% Verify VN Agt %%%"
+    print("%%% Verify VN Agt %%%")
 
-    print vn.get_attr('Agent', 'total_acl_rules')
+    print(vn.get_attr('Agent', 'total_acl_rules'))
     '''
     55
     '''
 
-    print vn.get_attr('Agent', 'in_tpkts')
+    print(vn.get_attr('Agent', 'in_tpkts'))
     '''
     240
     '''
 
-    print vn.get_attr('Agent', 'in_stats', 'abc-corp:map-reduce-02')
+    print(vn.get_attr('Agent', 'in_stats', 'abc-corp:map-reduce-02'))
     '''
     [{u'bytes': u'7200', u'other_vn': u'abc-corp:map-reduce-02',
       u'tpkts': u'60'}]
@@ -255,37 +257,37 @@ if __name__ == '__main__':
 
     vm = vns.get_ops_vm(vm='abc-corp:vm-web-fe01')
 
-    print "%%% Verify VM Cfg %%%"
+    print("%%% Verify VM Cfg %%%")
 
-    print vm.get_attr('Config', 'vrouter')
+    print(vm.get_attr('Config', 'vrouter'))
     '''
     rack01-host04
     '''
 
-    print vm.get_attr('Config', 'attached_groups')
+    print(vm.get_attr('Config', 'attached_groups'))
     '''
     [u'abc-grp01']
     '''
 
-    print vm.get_attr('Config', 'interface_list', 'abc-corp:vn-fe')
+    print(vm.get_attr('Config', 'interface_list', 'abc-corp:vn-fe'))
     '''
     [{u'virtual_network': u'abc-corp:vn-fe', u'ip_address': u'10.1.1.2',
       u'floating_ips': [u'67.1.1.2', u'67.1.1.3']}]
     '''
 
-    print "%%% Verify VM Agt %%%"
+    print("%%% Verify VM Agt %%%")
 
-    print vm.get_attr('Agent', 'vrouter')
+    print(vm.get_attr('Agent', 'vrouter'))
     '''
     rack01-host04
     '''
 
-    print vm.get_attr('Agent', 'attached_groups')
+    print(vm.get_attr('Agent', 'attached_groups'))
     '''
     [u'abc-grp01']
     '''
 
-    print vm.get_attr('Agent', 'interface_list')
+    print(vm.get_attr('Agent', 'interface_list'))
     '''
     [{u'in_bytes': u'1000', u'out_bytes': u'10000',
       u'floating_ips': [u'67.1.1.2', u'67.1.1.3'],
@@ -295,7 +297,7 @@ if __name__ == '__main__':
 
     col = vns.get_ops_collector()
 
-    print col.get_attr('Analytics', 'generator_infos')
+    print(col.get_attr('Analytics', 'generator_infos'))
     '''
     [{u'gen_attr': {u'http_port': u'8089', u'in_clear': u'false',
                     u'pid': u'57160', u'connects': u'1', u'clears': u'1',
@@ -324,9 +326,9 @@ if __name__ == '__main__':
       u'module_id': u'QueryEngine'}]
     '''
 
-    print col.get_attr('Analytics', 'generator_infos',
+    print(col.get_attr('Analytics', 'generator_infos',
                        [('module_id', 'OpServer'),
-                        ('source', "sa-nc-mfg-30.static.jnpr.net")])
+                        ('source', "sa-nc-mfg-30.static.jnpr.net")]))
     '''
     [{u'gen_attr': {u'http_port': u'0', u'in_clear': u'false', u'pid': u'0',
                     u'connects': u'1', u'clears': u'0', u'resets': u'0'},

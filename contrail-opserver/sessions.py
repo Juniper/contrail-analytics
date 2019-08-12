@@ -10,14 +10,17 @@
 # Query SessionsTable info from analytics
 #
 
+from __future__ import print_function
+from __future__ import absolute_import
 import sys
 import os
 import ConfigParser
 import argparse
 import json
 import re
-from opserver_util import OpServerUtils
-import sandesh.viz.constants as VizConstants
+from .opserver_util import OpServerUtils
+import sandesh #.viz.constants as sandesh.viz.constants
+from .sandesh.viz.constants import _TABLES 
 
 class SessionQuerier(object):
 
@@ -33,29 +36,29 @@ class SessionQuerier(object):
         valid_select_list = []
         valid_where_list = []
 
-        for table in VizConstants._TABLES:
+        for table in _TABLES:
             if table.name == self._args.table:
                 valid_select_list = [column.name for column in table.schema.columns]
                 valid_where_list = [column.name for column in table.schema.columns \
                                 if column.index == True ]
 
         if not self._args.select:
-            print "Enter valid select fields from " + str(valid_select_list)
+            print("Enter valid select fields from " + str(valid_select_list))
             return
         else:
             for s in self._args.select:
                 if s not in valid_select_list:
                     if 'T=' in s and self._args.table == 'SessionSeriesTable':
                         continue
-                    print '%s is not a valid select field'
-                    print 'List of valid select_fields' + str(valid_select_list)
+                    print('%s is not a valid select field')
+                    print('List of valid select_fields' + str(valid_select_list))
         if self._args.where:
             for where in self._args.where:
                 where_s = where.strip(' ()')
                 where_e = re.split('=|<|>', where_s, 1)
                 if where_e[0] not in valid_where_list:
-                    print '%s is not a valid where field' % where_e[0]
-                    print 'List of valid where fields' + str(valid_where_list)
+                    print('%s is not a valid where field' % where_e[0])
+                    print('List of valid where fields' + str(valid_where_list))
                     return
 
         if self._args.filter:
@@ -63,14 +66,14 @@ class SessionQuerier(object):
                 filter_s = filter.strip(' ()')
                 filter_e = re.split('=|<|>', filter_s, 1)
                 if filter_e not in self._args.select:
-                    print '%s is not a valid filter field' % filter_e[0]
-                    print 'filter field should be present in select'
+                    print('%s is not a valid filter field' % filter_e[0])
+                    print('filter field should be present in select')
 
         if self._args.sort:
             for sort_field in self._args.sort:
                 if sort_field not in self._args.select:
-                    print '%s is not a valid sort field' % sort_field
-                    print 'sort field should be present in select'
+                    print('%s is not a valid sort field' % sort_field)
+                    print('sort field should be present in select')
         result = self.query()
         self.display(result)
 
@@ -204,7 +207,7 @@ class SessionQuerier(object):
                 session_type=self._args.session_type,
                 is_service_instance=self._args.is_service_instance)
 
-        print json.dumps(query_dict)
+        print(json.dumps(query_dict))
         resp = OpServerUtils.post_url_http(
             query_url, json.dumps(query_dict), self._args.admin_user,
             self._args.admin_password)
@@ -212,7 +215,7 @@ class SessionQuerier(object):
         result = {}
         if resp is not None:
             resp = json.loads(resp)
-            print resp
+            print(resp)
             qid = resp['href'].rsplit('/', 1)[1]
             result = OpServerUtils.get_query_result(
                 self._args.analytics_api_ip, self._args.analytics_api_port, qid,
@@ -225,7 +228,7 @@ class SessionQuerier(object):
         if not result:
             return
         for res in result:
-            print res
+            print(res)
     #end display
 
 #end class SessionsQuerier

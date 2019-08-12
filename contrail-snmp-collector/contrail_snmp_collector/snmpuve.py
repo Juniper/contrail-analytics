@@ -1,6 +1,7 @@
 #
 # Copyright (c) 2015 Juniper Networks, Inc. All rights reserved.
 #
+from __future__ import print_function
 import pprint, socket, copy
 import datetime
 from pysandesh.sandesh_base import *
@@ -115,7 +116,7 @@ class SnmpUve(object):
             elif 'ifName' in ife:
                 ifname = ife['ifName']
             else:
-                print str(datetime.datetime.now()),'Err: ', ife.keys(), pname
+                print(str(datetime.datetime.now()),'Err: ', ife.keys(), pname)
                 continue
             if ifname not in iftables:
                 iftables[ifname] = {}

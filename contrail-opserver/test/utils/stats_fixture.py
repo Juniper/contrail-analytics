@@ -10,16 +10,17 @@
 # Python generator test fixtures
 #
 
+from __future__ import absolute_import
 from gevent import monkey
 monkey.patch_all()
 import fixtures
 import socket
-from util import retry
+from .util import retry
 from pysandesh.sandesh_base import *
 from sandesh.stats_test.ttypes import *
-from analytics_fixture import AnalyticsFixture
-from generator_introspect_utils import VerificationGenerator
-from opserver_introspect_utils import VerificationOpsSrv
+from .analytics_fixture import AnalyticsFixture
+from .generator_introspect_utils import VerificationGenerator
+from .opserver_introspect_utils import VerificationOpsSrv
 
 class StatsFixture(fixtures.Fixture):
 

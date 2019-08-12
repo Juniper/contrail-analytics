@@ -2,12 +2,13 @@
 # Copyright (c) 2013 Juniper Networks, Inc. All rights reserved.
 #
 
+from __future__ import absolute_import
 import resource
 import socket
 import fixtures
 import subprocess
 import uuid
-from util import retry, get_free_port
+from .util import retry, get_free_port
 from mockredis import mockredis
 from mockstunnel import mockstunnel
 from mockkafka import mockkafka
@@ -20,11 +21,11 @@ import gevent
 import datetime
 from fcntl import fcntl, F_GETFL, F_SETFL
 from operator import itemgetter
-from opserver_introspect_utils import VerificationOpsSrv, \
+from .opserver_introspect_utils import VerificationOpsSrv, \
      VerificationOpsSrvIntrospect
-from collector_introspect_utils import VerificationCollector
-from alarmgen_introspect_utils import VerificationAlarmGen
-from generator_introspect_utils import VerificationGenerator
+from .collector_introspect_utils import VerificationCollector
+from .alarmgen_introspect_utils import VerificationAlarmGen
+from .generator_introspect_utils import VerificationGenerator
 from opserver.sandesh.viz.constants import MESSAGE_TABLE, SOURCE, MODULE
 from opserver.opserver_util import OpServerUtils
 from opserver.sandesh.alarmgen_ctrl.ttypes import UVEAlarmState
@@ -937,7 +938,7 @@ class AnalyticsFixture(fixtures.Fixture):
                          (table, str(name), str(type), str(is_set), str(ret)))
         if not len(ret):
             return False
-        if not ret.has_key('uves'):
+        if 'uves' not in ret:
             return False
         uves = ret['uves']
         if not name:
@@ -3084,11 +3085,11 @@ class AnalyticsFixture(fixtures.Fixture):
         if filters is None:
             return None
         filt = {k:v for k, v in filters.iteritems() if v is not None}
-        if filt.has_key('kfilt'):
+        if 'kfilt' in filt:
             filt['kfilt'] = ','.join(filt['kfilt'])
-        if filt.has_key('cfilt'):
+        if 'cfilt' in filt:
             filt['cfilt'] = ','.join(filt['cfilt'])
-        if filt.has_key('ackfilt'):
+        if 'ackfilt' in filt:
             filt['ackfilt'] = 'true' if filt['ackfilt'] else 'false'
         return filt
     # end _get_filters_url_param

@@ -1,6 +1,7 @@
 #
 # Copyright (c) 2015 Juniper Networks, Inc. All rights reserved.
 #
+from __future__ import print_function
 import requests, json
 from requests.exceptions import ConnectionError
 from requests.auth import HTTPBasicAuth
@@ -28,7 +29,7 @@ class AnalyticApiClient(object):
             self.config.admin_user(), self.config.admin_password()))
         if page.status_code == 200:
             return json.loads(page.text)
-        raise ConnectionError, "bad request " + url
+        raise ConnectionError("bad request " + url)
 
     def _get_list_2_dict(self, j):
         return dict(map(lambda x: (x['name'], x['href']), j))
@@ -57,7 +58,7 @@ class AnalyticApiClient(object):
                     self.get_uve_url()))
             except Exception as e:
                 import traceback; traceback.print_exc()
-                print str(e)
+                print(str(e))
                 self._uves = None
         if ob is None:
             return self._uves
@@ -72,7 +73,7 @@ class AnalyticApiClient(object):
                         self.get_uves('vrouters', refresh=refresh)))
             except Exception as e:
                 import traceback; traceback.print_exc()
-                print str(e)
+                print(str(e))
                 self._vrouters = None
         return self._vrouters
 
@@ -93,7 +94,7 @@ class AnalyticApiClient(object):
                         self.get_uves('prouters')))
             except Exception as e:
                 import traceback; traceback.print_exc()
-                print str(e)
+                print(str(e))
                 self._prouters = None
         return self._prouters
 

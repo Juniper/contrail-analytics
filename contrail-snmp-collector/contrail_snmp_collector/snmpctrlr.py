@@ -1,15 +1,16 @@
 #
 # Copyright (c) 2015 Juniper Networks, Inc. All rights reserved.
 #
+from __future__ import absolute_import
 from gevent.queue import Queue as GQueue
 from gevent.lock import Semaphore
 import os, json, sys, subprocess, time, gevent, socket
 from tempfile import NamedTemporaryFile, mkdtemp
 import cPickle as pickle
-from snmpuve import SnmpUve
+from .snmpuve import SnmpUve
 from opserver.consistent_schdlr import ConsistentScheduler
-from device_config import DeviceConfig, DeviceDict
-from snmp_config_handler import SnmpConfigHandler
+from .device_config import DeviceConfig, DeviceDict
+from .snmp_config_handler import SnmpConfigHandler
 import ConfigParser
 import signal
 import random

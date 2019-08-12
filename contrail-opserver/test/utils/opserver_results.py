@@ -2,6 +2,7 @@
 # Copyright (c) 2013 Juniper Networks, Inc. All rights reserved.
 #
 
+from __future__ import print_function
 import re
 from opserver.introspect_util import *
 
@@ -141,7 +142,7 @@ def _OpResultGet(dct, p1, p2, match=None):
         if is_flat:
             ret = res
     except Exception as e:
-        print e
+        print(e)
     finally:
         return ret
 

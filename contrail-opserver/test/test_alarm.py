@@ -4,6 +4,7 @@
 # Copyright (c) 2014 Juniper Networks, Inc. All rights reserved.
 #
 
+from __future__ import absolute_import
 import gevent
 import time
 from gevent import monkey; monkey.patch_all()
@@ -15,7 +16,7 @@ import logging
 import mock
 import unittest
 import collections
-from utils.util import retry
+from .utils.util import retry
 from collections import namedtuple
 from kafka.consumer.fetcher import ConsumerRecord
 
@@ -308,10 +309,10 @@ class TestAlarmGen(unittest.TestCase, TestChecker):
     # end create_test_alarm_info
 
     def add_test_alarm(self, table, name, atype):
-        if not self._ag.tab_alarms.has_key(table):
+        if table not in self._ag.tab_alarms:
             self._ag.tab_alarms[table] = {}
         key = table+':'+name
-        if not self._ag.tab_alarms[table].has_key(key):
+        if key not in self._ag.tab_alarms[table]:
             self._ag.tab_alarms[table][key] = {}
         self._ag.tab_alarms[table][key][atype] = \
             self.create_test_alarm_info(table, name, atype)

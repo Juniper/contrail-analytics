@@ -10,6 +10,7 @@
 # UVE and Alarm tests
 #
 
+from __future__ import absolute_import
 import os
 import sys
 import threading
@@ -23,9 +24,9 @@ import testtools
 import fixtures
 import mock
 import socket
-from utils.util import obj_to_dict, find_buildroot
-from utils.analytics_fixture import AnalyticsFixture
-from utils.generator_fixture import GeneratorFixture
+from .utils.util import obj_to_dict, find_buildroot
+from .utils.analytics_fixture import AnalyticsFixture
+from .utils.generator_fixture import GeneratorFixture
 from mockzoo import mockzoo
 import logging
 import time

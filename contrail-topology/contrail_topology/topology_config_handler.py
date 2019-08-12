@@ -2,8 +2,9 @@
 # Copyright (c) 2017 Juniper Networks, Inc. All rights reserved.
 #
 
+from __future__ import absolute_import
 
-from topology_config_db import DBBaseCT, LogicalInterfaceCT, \
+from .topology_config_db import DBBaseCT, LogicalInterfaceCT, \
     VirtualMachineInterfaceCT
 from config_handler import ConfigHandler
 

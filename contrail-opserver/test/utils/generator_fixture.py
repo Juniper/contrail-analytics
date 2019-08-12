@@ -10,6 +10,7 @@
 # Python generator test fixtures
 #
 
+from __future__ import absolute_import
 from gevent import monkey
 monkey.patch_all()
 import fixtures
@@ -18,7 +19,7 @@ import uuid
 import random
 import time
 from copy import deepcopy
-from util import retry
+from .util import retry
 from pysandesh.sandesh_base import *
 from pysandesh.util import UTCTimestampUsec
 from pysandesh.gen_py.sandesh.constants import DEFAULT_SANDESH_SEND_RATELIMIT
@@ -28,9 +29,9 @@ from sandesh.virtual_network.ttypes import *
 from sandesh.flow.ttypes import *
 from sandesh.alarm_test.ttypes import *
 from sandesh.object_table_test.ttypes import *
-from analytics_fixture import AnalyticsFixture
-from generator_introspect_utils import VerificationGenerator
-from opserver_introspect_utils import VerificationOpsSrv
+from .analytics_fixture import AnalyticsFixture
+from .generator_introspect_utils import VerificationGenerator
+from .opserver_introspect_utils import VerificationOpsSrv
 
 class GeneratorFixture(fixtures.Fixture):
     _BYTES_PER_PACKET = 1024

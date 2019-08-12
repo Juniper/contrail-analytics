@@ -10,6 +10,7 @@
 # System tests for analytics
 #
 
+from __future__ import absolute_import
 import os
 import sys
 import threading
@@ -24,15 +25,15 @@ import testtools
 import fixtures
 import mock
 import socket
-from utils.analytics_fixture import AnalyticsFixture
-from utils.stats_fixture import StatsFixture
+from .utils.analytics_fixture import AnalyticsFixture
+from .utils.stats_fixture import StatsFixture
 from mockcassandra import mockcassandra
 import logging
 import time
 from opserver.sandesh.viz.constants import *
-from utils.opserver_introspect_utils import VerificationOpsSrv
+from .utils.opserver_introspect_utils import VerificationOpsSrv
 from opserver.vnc_cfg_api_client import VncCfgApiClient
-from utils.util import retry, find_buildroot
+from .utils.util import retry, find_buildroot
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s %(levelname)s %(message)s')
