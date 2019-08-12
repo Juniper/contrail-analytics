@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "28ecc706_f24d8f96",
+        "filename": "contrail-opserver/alarmgen.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 213
+      },
+      "writtenOn": "2019-08-12T08:59:18Z",
+      "side": 1,
+      "message": "is . not needed here?",
+      "range": {
+        "startLine": 44,
+        "startChar": 0,
+        "endLine": 44,
+        "endChar": 18
+      },
+      "revId": "1e8754e17062e2638bbf1e10b7eedf6fd548b46d",
+      "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3f8f5ab8_d1e02575",
+        "filename": "contrail-opserver/alarmgen.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 213
+      },
+      "writtenOn": "2019-08-12T08:59:18Z",
+      "side": 1,
+      "message": "again . is not needed?",
+      "range": {
+        "startLine": 69,
+        "startChar": 5,
+        "endLine": 69,
+        "endChar": 13
+      },
+      "revId": "1e8754e17062e2638bbf1e10b7eedf6fd548b46d",
+      "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c3a91010_3872737f",
+        "filename": "contrail-opserver/alarmgen_config_handler.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 213
+      },
+      "writtenOn": "2019-08-12T08:59:18Z",
+      "side": 1,
+      "message": ". at the beginning?",
+      "range": {
+        "startLine": 11,
+        "startChar": 5,
+        "endLine": 11,
+        "endChar": 11
+      },
+      "revId": "1e8754e17062e2638bbf1e10b7eedf6fd548b46d",
+      "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
+      "unresolved": true
+    }
+  ]
+}
