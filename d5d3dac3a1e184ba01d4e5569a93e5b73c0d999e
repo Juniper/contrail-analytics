@@ -2,6 +2,40 @@
   "comments": [
     {
       "key": {
+        "uuid": "c081de43_407de684",
+        "filename": "contrail-opserver/test/test_analytics_uve.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 2265,
+      "author": {
+        "id": 752
+      },
+      "writtenOn": "2019-08-12T14:06:24Z",
+      "side": 1,
+      "message": "- Please follow 80 char guideline.\n- Please correct description for each testcase.",
+      "revId": "d5d3dac3a1e184ba01d4e5569a93e5b73c0d999e",
+      "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cf1be4bd_0a8d52f3",
+        "filename": "contrail-opserver/test/test_analytics_uve.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 2324,
+      "author": {
+        "id": 752
+      },
+      "writtenOn": "2019-08-12T14:06:24Z",
+      "side": 1,
+      "message": "If server is running in insecure mode then client need not send certificates. It should connect anyway.",
+      "revId": "d5d3dac3a1e184ba01d4e5569a93e5b73c0d999e",
+      "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "f5d715a8_436f8503",
         "filename": "contrail-opserver/test/test_analytics_uve.py",
         "patchSetId": 2
@@ -25,6 +59,23 @@
     },
     {
       "key": {
+        "uuid": "6650a498_f3addddb",
+        "filename": "contrail-opserver/test/test_analytics_uve.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 2394,
+      "author": {
+        "id": 752
+      },
+      "writtenOn": "2019-08-12T14:06:24Z",
+      "side": 1,
+      "message": "Where are we passing wrong cacert from client side ?",
+      "revId": "d5d3dac3a1e184ba01d4e5569a93e5b73c0d999e",
+      "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "ddb68aeb_600ae994",
         "filename": "contrail-opserver/test/test_analytics_uve.py",
         "patchSetId": 2
@@ -42,6 +93,40 @@
         "endLine": 2435,
         "endChar": 39
       },
+      "revId": "d5d3dac3a1e184ba01d4e5569a93e5b73c0d999e",
+      "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "84d4a087_a4421afa",
+        "filename": "contrail-opserver/test/test_analytics_uve.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 2436,
+      "author": {
+        "id": 752
+      },
+      "writtenOn": "2019-08-12T14:06:24Z",
+      "side": 1,
+      "message": "Why \"assert not\" here ? This call checks if generator process comes up fine.",
+      "revId": "d5d3dac3a1e184ba01d4e5569a93e5b73c0d999e",
+      "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "297c50ee_c4d22e00",
+        "filename": "contrail-opserver/test/utils/analytics_fixture.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 733,
+      "author": {
+        "id": 752
+      },
+      "writtenOn": "2019-08-12T14:06:24Z",
+      "side": 1,
+      "message": "Where is it getting used ? We need to pass it to contrail-analytics-api process.",
       "revId": "d5d3dac3a1e184ba01d4e5569a93e5b73c0d999e",
       "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
       "unresolved": true
@@ -88,6 +173,23 @@
         "endLine": 55,
         "endChar": 57
       },
+      "revId": "d5d3dac3a1e184ba01d4e5569a93e5b73c0d999e",
+      "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c4ce2943_99926a30",
+        "filename": "contrail-opserver/test/utils/generator_fixture.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 350,
+      "author": {
+        "id": 752
+      },
+      "writtenOn": "2019-08-12T14:06:24Z",
+      "side": 1,
+      "message": "You need to make code change for VerificationOpsSrv also.",
       "revId": "d5d3dac3a1e184ba01d4e5569a93e5b73c0d999e",
       "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
       "unresolved": true
