@@ -2262,6 +2262,233 @@ class AnalyticsUveTest(testtools.TestCase, fixtures.TestWithFixtures):
 
     # end test_15_redis_ssl_verify_vm_uve
 
+
+    #@unittest.skip('Skipping analytics_ssl_params ssl_enable set as true')
+    def test_16_analytics_ssl_params_ssl_enable_true(self):
+
+        '''
+        This test starts redis, vizd, opserver, qed, and a python generator
+        that simulates vrouter and sends UveVirtualMachineAgentTrace messages.
+        Then it checks that the VM UVE (via redis) can be accessed from
+        opserver using HTTPS.
+        '''
+        logging.info("%%% test_16_analytics_ssl_params_ssl_enable_true %%%")
+
+        server_ssl_params = {
+            'ssl_enable': True,
+            'insecure_enable' : False,
+            'keyfile': builddir + '/opserver/test/data/ssl/server-privkey.pem',
+            'certfile': builddir + '/opserver/test/data/ssl/server.pem',
+            'ca_cert': builddir + '/opserver/test/data/ssl/ca-cert.pem',
+        }
+        vizd_obj = self.useFixture(
+            AnalyticsFixture(logging, builddir, 0,
+                             analytics_server_ssl_params=server_ssl_params))
+        assert vizd_obj.verify_on_setup()
+        collectors = [vizd_obj.get_collector()]
+        generator_obj = self.useFixture(
+            GeneratorFixture("contrail-vrouter-agent", collectors,
+                             logging, vizd_obj.get_opserver_port(),
+                             analytics_client_ssl_params=server_ssl_params))
+        assert generator_obj.verify_on_setup()
+        generator_obj.send_vm_uve(vm_id='abcd',
+                                  num_vm_ifs=5,
+                                  msg_count=5)
+        assert generator_obj.verify_vm_uve(vm_id='abcd',
+                                           num_vm_ifs=5,
+                                           msg_count=5)
+        #end test_16_analytics_ssl_params_ssl_enable_true
+
+
+    #@unittest.skip('Skipping analytics_ssl_params insecure_enable set as True')
+    def test_17_analytics_ssl_params_ssl_insecure_enable_true(self):
+
+        '''
+        This test starts redis, vizd, opserver, qed, and a python generator
+        that simulates vrouter and sends UveVirtualMachineAgentTrace messages.
+        Then it checks that the VM UVE (via redis) can be accessed from
+        opserver using HTTPS,without sending the certificates.
+        '''
+        logging.info("%%% test_17_analytics_ssl_params_insecure_enable_true %%%")
+
+        server_ssl_params = {
+            'ssl_enable': True,
+            'insecure_enable' : True,
+            'keyfile': builddir + '/opserver/test/data/ssl/server-privkey.pem',
+            'certfile': builddir + '/opserver/test/data/ssl/server.pem',
+            'ca_cert': builddir + '/opserver/test/data/ssl/ca-cert.pem',
+        }
+        vizd_obj = self.useFixture(
+            AnalyticsFixture(logging, builddir, 0,
+                             analytics_server_ssl_params=server_ssl_params))
+        assert vizd_obj.verify_on_setup()
+        collectors = [vizd_obj.get_collector()]
+
+        #Since insecure enable is true on server side,
+        #we do not need to send certificates from client
+ 
+        client_ssl_params = {
+            'ssl_enable': True,
+            'insecure_enable' : True,
+            'keyfile': None,
+            'certfile': None,
+            'ca_cert': None,
+        }
+        generator_obj = self.useFixture(
+            GeneratorFixture("contrail-vrouter-agent", collectors,
+                             logging, vizd_obj.get_opserver_port(),
+                             analytics_client_ssl_params=client_ssl_params))
+        assert generator_obj.verify_on_setup()
+        generator_obj.send_vm_uve(vm_id='abcd',
+                                  num_vm_ifs=5,
+                                  msg_count=5)
+        assert generator_obj.verify_vm_uve(vm_id='abcd',
+                                           num_vm_ifs=5,
+                                           msg_count=5)
+        #end test_17_analytics_ssl_params_ssl_insecure_enable_true
+
+
+    #@unittest.skip('Skipping analytics_ssl_params_ssl_enable set as false')
+    def test_18_analytics_ssl_params_ssl_enable_false(self):
+
+        '''
+        This test starts redis, vizd, opserver, qed, and a python generator
+        that simulates vrouter and sends UveVirtualMachineAgentTrace messages.
+        Then it checks that the VM UVE (via redis) can be accessed from
+        opserver using HTTP.
+        '''
+        logging.info("%%% test_18_analytics_ssl_params_ssl_enable_false %%%")
+
+        server_ssl_params = {
+            'ssl_enable': False,
+            'insecure_enable' : False,
+            'keyfile': builddir + '/opserver/test/data/ssl/server-privkey.pem',
+            'certfile': builddir + '/opserver/test/data/ssl/server.pem',
+            'ca_cert': builddir + '/opserver/test/data/ssl/ca-cert.pem',
+        }
+        vizd_obj = self.useFixture(
+            AnalyticsFixture(logging, builddir, 0,
+                             analytics_server_ssl_params=server_ssl_params))
+        assert vizd_obj.verify_on_setup()
+        collectors = [vizd_obj.get_collector()]
+
+        client_ssl_params = {
+            'ssl_enable': False,
+            'insecure_enable' : True,
+            'keyfile': None,
+            'certfile': None,
+            'ca_cert': None,
+        }
+ 
+        generator_obj = self.useFixture(
+            GeneratorFixture("contrail-vrouter-agent", collectors,
+                             logging, vizd_obj.get_opserver_port(),
+                             analytics_client_ssl_params=client_ssl_params))
+        assert generator_obj.verify_on_setup()
+        generator_obj.send_vm_uve(vm_id='abcd',
+                                  num_vm_ifs=5,
+                                  msg_count=5)
+        assert generator_obj.verify_vm_uve(vm_id='abcd',
+                                           num_vm_ifs=5,
+                                           msg_count=5)
+        #end test_18_analytics_ssl_params_ssl_enable_false
+
+
+    #@unittest.skip('Skipping analytics_ssl_params_wrong_cacert test')
+    def test_19_analytics_ssl_params_wrong_cacert(self):
+
+        '''
+        This test starts redis, vizd, opserver, qed, and a python generator
+        that simulates vrouter and sends UveVirtualMachineAgentTrace messages.
+        Then it checks that the VM UVE (via redis) can be accessed from
+        opserver using HTTPS,but with wrong ca-cert.
+        Client should not be able to access.
+        '''
+        logging.info("%%% test_19_analytics_ssl_params_wrong_cacert %%%")
+
+        server_ssl_params = {
+                'ssl_enable': True,
+                'insecure_enable' : False,
+                'keyfile': builddir + '/opserver/test/data/ssl/server-privkey.pem',
+                'certfile': builddir + '/opserver/test/data/ssl/server.pem',
+                'ca_cert': builddir + '/opserver/test/data/ssl/ca-cert.pem',
+        }
+        vizd_obj = self.useFixture(
+            AnalyticsFixture(logging, builddir, 0,
+                             analytics_server_ssl_params=server_ssl_params))
+        assert vizd_obj.verify_on_setup()
+        collectors = [vizd_obj.get_collector()]
+ 
+        client_ssl_params = {
+                'ssl_enable': True,
+                'insecure_enable' : False,
+                'keyfile': builddir + '/opserver/test/data/ssl/server-privkey.pem',
+                'certfile': builddir + '/opserver/test/data/ssl/server.pem',
+                'ca_cert': builddir + '/opserver/test/data/ssl/server.pem',
+        }
+        generator_obj = self.useFixture(
+            GeneratorFixture("contrail-vrouter-agent", collectors,
+                             logging, vizd_obj.get_opserver_port(),
+                             analytics_client_ssl_params=client_ssl_params))
+        assert generator_obj.verify_on_setup()
+        generator_obj.send_vm_uve(vm_id='abcd',
+                                  num_vm_ifs=5,
+                                  msg_count=5)
+        assert not generator_obj.verify_vm_uve(vm_id='abcd',
+                                               num_vm_ifs=5,
+                                               msg_count=5)
+        #end test_19_analytics_ssl_params_wrong_cacert
+
+
+    #@unittest.skip('Skipping analytics_ssl_params_client_ssl_not_enabled test')
+    def test_20_analytics_ssl_params_client_ssl_not_enabled(self):
+
+        '''
+        This test starts redis, vizd, opserver, qed, and a python generator
+        that simulates vrouter and sends UveVirtualMachineAgentTrace messages.
+        Then it checks that the VM UVE (via redis) can be accessed from
+        opserver using HTTP.
+        Client should not be able to access.
+        '''
+        logging.info("%%% test_20_analytics_ssl_params_client_ssl_not_enabled %%%")
+
+        server_ssl_params = {
+                'ssl_enable': True,
+                'insecure_enable' : False,
+                'keyfile': builddir + '/opserver/test/data/ssl/server-privkey.pem',
+                'certfile': builddir + '/opserver/test/data/ssl/server.pem',
+                'ca_cert': builddir + '/opserver/test/data/ssl/ca-cert.pem',
+        }
+        vizd_obj = self.useFixture(
+            AnalyticsFixture(logging, builddir, 0,
+                             analytics_server_ssl_params=server_ssl_params))
+        assert vizd_obj.verify_on_setup()
+        collectors = [vizd_obj.get_collector()]
+
+        client_ssl_params = {
+            'ssl_enable': False,
+            'insecure_enable' : True,
+            'keyfile': None,
+            'certfile': None,
+            'ca_cert': None,
+        }
+        generator_obj = self.useFixture(
+            GeneratorFixture("contrail-vrouter-agent", collectors,
+                             logging, vizd_obj.get_opserver_port(),
+                             analytics_client_ssl_params=client_ssl_params))
+        # remove the config from client so that it tries to access analytics api
+        # with http, it should fail
+        assert generator_obj.verify_on_setup()
+        generator_obj.send_vm_uve(vm_id='abcd',
+                                  num_vm_ifs=5,
+                                  msg_count=5)
+        assert not generator_obj.verify_vm_uve(vm_id='abcd',
+                                               num_vm_ifs=5,
+                                               msg_count=5)
+        #end test_20_analytics_ssl_params_client_ssl_not_enabled
+
+
+
     @staticmethod
     def get_free_port():
         cs = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

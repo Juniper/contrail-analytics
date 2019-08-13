@@ -51,7 +51,10 @@ class GeneratorFixture(fixtures.Fixture):
     def __init__(self, name, collectors, logger, opserver_port,
                  start_time=None, node_type="Test",
                  hostname=socket.getfqdn("127.0.0.1"), inst = "0",
-                 sandesh_config=None):
+                 sandesh_config=None,
+                 analytics_client_ssl_params={'ssl_enable':False, \
+                 'insecure_enable':False, 'keyfile':None,
+                 'certfile':None, 'ca_cert':None}):
         self._hostname = hostname
         self._name = name
         self._logger = logger
@@ -60,6 +63,7 @@ class GeneratorFixture(fixtures.Fixture):
         self._start_time = start_time
         self._node_type = node_type
         self._inst = inst
+        self.analytics_client_ssl_params = analytics_client_ssl_params
         self._generator_id = self._hostname+':'+self._node_type+':'+self._name+':' + self._inst
         if sandesh_config:
             self._sandesh_config = SandeshConfig(
@@ -339,9 +343,13 @@ class GeneratorFixture(fixtures.Fixture):
     @retry(delay=2, tries=5)
     def verify_vm_uve(self, vm_id, num_vm_ifs, msg_count, opserver_port=None):
         if opserver_port is not None:
-            vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1"), opserver_port)
+            vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1"), opserver_port, \
+                                     analytics_client_ssl_params= \
+                                     self.analytics_client_ssl_params)
         else:
-            vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1"), self._opserver_port)
+            vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1"), self._opserver_port, \
+                                     analytics_client_ssl_params= \
+                                     self.analytics_client_ssl_params)
         res = vns.get_ops_vm(vm_id)
         if res == {}:
             return False
