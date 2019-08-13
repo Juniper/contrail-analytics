@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5f157cee_b0802666",
+        "filename": "contrail-opserver/test/utils/analytics_fixture.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 820,
+      "author": {
+        "id": 382
+      },
+      "writtenOn": "2019-08-13T14:28:09Z",
+      "side": 1,
+      "message": "\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\nFAIL: unittest2.loader._FailedTest.test.test_analytics_stats\n----------------------------------------------------------------------\nTraceback (most recent call last):\ntesttools.testresult.real._StringException: Traceback (most recent call last):\nImportError: Failed to import test module: test.test_analytics_stats\nTraceback (most recent call last):\n  File \"/home/zuul/contrail-5.2.0/build/debug/opserver/.venv/lib/python2.7/site-packages/unittest2/loader.py\", line 456, in _find_test_path\n    module \u003d self._get_module_from_name(name)\n  File \"/home/zuul/contrail-5.2.0/build/debug/opserver/.venv/lib/python2.7/site-packages/unittest2/loader.py\", line 395, in _get_module_from_name\n    __import__(name)\n  File \"/home/zuul/contrail-5.2.0/build/debug/opserver/.venv/lib/python2.7/site-packages/gevent/builtins.py\", line 93, in __import__\n    result \u003d _import(*args, **kwargs)\n  File \"test/test_analytics_stats.py\", line 27, in \u003cmodule\u003e\n    from utils.analytics_fixture import AnalyticsFixture\n  File \"/home/zuul/contrail-5.2.0/build/debug/opserver/.venv/lib/python2.7/site-packages/gevent/builtins.py\", line 93, in __import__\n    result \u003d _import(*args, **kwargs)\n  File \"test/utils/analytics_fixture.py\", line 820\n    analytics_server_ssl_params\u003d \\\n                              ^\nSyntaxError: invalid syntax",
+      "revId": "6cd29abad713c25748db2a3a726f4745fec80da3",
+      "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
+      "unresolved": true
+    }
+  ]
+}
