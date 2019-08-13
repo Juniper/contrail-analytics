@@ -18,11 +18,15 @@ class JsonDrv (object):
                 auth=HTTPBasicAuth(user, password)
             else:
                 auth=None
-            resp = requests.get(url, headers=headers, auth=auth, timeout=10, verify=ca_cert, cert=cert)
+            resp = requests.get(url, headers=headers, auth=auth, timeout=10,
+                                verify=ca_cert, cert=cert)
             return json.loads(resp.text)
         except requests.ConnectionError, e:
             print "Socket Connection error : " + str(e)
-            return None
+            #Result class expects a dictionary in response.
+            #Hence, sending an empty dictionary
+            mydict = {}
+            return mydict
 
 class XmlDrv (object):
 
@@ -32,11 +36,15 @@ class XmlDrv (object):
                 auth=HTTPBasicAuth(user, password)
             else:
                 auth=None
-            resp = requests.get(url, headers=headers, auth=auth, timeout=10, verify=ca_cert, cert=cert)
+            resp = requests.get(url, headers=headers, auth=auth, timeout=10,
+                                verify=ca_cert, cert=cert)
             return etree.fromstring(str(resp.text))
         except requests.ConnectionError, e:
             print "Socket Connection error : " + str(e)
-            return None
+            #Result class expects a dictionary in response.
+            #Hence, sending an empty dictionary
+            mydict = {}
+            return mydict
 
 
 class IntrospectUtilBase (object):
@@ -73,7 +81,27 @@ class IntrospectUtilBase (object):
             return url
 
     def dict_get(self, path='', query=None, drv=None, user=None,
-                 password=None, headers=None):
+                 password=None, headers=None,
+                 analytics_client_ssl_params={'ssl_enable':False, \
+                 'insecure_enable':False, 'keyfile':None,
+                 'certfile':None, 'ca_cert':None}):
+ 
+        if analytics_client_ssl_params:
+            analytics_client_ssl_enabled = \
+                analytics_client_ssl_params['ssl_enable']
+        else:
+            analytics_client_ssl_enabled = False
+
+        if analytics_client_ssl_enabled:
+            self._http_str = "https"
+            certfile = analytics_client_ssl_params['certfile']
+            keyfile = analytics_client_ssl_params['keyfile']
+            self._cert = (certfile,keyfile)
+            if analytics_client_ssl_params['insecure_enable']:
+                self._ca_cert = False
+            else:
+                self._ca_cert = analytics_client_ssl_params['ca_cert']
+
         if path:
             if drv is not None:
                 return drv().load(self._mk_url_str(path, query), user,
