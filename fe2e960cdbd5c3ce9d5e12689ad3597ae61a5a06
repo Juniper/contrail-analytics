@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c1214893_cf060d94",
+        "filename": "contrail-opserver/introspect_util.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 213
+      },
+      "writtenOn": "2019-08-14T02:31:34Z",
+      "side": 1,
+      "message": "Which class in this? Changing this will have impact at lot of places so it is not recommended to change unless it is really required.",
+      "range": {
+        "startLine": 26,
+        "startChar": 13,
+        "endLine": 26,
+        "endChar": 24
+      },
+      "revId": "fe2e960cdbd5c3ce9d5e12689ad3597ae61a5a06",
+      "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "56a064d6_75d9ec61",
+        "filename": "contrail-opserver/opserver_util.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 535,
+      "author": {
+        "id": 213
+      },
+      "writtenOn": "2019-08-14T02:31:34Z",
+      "side": 1,
+      "message": "ca_cert can be None, how does it work if None is passed?",
+      "range": {
+        "startLine": 535,
+        "startChar": 37,
+        "endLine": 535,
+        "endChar": 50
+      },
+      "revId": "fe2e960cdbd5c3ce9d5e12689ad3597ae61a5a06",
+      "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
+      "unresolved": true
+    }
+  ]
+}
