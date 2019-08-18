@@ -22,6 +22,30 @@
       "revId": "cacfe32e7735a276fb7d082ddf781fa979b820fc",
       "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0200b33f_f9a3d615",
+        "filename": "contrail-opserver/introspect_util.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 717
+      },
+      "writtenOn": "2019-08-18T07:18:26Z",
+      "side": 1,
+      "message": "The verify_vm_uve() in the test cases that I added, called the get_ops_vm() function which in turn call the dict_get() and that brought the flow here.\nSo, I passed these flags here.",
+      "parentUuid": "7a759497_b4415cd1",
+      "range": {
+        "startLine": 83,
+        "startChar": 11,
+        "endLine": 85,
+        "endChar": 11
+      },
+      "revId": "cacfe32e7735a276fb7d082ddf781fa979b820fc",
+      "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
+      "unresolved": false
     }
   ]
 }
