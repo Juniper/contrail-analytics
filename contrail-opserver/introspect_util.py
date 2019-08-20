@@ -18,7 +18,8 @@ class JsonDrv (object):
                 auth=HTTPBasicAuth(user, password)
             else:
                 auth=None
-            resp = requests.get(url, headers=headers, auth=auth, timeout=10, verify=ca_cert, cert=cert)
+            resp = requests.get(url, headers=headers, auth=auth, timeout=10,
+                                verify=ca_cert, cert=cert)
             return json.loads(resp.text)
         except requests.ConnectionError, e:
             print "Socket Connection error : " + str(e)
@@ -32,7 +33,8 @@ class XmlDrv (object):
                 auth=HTTPBasicAuth(user, password)
             else:
                 auth=None
-            resp = requests.get(url, headers=headers, auth=auth, timeout=10, verify=ca_cert, cert=cert)
+            resp = requests.get(url, headers=headers, auth=auth, timeout=10,
+                                verify=ca_cert, cert=cert)
             return etree.fromstring(str(resp.text))
         except requests.ConnectionError, e:
             print "Socket Connection error : " + str(e)
@@ -49,7 +51,7 @@ class IntrospectUtilBase (object):
         self._http_str = "http"
         self._cert = tuple()
         self._ca_cert = False
-        ssl_enabled = config.introspect_ssl_enable if config else False
+        ssl_enabled = config.introspect_ssl_enable == 'True' if config else False
         if ssl_enabled:
             self._http_str = "https"
             self._cert = (config.certfile, config.keyfile)

@@ -48,8 +48,8 @@ class VerificationOpsSrvIntrospect (IntrospectUtilBase):
 class VerificationOpsSrv (IntrospectUtilBase):
     def __init__(self, ip, port=8181, user='test',
                  password='password',
-                 headers = {'X-Auth-Token' : 'user:admin'}):
-        super(VerificationOpsSrv, self).__init__(ip, port, drv=JsonDrv)
+                 headers = {'X-Auth-Token' : 'user:admin'}, sandesh_config=None):
+        super(VerificationOpsSrv, self).__init__(ip, port, drv=JsonDrv, config=sandesh_config)
         self._user = user
         self._password = password
         self._headers = headers
@@ -57,6 +57,8 @@ class VerificationOpsSrv (IntrospectUtilBase):
     def get_ops_vm(self, vm='default-virtual-machine'):
         vm_dict = self.dict_get('analytics/uves/virtual-machine/' + vm,
             user=self._user, password=self._password, headers=self._headers)
+        if vm_dict is None:
+            vm_dict = {}
         return OpVMResult(vm_dict)
 
     def get_ops_vn(self, vn='default-virtual-network'):
