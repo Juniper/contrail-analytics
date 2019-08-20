@@ -338,7 +338,10 @@ class OpServer(object):
                  admin_user, admin_password, zoo=None, is_dup=False,
                  sandesh_config=None, redis_ssl_params={'ssl_enable':False, \
                  'keyfile':None, 'certfile':None, 'ca_cert':None},
-                 opserver_redis_ssl=True):
+                 opserver_redis_ssl=True,
+                 analytics_server_ssl_params={'ssl_enable':False, \
+                 'insecure_enable':False, 'keyfile':None,
+                 'certfile':None, 'ca_cert':None}):
         self.collectors = collectors
         self.analytics_fixture = analytics_fixture
         self.http_port = 0
@@ -365,6 +368,7 @@ class OpServer(object):
             self.redis_ssl_params['ssl_enable'] = False
         if self.redis_ssl_params['ssl_enable']:
             self.redis_query_port = str(self.analytics_fixture.stunnel_obj[0].stunnel_port)
+        self.analytics_server_ssl_params = analytics_server_ssl_params
     # end __init__
 
     def set_sandesh_config(self, sandesh_config):
@@ -440,6 +444,18 @@ class OpServer(object):
             args.append(self.redis_ssl_params['certfile'])
             args.append('--redis_ca_cert')
             args.append(self.redis_ssl_params['ca_cert'])
+
+        if self.analytics_server_ssl_params['ssl_enable']:
+            args.append('--analytics_api_ssl_enable')
+            args.append(str(self.analytics_server_ssl_params['ssl_enable']))
+            args.append('--analytics_api_insecure_enable')
+            args.append(str(self.analytics_server_ssl_params['insecure_enable']))
+            args.append('--analytics_api_ssl_keyfile')
+            args.append(self.analytics_server_ssl_params['keyfile'])
+            args.append('--analytics_api_ssl_certfile')
+            args.append(self.analytics_server_ssl_params['certfile'])
+            args.append('--analytics_api_ssl_ca_cert')
+            args.append(self.analytics_server_ssl_params['ca_cert'])
 
         self._logger.info('Setting up OpServer: %s' % ' '.join(args))
         ports, self._instance = \
@@ -711,7 +727,10 @@ class AnalyticsFixture(fixtures.Fixture):
                  cassandra_user=None, cassandra_password=None, cluster_id="",
                  sandesh_config=None, redis_ssl_params={'ssl_enable':False, \
                  'keyfile':None, 'certfile':None, 'ca_cert':None},
-                 opserver_redis_ssl=True):
+                 opserver_redis_ssl=True,
+                 analytics_server_ssl_params={'ssl_enable':False, \
+                 'insecure_enable':False, 'keyfile':None,
+                 'certfile':None, 'ca_cert':None}):
 
         self.builddir = builddir
         self.cassandra_port = cassandra_port
@@ -733,6 +752,7 @@ class AnalyticsFixture(fixtures.Fixture):
         self.redis_ssl_params = redis_ssl_params
         self.opserver_redis_ssl = opserver_redis_ssl
         self.set_sandesh_config(sandesh_config)
+        self.analytics_server_ssl_params = analytics_server_ssl_params
 
     def setUp(self):
         super(AnalyticsFixture, self).setUp()
@@ -790,7 +810,9 @@ class AnalyticsFixture(fixtures.Fixture):
                                  self.admin_password, zkport,
                                  sandesh_config=self.sandesh_config,
                                  redis_ssl_params=self.redis_ssl_params,
-                                 opserver_redis_ssl=self.opserver_redis_ssl)
+                                 opserver_redis_ssl=self.opserver_redis_ssl,
+                                 analytics_server_ssl_params= \
+                                 self.analytics_server_ssl_params)
         if not self.opserver.start():
             self.logger.error("OpServer did NOT start")
         self.opserver_port = self.get_opserver_port()
@@ -898,9 +920,37 @@ class AnalyticsFixture(fixtures.Fixture):
         Verify that the opserver is accepting client requests
         '''
         data = {}
-        url = 'http://' + socket.getfqdn("127.0.0.1") +':' + str(self.opserver_port) + '/'
-        data = OpServerUtils.get_url_http(url, self.admin_user,
-            self.admin_password, headers={'X-Auth-Token':'user:admin'})
+        if (self.analytics_server_ssl_params and \
+                self.analytics_server_ssl_params['ssl_enable']):
+            url = 'https://' + socket.getfqdn("127.0.0.1") +':' + \
+                       str(self.opserver_port) + '/'
+            certfile = self.analytics_server_ssl_params['certfile']
+            keyfile = self.analytics_server_ssl_params['keyfile']
+            certificate = (certfile, keyfile)
+            ca_cert = self.analytics_server_ssl_params['ca_cert']
+            if (self.analytics_server_ssl_params['insecure_enable']):
+               data = OpServerUtils.get_url_http(url,
+                                                 self.admin_user,
+                                                 self.admin_password,
+                                                 cert = certificate,
+                                                 ca_cert = False,
+                                                 headers={'X-Auth-Token':\
+                                                          'user:admin'})
+            else:
+                data = OpServerUtils.get_url_http(url,
+                                                  self.admin_user,
+                                                  self.admin_password,
+                                                  cert = certificate,
+                                                  ca_cert = ca_cert,
+                                                  headers={'X-Auth-Token':\
+                                                           'user:admin'})
+        else:
+            url = 'http://' + socket.getfqdn("127.0.0.1") +':' + \
+                       str(self.opserver_port) + '/'
+            data = OpServerUtils.get_url_http(url, self.admin_user,
+                self.admin_password, headers={'X-Auth-Token':'user:admin'})
+
+
         self.logger.info("Checking OpServer %s" % str(data))
         if data == {}:
             return False

@@ -48,8 +48,8 @@ class VerificationOpsSrvIntrospect (IntrospectUtilBase):
 class VerificationOpsSrv (IntrospectUtilBase):
     def __init__(self, ip, port=8181, user='test',
                  password='password',
-                 headers = {'X-Auth-Token' : 'user:admin'}):
-        super(VerificationOpsSrv, self).__init__(ip, port, drv=JsonDrv)
+                 headers = {'X-Auth-Token' : 'user:admin'}, sandesh_config=None):
+        super(VerificationOpsSrv, self).__init__(ip, port, drv=JsonDrv, config=sandesh_config)
         self._user = user
         self._password = password
         self._headers = headers
