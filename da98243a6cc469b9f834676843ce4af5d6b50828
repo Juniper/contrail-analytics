@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1472aed3_39199cac",
+        "filename": "contrail-opserver/introspect_util.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 213
+      },
+      "writtenOn": "2019-08-21T02:29:04Z",
+      "side": 1,
+      "message": "This is redundant",
+      "range": {
+        "startLine": 54,
+        "startChar": 51,
+        "endLine": 54,
+        "endChar": 61
+      },
+      "revId": "da98243a6cc469b9f834676843ce4af5d6b50828",
+      "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "995961c6_efb701be",
+        "filename": "contrail-opserver/test/test_analytics_uve.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 2265,
+      "author": {
+        "id": 213
+      },
+      "writtenOn": "2019-08-21T02:29:04Z",
+      "side": 1,
+      "message": "Nit: add 4 space indentation",
+      "range": {
+        "startLine": 2265,
+        "startChar": 0,
+        "endLine": 2265,
+        "endChar": 11
+      },
+      "revId": "da98243a6cc469b9f834676843ce4af5d6b50828",
+      "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e388f724_9bff91b8",
+        "filename": "contrail-opserver/test/test_analytics_uve.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 2288,
+      "author": {
+        "id": 213
+      },
+      "writtenOn": "2019-08-21T02:29:04Z",
+      "side": 1,
+      "message": "Nit: remove these spaces",
+      "range": {
+        "startLine": 2288,
+        "startChar": 1,
+        "endLine": 2288,
+        "endChar": 6
+      },
+      "revId": "da98243a6cc469b9f834676843ce4af5d6b50828",
+      "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "375afadf_5b6fd403",
+        "filename": "contrail-opserver/test/utils/analytics_fixture.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 929,
+      "author": {
+        "id": 213
+      },
+      "writtenOn": "2019-08-21T02:29:04Z",
+      "side": 1,
+      "message": "why is _cert a class variable but others are local variables? I dont see _cert being used anywhere else?",
+      "range": {
+        "startLine": 929,
+        "startChar": 12,
+        "endLine": 929,
+        "endChar": 23
+      },
+      "revId": "da98243a6cc469b9f834676843ce4af5d6b50828",
+      "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7202de18_452ed951",
+        "filename": "contrail-opserver/test/utils/opserver_introspect_utils.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 213
+      },
+      "writtenOn": "2019-08-21T02:29:04Z",
+      "side": 1,
+      "message": "why is this change required? i thought we did not change dict_get function so it should be working even now?",
+      "range": {
+        "startLine": 60,
+        "startChar": 13,
+        "endLine": 61,
+        "endChar": 24
+      },
+      "revId": "da98243a6cc469b9f834676843ce4af5d6b50828",
+      "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
+      "unresolved": true
+    }
+  ]
+}
