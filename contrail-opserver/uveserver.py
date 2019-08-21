@@ -10,6 +10,10 @@
 
 from __future__ import print_function
 from __future__ import absolute_import
+from builtins import str
+from builtins import range
+from past.builtins import basestring
+from builtins import object
 import gevent
 import json
 import copy
@@ -57,7 +61,7 @@ class UVEServer(object):
         self._freq = freq
         self._active_collectors = []
 
-        for h,m in UVE_MAP.iteritems():
+        for h,m in UVE_MAP.items():
             self._uve_reverse_map[m] = h
 
         # Fill in redis/collector instances
@@ -84,7 +88,7 @@ class UVEServer(object):
 
     def fill_redis_uve_info(self, redis_uve_info):
         try:
-            for rkey,rinst in self._redis_uve_map.iteritems():
+            for rkey,rinst in self._redis_uve_map.items():
                 rinst.redis_handle.ping()
         except:
             redis_uve_info.status = 'DisConnected'
@@ -94,7 +98,7 @@ class UVEServer(object):
 
     def redis_instances(self):
         ril = []
-        for rkey,rinst in self._redis_uve_map.iteritems():
+        for rkey,rinst in self._redis_uve_map.items():
             # A redis instance is only valid if we also know the collector pid
             if rinst.redis_handle is not None and \
                     rinst.collector_pid is not None:
@@ -105,7 +109,7 @@ class UVEServer(object):
     def update_redis_uve_list(self, redis_uve_list):
         newlist = set(redis_uve_list)
         # if some redis instances are gone, remove them from our map
-        for test_elem in self._redis_uve_map.keys():
+        for test_elem in list(self._redis_uve_map.keys()):
             r_ip = test_elem[0]
             r_port = test_elem[1]
             redis_inst = (r_ip, int(r_port))
@@ -129,7 +133,7 @@ class UVEServer(object):
     def run(self):
         exitrun = False
         while not exitrun:
-            for rkey in self._redis_uve_map.keys():
+            for rkey in list(self._redis_uve_map.keys()):
                 rinst = self._redis_uve_map[rkey]
                 old_pid = rinst.collector_pid
                 try:
@@ -179,7 +183,7 @@ class UVEServer(object):
                     if redis is up, state should be up
                     if redis is down but collector is up, the state shoue be down
                     '''
-                    if rkey in self._redis_uve_map.keys():
+                    if rkey in list(self._redis_uve_map.keys()):
                         if rinst.redis_handle is None:
                             if rkey.ip != '127.0.0.1':
                                 rkey_fqdn = socket.getfqdn(rkey.ip)
@@ -236,7 +240,7 @@ class UVEServer(object):
 
     def get_tables(self):
         tables = set()
-        for r_key, r_inst in self._redis_uve_map.iteritems():
+        for r_key, r_inst in self._redis_uve_map.items():
             if  r_inst.redis_handle is None or r_inst.collector_pid is None:
                 continue
             else:
@@ -272,7 +276,7 @@ class UVEServer(object):
 
         tab = key.split(":",1)[0]
 
-        for r_key, r_inst in self._redis_uve_map.iteritems():
+        for r_key, r_inst in self._redis_uve_map.items():
             if r_inst.redis_handle is None or r_inst.collector_pid is None:
                 continue
             else:
@@ -323,7 +327,7 @@ class UVEServer(object):
                         afilter_list = tfilter[typ]
 
                     del_uvealarms = False
-                    for attr, value in odict.iteritems():
+                    for attr, value in odict.items():
                         if len(afilter_list):
                             if attr not in afilter_list:
                                 continue
@@ -379,7 +383,7 @@ class UVEServer(object):
                         # To timestamp, we only keep latest source
                         if attr == '__T' and flat:
                             if len(state[key][typ][attr]) > 0:
-                                if state[key][typ][attr].values()[0] > snhdict[attr]:
+                                if list(state[key][typ][attr].values())[0] > snhdict[attr]:
                                     continue
                                 else:
                                     state[key][typ][attr].clear()
@@ -395,7 +399,7 @@ class UVEServer(object):
                                   traceback.format_exc()))
                 failures = True
             else:
-                self._logger.debug("Computed %s as %s" % (key,rsp.keys()))
+                self._logger.debug("Computed %s as %s" % (key,list(rsp.keys())))
 
         return failures, rsp
     # end get_uve
@@ -494,7 +498,7 @@ class UVEServer(object):
                 uve_list = rsp[table]
             return uve_list
 
-        for r_key, r_inst in self._redis_uve_map.iteritems():
+        for r_key, r_inst in self._redis_uve_map.items():
             if  r_inst.redis_handle is None or r_inst.collector_pid is None:
                 continue
             else:
@@ -571,7 +575,7 @@ class UVEServer(object):
 # end UVEServer
 
 
-class ParallelAggregator:
+class ParallelAggregator(object):
 
     def __init__(self, state, rev_map = {}):
         self._state = state
@@ -580,7 +584,7 @@ class ParallelAggregator:
     def _default_agg(self, oattr):
         itemset = set()
         result = []
-        for source in oattr.keys():
+        for source in list(oattr.keys()):
             elem = oattr[source]
             hdelem = json.dumps(elem)
             if hdelem not in itemset:
@@ -593,7 +597,7 @@ class ParallelAggregator:
         return result
 
     def _is_elem_sum(self, oattr):
-        akey = oattr.keys()[0]
+        akey = list(oattr.keys())[0]
         if oattr[akey]['@type'] not in ['i8', 'i16', 'i32', 'i64',
                                     'byte', 'u8', 'u16', 'u32', 'u64']:
             return False
@@ -604,7 +608,7 @@ class ParallelAggregator:
         return True
 
     def _is_struct_sum(self, oattr):
-        akey = oattr.keys()[0]
+        akey = list(oattr.keys())[0]
         if oattr[akey]['@type'] != "struct":
             return False
         if '@aggtype' not in oattr[akey]:
@@ -614,7 +618,7 @@ class ParallelAggregator:
         return True
 
     def _is_list_union(self, oattr):
-        akey = oattr.keys()[0]
+        akey = list(oattr.keys())[0]
         if not oattr[akey]['@type'] in ["list"]:
             return False
         if '@aggtype' not in oattr[akey]:
@@ -625,7 +629,7 @@ class ParallelAggregator:
             return False
 
     def _is_map_union(self, oattr):
-        akey = oattr.keys()[0]
+        akey = list(oattr.keys())[0]
         if not oattr[akey]['@type'] in ["map"]:
             return False
         if '@aggtype' not in oattr[akey]:
@@ -636,7 +640,7 @@ class ParallelAggregator:
             return False
 
     def _is_append(self, oattr):
-        akey = oattr.keys()[0]
+        akey = list(oattr.keys())[0]
         if not oattr[akey]['@type'] in ["list"]:
             return False
         if '@aggtype' not in oattr[akey]:
@@ -649,7 +653,7 @@ class ParallelAggregator:
     @staticmethod
     def get_list_name(attr):
         sname = ""
-        for sattr in attr['list'].keys():
+        for sattr in list(attr['list'].keys()):
             if sattr[0] not in ['@']:
                 sname = sattr
         return sname
@@ -657,25 +661,25 @@ class ParallelAggregator:
     @staticmethod
     def _get_list_key(elem):
         skey = ""
-        for sattr in elem.keys():
+        for sattr in list(elem.keys()):
             if '@aggtype' in elem[sattr]:
                 if elem[sattr]['@aggtype'] in ["listkey"]:
                     skey = sattr
         return skey
 
     def _struct_sum_agg(self, oattr):
-        akey = oattr.keys()[0]
+        akey = list(oattr.keys())[0]
         result = copy.deepcopy(oattr[akey])
         sname = None
-        for sattr in result.keys():
+        for sattr in list(result.keys()):
             if sattr[0] != '@':
                 sname = sattr
                 break
         if not sname:
             return None
         cmap = {}
-        for source,sval in oattr.iteritems():
-            for attr, aval in sval[sname].iteritems():
+        for source,sval in oattr.items():
+            for attr, aval in sval[sname].items():
                 if aval['@type'] in ['i8',
                         'i16', 'i32', 'i64',
                         'byte', 'u8', 'u16', 'u32', 'u64']:
@@ -685,24 +689,24 @@ class ParallelAggregator:
                         cmap[attr]['#text'] = int(aval['#text'])
                     else:
                         cmap[attr]['#text'] += int(aval['#text'])
-        for k,v in cmap.iteritems():
+        for k,v in cmap.items():
             v['#text'] = str(v['#text'])
         result[sname] = cmap
         return result
 
     def _elem_sum_agg(self, oattr):
-        akey = oattr.keys()[0]
+        akey = list(oattr.keys())[0]
         result = copy.deepcopy(oattr[akey])
         count = 0
-        for source in oattr.keys():
+        for source in list(oattr.keys()):
             count += int(oattr[source]['#text'])
         result['#text'] = str(count)
         return result
 
     def _list_union_agg(self, oattr):
-        akey = oattr.keys()[0]
+        akey = list(oattr.keys())[0]
         result = {}
-        for anno in oattr[akey].keys():
+        for anno in list(oattr[akey].keys()):
             if anno[0] == "@":
                 result[anno] = oattr[akey][anno]
         itemset = set()
@@ -711,7 +715,7 @@ class ParallelAggregator:
         result['list'][sname] = []
         result['list']['@type'] = oattr[akey]['list']['@type']
         siz = 0
-        for source in oattr.keys():
+        for source in list(oattr.keys()):
             if isinstance(oattr[source]['list'][sname], basestring):
                 oattr[source]['list'][sname] = [oattr[source]['list'][sname]]
             for elem in oattr[source]['list'][sname]:
@@ -725,9 +729,9 @@ class ParallelAggregator:
         return result
 
     def _map_union_agg(self, oattr):
-        akey = oattr.keys()[0]
+        akey = list(oattr.keys())[0]
         result = {}
-        for anno in oattr[akey].keys():
+        for anno in list(oattr[akey].keys()):
             if anno[0] == "@":
                 result[anno] = oattr[akey][anno]
         result['map'] = {}
@@ -736,14 +740,14 @@ class ParallelAggregator:
         result['map']['element'] = []
 
         sname = None
-        for ss in oattr[akey]['map'].keys():
+        for ss in list(oattr[akey]['map'].keys()):
             if ss[0] != '@':
                 if ss != 'element':
                     sname = ss
                     result['map'][sname] = []
 
         siz = 0
-        for source in oattr.keys():
+        for source in list(oattr.keys()):
             if sname is None:
                 for subidx in range(0,int(oattr[source]['map']['@size'])):
                     print("map_union_agg Content %s" % (oattr[source]['map']))
@@ -770,12 +774,12 @@ class ParallelAggregator:
         return result
 
     def _append_agg(self, oattr):
-        akey = oattr.keys()[0]
+        akey = list(oattr.keys())[0]
         result = copy.deepcopy(oattr[akey])
         sname = ParallelAggregator.get_list_name(oattr[akey])
         result['list'][sname] = []
         siz = 0
-        for source in oattr.keys():
+        for source in list(oattr.keys()):
             if not isinstance(oattr[source]['list'][sname], list):
                 oattr[source]['list'][sname] = [oattr[source]['list'][sname]]
             for elem in oattr[source]['list'][sname]:
@@ -786,7 +790,7 @@ class ParallelAggregator:
 
     @staticmethod
     def _list_agg_attrs(item):
-        for ctrs in item.keys():
+        for ctrs in list(item.keys()):
             if '@aggtype'in item[ctrs]:
                 if item[ctrs]['@aggtype'] in ["listkey"]:
                     continue
@@ -844,10 +848,10 @@ class ParallelAggregator:
         ltyp = None
         objattr = None
         try:
-            for typ in self._state[key].keys():
+            for typ in list(self._state[key].keys()):
                 ltyp = typ
                 result[typ] = {}
-                for objattr in self._state[key][typ].keys():
+                for objattr in list(self._state[key][typ].keys()):
                     if self._is_elem_sum(self._state[key][typ][objattr]):
                         sume_res = self._elem_sum_agg(self._state[key][typ][objattr])
                         if flat:
