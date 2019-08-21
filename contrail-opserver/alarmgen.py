@@ -10,6 +10,14 @@
 
 from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import division
+from future import standard_library
+standard_library.install_aliases()
+from builtins import next
+from builtins import str
+from builtins import range
+from builtins import object
+from past.utils import old_div
 from gevent import monkey
 monkey.patch_all()
 import sys
@@ -21,8 +29,11 @@ import traceback
 import signal
 import random
 import hashlib
-import ConfigParser
 import logging
+try:
+    import configparser
+except:
+    from six.moves import configparser
 try:
     from collections import OrderedDict
 except ImportError:
@@ -96,19 +107,19 @@ class AGTabStats(object):
 
     def get_result(self):
         if self.get_n:
-            return self.get_time / self.get_n
+            return old_div(self.get_time, self.get_n)
         else:
             return 0
 
     def pub_result(self):
         if self.pub_n:
-            return self.pub_time / self.pub_n
+            return old_div(self.pub_time, self.pub_n)
         else:
             return 0
 
     def call_result(self):
         if self.call_n:
-            return self.call_time / self.call_n
+            return old_div(self.call_time, self.call_n)
         else:
             return 0
 
@@ -139,7 +150,7 @@ class AGKeyInfo(object):
         self.set_removed = set()
         self.set_added = set()
         self.set_changed = set()
-        self.set_unchanged = self.current_dict.keys()
+        self.set_unchanged = list(self.current_dict.keys())
 
         if typ in self.current_dict:
             # the "added" set must stay empty in this case
@@ -260,11 +271,11 @@ class AlarmProcessor(object):
             if attr_list[0] in ('*', '__value'):
                 return [self._get_uve_attribute(val, attr_list[1:],
                         uve_path+[{key: val}]) \
-                        for key, val in tuve.iteritems()]
+                        for key, val in tuve.items()]
             elif attr_list[0] == '__key':
                 return [self._get_uve_attribute(key, attr_list[1:],
                         uve_path+[{key: val}]) \
-                        for key, val in tuve.iteritems()]
+                        for key, val in tuve.items()]
             else:
                 tuve = tuve.get(attr_list[0])
                 uve_path.append({attr_list[0]: tuve})
@@ -302,9 +313,9 @@ class AlarmProcessor(object):
         pnode = uve_path[ui]
         while (ai < len(attr_list) and ui < len(uve_path)):
             if attr_list[ai] == '__key':
-                return next(uve_path[ui].iterkeys())
+                return next(iter(uve_path[ui].keys()))
             elif attr_list[ai] == '__value':
-                return next(uve_path[ui].itervalues())
+                return next(iter(uve_path[ui].values()))
             if attr_list[ai] != '*' and attr_list[ai] not in uve_path[ui]:
                 break
             pnode = uve_path[ui]
@@ -315,7 +326,7 @@ class AlarmProcessor(object):
                 ui += 1
         if not ui:
             return None
-        val = next(pnode.itervalues())
+        val = next(iter(pnode.values()))
         for a in attr_list[ai:]:
             if val is None or not isinstance(val, dict):
                 return None
@@ -526,7 +537,7 @@ class AlarmProcessor(object):
     # end _evaluate_uve_for_alarms
 
 
-class AlarmStateMachine:
+class AlarmStateMachine(object):
     tab_alarms_timer = {}
     last_timers_run = None
     def __init__(self, tab, uv, nm, sandesh, activeTimer, idleTimer,
@@ -1124,7 +1135,7 @@ class Controller(object):
           Our treatment of the 2nd and 3rd case above is the same
         """
         uveq_trace = UVEQTrace()
-        uveq_trace.uves = [str((k,str(v))) for k,v in uves.iteritems()]
+        uveq_trace.uves = [str((k,str(v))) for k,v in uves.items()]
         uveq_trace.part = part
         if part not in self._uveq:
             self._uveq[part] = OrderedDict()
@@ -1135,17 +1146,17 @@ class Controller(object):
         uveq_trace.trace_msg(name="UVEQTrace",\
                 sandesh=self._sandesh)
 
-        for uv,types in uves.iteritems():
+        for uv,types in uves.items():
             if types is None:
                 self._uveq[part][uv] = None
             else:
                 if uv in self._uveq[part]:
                     if self._uveq[part][uv] is not None:
-                        for kk in types.keys():
+                        for kk in list(types.keys()):
                             self._uveq[part][uv][kk] = {}
                 else:
                     self._uveq[part][uv] = {}
-                    for kk in types.keys():
+                    for kk in list(types.keys()):
                         self._uveq[part][uv][kk] = {}
 
     def handle_resource_check(self, part, current_inst):
@@ -1175,7 +1186,7 @@ class Controller(object):
             coll, res = self._us.get_part(part, r_inst)
             chg_res[coll] = res
             uveq_trace = UVEQTrace()
-            uveq_trace.uves = [str((k,str(v))) for k,v in res.iteritems()]
+            uveq_trace.uves = [str((k,str(v))) for k,v in res.items()]
             uveq_trace.part = part
             uveq_trace.oper = "get-part-" + coll
             uveq_trace.trace_msg(name="UVEQTrace",\
@@ -1186,7 +1197,7 @@ class Controller(object):
     def reconnect_agg_uve(self, lredis):
         self._logger.error("Connected to Redis for Agg")
         lredis.set(self._moduleid + ':' + self._instance_id, "True")
-        for pp in self._workers.keys():
+        for pp in list(self._workers.keys()):
             self._workers[pp].reset_acq_time()
             self._workers[pp].kill(\
                     RuntimeError('UVE Proc failed'),
@@ -1197,11 +1208,11 @@ class Controller(object):
                 self._workers[pp].acq_time())
             self.stop_uve_partition(pp)
 
-        for part in self._uveq.keys():
+        for part in list(self._uveq.keys()):
             self._logger.info("Clearing part %d uveQ : %s" % \
-                    (part,str(self._uveq[part].keys())))
+                    (part,str(list(self._uveq[part].keys()))))
             uveq_trace = UVEQTrace()
-            uveq_trace.uves = self._uveq[part].keys()
+            uveq_trace.uves = list(self._uveq[part].keys())
             uveq_trace.part = part
             uveq_trace.oper = "clear"
             uveq_trace.trace_msg(name="UVEQTrace",\
@@ -1310,7 +1321,7 @@ class Controller(object):
         if not self.tab_alarms[tab][uk]:
             del self.tab_alarms[tab][uk]
         else:
-            for nm, asm in self.tab_alarms[tab][uk].iteritems():
+            for nm, asm in self.tab_alarms[tab][uk].items():
                 uai = asm.get_uai()
                 if uai:
                     alm_copy.append(copy.deepcopy(uai))
@@ -1339,7 +1350,7 @@ class Controller(object):
         # Write the aggregate UVE for all UVE updates for the
         # given partition
         rows = []
-        for ku,vu in outp.iteritems():
+        for ku,vu in outp.items():
             if vu is None:
                 # This message has no type!
                 # Its used to indicate a delete of the entire UVE
@@ -1352,7 +1363,7 @@ class Controller(object):
                         rows)
                     rows[:] = []
                 continue
-            for kt,vt in vu.iteritems():
+            for kt,vt in vu.items():
                 rows.append(OutputRow(key=ku, typ=kt, val=vt))
                 if len(rows) >= self._max_out_rows:
                     self.send_agg_uve(lredis,
@@ -1426,7 +1437,7 @@ class Controller(object):
         oldworkerset = None
         redis_changed = False
         while True:
-            for part in self._uveqf.keys():
+            for part in list(self._uveqf.keys()):
                 self._logger.error("Stop UVE processing for %d:%d" % \
                         (part, self._uveqf[part]))
                 self.stop_uve_partition(part)
@@ -1435,13 +1446,13 @@ class Controller(object):
                     self.clear_agg_uve(lredis, self._instance_id, part)
                 if part in self._uveq:
                     uveq_trace = UVEQTrace()
-                    uveq_trace.uves = self._uveq[part].keys()
+                    uveq_trace.uves = list(self._uveq[part].keys())
                     uveq_trace.part = part
                     uveq_trace.oper = "stop"
                     uveq_trace.trace_msg(name="UVEQTrace",\
                             sandesh=self._sandesh)
                     self._logger.info("Stopping part %d uveQ : %s" % \
-                            (part,str(self._uveq[part].keys())))
+                            (part,str(list(self._uveq[part].keys()))))
                     del self._uveq[part]
             prev = time.time()
             try:
@@ -1480,7 +1491,7 @@ class Controller(object):
                 gevs = {}
                 pendingset = {}
                 kafka_topic_down = False
-                for part in self._uveq.keys():
+                for part in list(self._uveq.keys()):
                     if not len(self._uveq[part]):
                         continue
                     self._logger.info("UVE Process for %d" % part)
@@ -1521,11 +1532,11 @@ class Controller(object):
                         message = "All Kafka partitions are reachable")
 
                 if len(gevs):
-                    gevent.joinall(gevs.values())
+                    gevent.joinall(list(gevs.values()))
                     self._logger.info("UVE Processing joined")
                     outp={}
                     gevs_out={}
-                    for part in gevs.keys():
+                    for part in list(gevs.keys()):
                         # If UVE processing failed, requeue the working set
                         try:
                             outp[part] = gevs[part].get()
@@ -1549,10 +1560,10 @@ class Controller(object):
                                     outp[part], part, self._workers[part].acq_time())
 
                     if len(gevs_out):
-                        gevent.joinall(gevs_out.values())
+                        gevent.joinall(list(gevs_out.values()))
 
                         # Check for exceptions during processing
-                        for part in gevs_out.keys():
+                        for part in list(gevs_out.keys()):
                             gevs_out[part].get()
 
                 # If there are alarm config changes, then start a gevent per
@@ -1562,12 +1573,12 @@ class Controller(object):
                         self._alarm_config_change_map)
                     self._alarm_config_change_map = {}
                     alarm_workers = {}
-                    for partition in self._workers.keys():
+                    for partition in list(self._workers.keys()):
                         alarm_workers[partition] = gevent.spawn(
                             self.alarm_config_change_worker, partition,
                             alarm_config_change_map)
                     if alarm_workers:
-                        gevent.joinall(alarm_workers.values())
+                        gevent.joinall(list(alarm_workers.values()))
 
             except Exception as ex:
                 template = "Exception {0} in uve proc. Arguments:\n{1!r}"
@@ -1596,7 +1607,7 @@ class Controller(object):
 
             else:
                 workerset = {}
-                for part in self._workers.keys():
+                for part in list(self._workers.keys()):
                     if self._workers[part]._up:
                         workerset[part] = self._workers[part].acq_time()
                 if ((lredis is not None) and \
@@ -1639,11 +1650,11 @@ class Controller(object):
         aproc = AlarmProcessor(self._sandesh)
         # Process all alarms configured for this uve-type
         for alarm_fqname, alarm_obj in \
-            alarm_cfg.get(table, {}).iteritems():
+            alarm_cfg.get(table, {}).items():
             aproc.process_alarms(alarm_fqname, alarm_obj, uve_key, uve)
         # Process all alarms configured for this uve-key
         for alarm_fqname, alarm_obj in \
-            alarm_cfg.get(uve_key, {}).iteritems():
+            alarm_cfg.get(uve_key, {}).items():
             aproc.process_alarms(alarm_fqname, alarm_obj, uve_key, uve)
         new_uve_alarms = aproc.uve_alarms
         self.tab_perf[table].record_call(UTCTimestampUsec() - prevt)
@@ -1652,7 +1663,7 @@ class Controller(object):
         if table not in self.tab_alarms:
             self.tab_alarms[table] = {}
         if uve_key in self.tab_alarms[table]:
-            for nm, asm in self.tab_alarms[table][uve_key].iteritems():
+            for nm, asm in self.tab_alarms[table][uve_key].items():
                 # This type was present earlier, but is now gone
                 if nm not in new_uve_alarms:
                     del_types.append(nm)
@@ -1667,7 +1678,7 @@ class Controller(object):
             self._logger.debug("Alarm[%s] Updated %s" % \
                     (table, str(new_uve_alarms)))
             # These alarm types are new or updated
-            for nm, uai2 in new_uve_alarms.iteritems():
+            for nm, uai2 in new_uve_alarms.items():
                 uai = copy.deepcopy(uai2)
                 uai.timestamp = UTCTimestampUsec()
                 uai.token = Controller.token(self._sandesh, uai.timestamp)
@@ -1721,7 +1732,7 @@ class Controller(object):
         self._logger.debug('Alarm config change worker for partition %d'
             % (partition))
         try:
-            for uve_key, alarm_map in alarm_config_change_map.iteritems():
+            for uve_key, alarm_map in alarm_config_change_map.items():
                 self._logger.debug('Handle alarm config change for '
                     '[partition:uve_key:{alarms}] -> [%d:%s:%s]' %
                     (partition, uve_key, str(alarm_map)))
@@ -1736,10 +1747,10 @@ class Controller(object):
                 except KeyError:
                     continue
                 else:
-                    for name, data in uves.iteritems():
+                    for name, data in uves.items():
                         self._logger.debug('process alarm for uve %s' % (name))
                         self.examine_uve_for_alarms(partition, uve_type_name[0]+':'+name,
-                            data.values())
+                            list(data.values()))
                     gevent.sleep(0)
         except Exception as e:
             self._logger.error('Error in alarm config change worker for '
@@ -1748,7 +1759,7 @@ class Controller(object):
     # end alarm_config_change_worker
 
     def alarm_config_change_callback(self, alarm_config_change_map):
-        for table, alarm_map in alarm_config_change_map.iteritems():
+        for table, alarm_map in alarm_config_change_map.items():
             try:
                 tamap = self._alarm_config_change_map[table]
             except KeyError:
@@ -1760,9 +1771,9 @@ class Controller(object):
     def stop_uve_partition(self, part):
         if not part in self.ptab_info:
             return
-        for tk in self.ptab_info[part].keys():
+        for tk in list(self.ptab_info[part].keys()):
             tcount = len(self.ptab_info[part][tk])
-            for rkey in self.ptab_info[part][tk].keys():
+            for rkey in list(self.ptab_info[part][tk].keys()):
                 uk = tk + ":" + rkey
                 if tk in self.tab_alarms:
                     if uk in self.tab_alarms[tk]:
@@ -1784,7 +1795,7 @@ class Controller(object):
         """
         This function deletes all the timers for given tab,uv combination
         """
-        for ak,av in self.tab_alarms[tab][uv].iteritems():
+        for ak,av in self.tab_alarms[tab][uv].items():
             av.delete_timers()
 
     def increment_uve_notif_count(self, part, tab, uve_type, oper):
@@ -1833,14 +1844,14 @@ class Controller(object):
         output = {}
 
         uveq_trace = UVEQTrace()
-        uveq_trace.uves = [str((k,str(v))) for k,v in uves.iteritems()]
+        uveq_trace.uves = [str((k,str(v))) for k,v in uves.items()]
         uveq_trace.part = part
         uveq_trace.oper = "process"
         uveq_trace.trace_msg(name="UVEQTrace",\
                 sandesh=self._sandesh)
 
         erruves = []
-        for uv,types in uves.iteritems():
+        for uv,types in uves.items():
             tab = uv.split(':',1)[0]
             if tab not in self.tab_perf:
                 self.tab_perf[tab] = AGTabStats()
@@ -1851,7 +1862,7 @@ class Controller(object):
             filters = {}
             if types:
                 filters["cfilt"] = {}
-                for typ in types.keys():
+                for typ in list(types.keys()):
                     filters["cfilt"][typ] = set()
 
             failures, uve_data = self._us.get_uve(uv, True, filters)
@@ -1893,7 +1904,7 @@ class Controller(object):
                             self.ptab_info[part][tab][uve_name].changed()))
                     for chgs in self.ptab_info[part][tab][uve_name].changed():
                         output[uv][chgs] = \
-                                self.ptab_info[part][tab][uve_name].values()[chgs]
+                                list(self.ptab_info[part][tab][uve_name].values())[chgs]
                         self.increment_uve_notif_count(part, tab, chgs, "change")
                 if len(self.ptab_info[part][tab][uve_name].added()):
                     touched = True
@@ -1901,7 +1912,7 @@ class Controller(object):
                             self.ptab_info[part][tab][uve_name].added()))
                     for adds in self.ptab_info[part][tab][uve_name].added():
                         output[uv][adds] = \
-                                self.ptab_info[part][tab][uve_name].values()[adds]
+                                list(self.ptab_info[part][tab][uve_name].values())[adds]
                         self.increment_uve_notif_count(part, tab, adds, "add")
             else:
                 for typ in types:
@@ -1928,7 +1939,7 @@ class Controller(object):
                                 self.ptab_info[part][tab][uve_name].changed()))
                         for chgs in self.ptab_info[part][tab][uve_name].changed():
                             output[uv][chgs] = \
-                                    self.ptab_info[part][tab][uve_name].values()[chgs]
+                                    list(self.ptab_info[part][tab][uve_name].values())[chgs]
                             self.increment_uve_notif_count(part, tab, chgs, "change")
                     if len(self.ptab_info[part][tab][uve_name].added()):
                         touched = True
@@ -1936,15 +1947,15 @@ class Controller(object):
                                 self.ptab_info[part][tab][uve_name].added()))
                         for adds in self.ptab_info[part][tab][uve_name].added():
                             output[uv][adds] = \
-                                    self.ptab_info[part][tab][uve_name].values()[adds]
+                                    list(self.ptab_info[part][tab][uve_name].values())[adds]
                             self.increment_uve_notif_count(part, tab, adds, "add")
             if not touched:
                 del output[uv]
-            local_uve = self.ptab_info[part][tab][uve_name].values()
+            local_uve = list(self.ptab_info[part][tab][uve_name].values())
 
             self.tab_perf[tab].record_pub(UTCTimestampUsec() - prevt)
 
-            if len(local_uve.keys()) == 0:
+            if len(list(local_uve.keys())) == 0:
                 self._logger.info("UVE %s deleted in proc" % (uv))
                 del self.ptab_info[part][tab][uve_name]
                 output[uv] = None
@@ -1952,7 +1963,7 @@ class Controller(object):
                 if tab in self.tab_alarms:
                     if uv in self.tab_alarms[tab]:
                         del_types = []
-                        for nm, asm in self.tab_alarms[tab][uv].iteritems():
+                        for nm, asm in self.tab_alarms[tab][uv].items():
                             delete_alarm = \
                                 self.tab_alarms[tab][uv][nm].clear_alarms()
                             if delete_alarm:
@@ -1965,12 +1976,12 @@ class Controller(object):
                 continue
 
             # Withdraw the alarm if the UVE has no non-alarm structs
-            if len(local_uve.keys()) == 1 and "UVEAlarms" in local_uve:
+            if len(list(local_uve.keys())) == 1 and "UVEAlarms" in local_uve:
                 if tab in self.tab_alarms:
                     if uv in self.tab_alarms[tab]:
                         self._logger.info("UVE %s has no non-alarm" % (uv))
                         del_types = []
-                        for nm, asm in self.tab_alarms[tab][uv].iteritems():
+                        for nm, asm in self.tab_alarms[tab][uv].items():
                             delete_alarm = \
                                 self.tab_alarms[tab][uv][nm].clear_alarms()
                             if delete_alarm:
@@ -1984,9 +1995,9 @@ class Controller(object):
         if success:
             uveq_trace = UVEQTrace()
             uveq_trace.uves = []
-            for k,v in output.iteritems():
+            for k,v in output.items():
                 if isinstance(v,dict):
-                    uveq_trace.uves.append(str((k,v.keys())))
+                    uveq_trace.uves.append(str((k,list(v.keys()))))
                 else:
                     uveq_trace.uves.append(str((k,None)))
             uveq_trace.part = part
@@ -2007,7 +2018,7 @@ class Controller(object):
 
     def handle_UVETableInfoReq(self, req):
         if req.partition == -1:
-            parts = self.ptab_info.keys()
+            parts = list(self.ptab_info.keys())
         else:
             parts = [req.partition]
 
@@ -2017,11 +2028,11 @@ class Controller(object):
             if part not in self.ptab_info:
                 continue
             tables = []
-            for tab in self.ptab_info[part].keys():
+            for tab in list(self.ptab_info[part].keys()):
                 uvel = []
-                for uk,uv in self.ptab_info[part][tab].iteritems():
+                for uk,uv in self.ptab_info[part][tab].items():
                     types = []
-                    for tk,tv in uv.values().iteritems():
+                    for tk,tv in list(uv.values()).iteritems():
                         types.append(UVEStructInfo(type = tk,
                                 content = json.dumps(tv)))
                     uvel.append(UVEObjectInfo(
@@ -2040,7 +2051,7 @@ class Controller(object):
     def handle_UVETableAlarmReq(self, req):
         status = False
         if req.table == "all":
-            parts = self.tab_alarms.keys()
+            parts = list(self.tab_alarms.keys())
         else:
             parts = [req.table]
         self._logger.info("Got UVETableAlarmReq : %s" % str(parts))
@@ -2049,8 +2060,8 @@ class Controller(object):
             if pt not in self.tab_alarms:
                 continue
             uves = []
-            for uk,uv in self.tab_alarms[pt].iteritems():
-                for ak,av in uv.iteritems():
+            for uk,uv in self.tab_alarms[pt].items():
+                for ak,av in uv.items():
                     alm_copy = []
                     uai = av.get_uai(forced=True)
                     if uai:
@@ -2070,7 +2081,7 @@ class Controller(object):
     def handle_UVETablePerfReq(self, req):
         status = False
         if req.table == "all":
-            parts = self.tab_perf_prev.keys()
+            parts = list(self.tab_perf_prev.keys())
         else:
             parts = [req.table]
         self._logger.info("Got UVETablePerfReq : %s" % str(parts))
@@ -2098,9 +2109,9 @@ class Controller(object):
         if req.name is not None:
             alarm_config = alarm_config_db.get(req.name)
             alarm_config_db = {req.name: alarm_config} if alarm_config else {}
-        for name, config in alarm_config_db.iteritems():
+        for name, config in alarm_config_db.items():
             config_dict = {k: json.dumps(v) for k, v in \
-                self._config_handler.obj_to_dict(config).iteritems()}
+                self._config_handler.obj_to_dict(config).items()}
             alarms.append(AlarmConfig(config_dict))
         res = AlarmConfigResponse(alarms)
         res.response(req.context())
@@ -2221,7 +2232,7 @@ class Controller(object):
             and send it out
         '''
         self.tab_perf_prev = copy.deepcopy(self.tab_perf)
-        for kt in self.tab_perf.keys():
+        for kt in list(self.tab_perf.keys()):
             #self.tab_perf_prev[kt] = copy.deepcopy(self.tab_perf[kt])
             self.tab_perf[kt].reset()
 
@@ -2229,21 +2240,21 @@ class Controller(object):
         s_keys = set()
         n_updates = 0
         alarm_stats = {}
-        for pk,pc in self._workers.iteritems():
+        for pk,pc in self._workers.items():
             s_partitions.add(pk)
             din = pc.stats()
             dout = self._uvestats[pk]
             self._uvestats[pk] = {}
             alarm_stats_pk = self._alarmstats[pk]
             self._alarmstats[pk] = {}
-            for ktab,tab in dout.iteritems():
+            for ktab,tab in dout.items():
                 # use mapped table-names if defined
                 if ktab in _INVERSE_UVE_MAP:
                     ktab_str = _INVERSE_UVE_MAP[ktab]
                 else:
                     ktab_str = ktab
                 uve_stats = {}
-                for uk,uc in tab.iteritems():
+                for uk,uc in tab.items():
                     uve_stats[uk] = AlarmgenUVEStats(uc.add_count,
                                                      uc.change_count,
                                                      uc.remove_count)
@@ -2260,11 +2271,11 @@ class Controller(object):
                 self._logger.debug('send output stats: %s' % (au_obj.log()))
                 au_obj.send(sandesh=self._sandesh)
 
-            for ktab,tab in din.iteritems():
+            for ktab,tab in din.items():
                 au_notifs = []
-                for kcoll,coll in tab.iteritems():
-                    for kgen,gen in coll.iteritems():
-                        for tk,tc in gen.iteritems():
+                for kcoll,coll in tab.items():
+                    for kgen,gen in coll.items():
+                        for tk,tc in gen.items():
                             tkc = UVETypeInfo()
                             tkc.type= tk
                             tkc.count = tc
@@ -2285,7 +2296,7 @@ class Controller(object):
             # alarm stats
             # data structure is as follows: _alarmstats[partition][table_name][alarm_name]
             # we want to collect alarm-stats across partitions
-            for table_name,table_val in alarm_stats_pk.iteritems():
+            for table_name,table_val in alarm_stats_pk.items():
                 # use mapped table-names if defined
                 if table_name in _INVERSE_UVE_MAP:
                     table_str = _INVERSE_UVE_MAP[table_name]
@@ -2293,7 +2304,7 @@ class Controller(object):
                     table_str = table_name
                 if table_str not in alarm_stats:
                     alarm_stats[table_str] = {}
-                for alarm_name,alarm_val in table_val.iteritems():
+                for alarm_name,alarm_val in table_val.items():
                     if alarm_name not in alarm_stats[table_str]:
                         alarm_stats[table_str][alarm_name] \
                             = AlarmgenAlarmStats(table_str, alarm_name,
@@ -2306,7 +2317,7 @@ class Controller(object):
                         alarm_stats[table_str][alarm_name].reset_count \
                                 += alarm_val.reset_count
         # set active alarm count
-        for table_name in self.tab_alarms.keys():
+        for table_name in list(self.tab_alarms.keys()):
             # use mapped table-names if defined
             if table_name in _INVERSE_UVE_MAP:
                 table_str = _INVERSE_UVE_MAP[table_name]
@@ -2329,8 +2340,8 @@ class Controller(object):
         ags = AlarmgenStats()
         ags.instance =  self._instance_id
         ags.table_stats = []
-        for table_str,table in alarm_stats.iteritems():
-            for alarm_name,alarm in alarm_stats[table_str].iteritems():
+        for table_str,table in alarm_stats.items():
+            for alarm_name,alarm in alarm_stats[table_str].items():
                 ags.table_stats.append(alarm_stats[table_str][alarm_name])
         ags.partitions = len(s_partitions)
         ags.keys = len(s_keys)
@@ -2352,7 +2363,7 @@ class Controller(object):
             requested partitions
         '''
         if req.partition == -1:
-            parts = self._workers.keys()
+            parts = list(self._workers.keys())
         else:
             parts = [req.partition]
 
@@ -2365,20 +2376,20 @@ class Controller(object):
                 resp.enabled = True
                 resp.offset = self._workers[pt]._partoffset
                 resp.uves = []
-                for kcoll,coll in self._workers[pt].contents().iteritems():
+                for kcoll,coll in self._workers[pt].contents().items():
                     uci = UVECollInfo()
                     uci.collector = kcoll
                     uci.uves = []
-                    for kgen,gen in coll.iteritems():
+                    for kgen,gen in coll.items():
                         ugi = UVEGenInfo()
                         ugi.generator = kgen
                         ugi.uves = []
-                        for tabk,tabc in gen.iteritems():
-                            for uk,uc in tabc.iteritems():
+                        for tabk,tabc in gen.items():
+                            for uk,uc in tabc.items():
                                 ukc = UVEKeyInfo()
                                 ukc.key = tabk + ":" + uk
                                 ukc.types = []
-                                for tk,tc in uc.iteritems():
+                                for tk,tc in uc.items():
                                     uvtc = UVETypeCount()
                                     uvtc.type = tk
                                     uvtc.count = tc["c"]
@@ -2430,7 +2441,7 @@ class Controller(object):
             # All sanity checks passed. Acknowledge the alarm.
             alarm_type.ack = True
             alarm = []
-            for nm, asm in self.tab_alarms[table][uname].iteritems():
+            for nm, asm in self.tab_alarms[table][uname].items():
                 uai = asm.get_uai()
                 if uai:
                     alarm.append(copy.deepcopy(uai))
@@ -2577,7 +2588,7 @@ class Controller(object):
 
     def sighup_handler(self):
         if self._conf._args.conf_file:
-            config = ConfigParser.SafeConfigParser()
+            config = configparser.SafeConfigParser()
             config.read(self._conf._args.conf_file)
             if 'DEFAULTS' in config.sections():
                 try:
@@ -2592,12 +2603,12 @@ class Controller(object):
                         # Reconnect to achieve load-balance irrespective of list
                         self._sandesh.reconfig_collectors(
                             self._conf.random_collectors)
-                except ConfigParser.NoOptionError as e:
+                except configparser.NoOptionError as e:
                     pass
             if 'REDIS' in config.sections():
                 try:
                     new_redis_list = config.get('REDIS', 'redis_uve_list')
-                except ConfigParser.NoOptionError:
+                except configparser.NoOptionError:
                     pass
                 else:
                     redis_uve_list = []

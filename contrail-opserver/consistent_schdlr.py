@@ -1,6 +1,10 @@
 #
 # Copyright (c) 2015 Juniper Networks, Inc. All rights reserved.
 #
+from builtins import map
+from builtins import str
+from builtins import range
+from builtins import object
 from consistent_hash import ConsistentHash
 import gevent
 import os
@@ -47,7 +51,7 @@ class ConsistentScheduler(object):
         self._con_hash = None
         self._last_log = ''
         self._last_log_cnt = 0
-        self._partition_set = map(str, range(self._bucketsize))
+        self._partition_set = list(map(str, list(range(self._bucketsize))))
 
         self._cluster_id = cluster_id
         if self._cluster_id:
@@ -165,10 +169,10 @@ class ConsistentScheduler(object):
         return list(self._pc)
 
     def work_items(self):
-        return sum(self._partitions.values(), [])
+        return sum(list(self._partitions.values()), [])
 
     def finish(self):
-        self._inform_delete(self._partitions.keys())
+        self._inform_delete(list(self._partitions.keys()))
         self._pc.finish()
         self._zk.remove_listener(self._zk_lstnr)
         gevent.sleep(1)
@@ -186,7 +190,7 @@ class ConsistentScheduler(object):
             self._logger.error("Closing kazooclient successful")
 
     def _items2name(self, items):
-        return map(lambda x: x.name, items)
+        return [x.name for x in items]
 
     def _supress_log(self, *s):
         slog = ' '.join(map(str, s))
@@ -260,12 +264,10 @@ class ConsistentScheduler(object):
             if part in list(self._pc):
                 if part not in self._partitions:
                     self._partitions[part] = []
-                if i.name not in map(lambda x: x.name,
-                                     self._partitions[part]):
+                if i.name not in [x.name for x in self._partitions[part]]:
                     self._partitions[part].append(i)
         self._logger.debug('@populate_work_items(%s): done!' % ' '.join(
-                map(lambda v: str(v[0]) + ':' + ','.join(map(
-                        lambda x: x.name, v[1])), self._partitions.items())))
+                [str(v[0]) + ':' + ','.join([x.name for x in v[1]]) for v in list(self._partitions.items())]))
         gevent.sleep(0)
 
     def _device2partition(self, key):

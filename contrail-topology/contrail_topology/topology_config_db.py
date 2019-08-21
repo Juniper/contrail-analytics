@@ -6,6 +6,7 @@
 This file contains config data model for contrail-topology
 """
 
+from builtins import str
 from cfgm_common.vnc_db import DBBase
 
 

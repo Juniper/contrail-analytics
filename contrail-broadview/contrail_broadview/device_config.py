@@ -3,8 +3,14 @@
 #
 
 from __future__ import print_function
+from future import standard_library
+standard_library.install_aliases()
+from builtins import object
 import copy
-import ConfigParser
+try:
+    import configparser
+except:
+    from six.moves import configparser
 
 class DeviceConfig(object):
     def __init__(self, name, cfg={}):
@@ -35,7 +41,7 @@ class DeviceConfig(object):
     @staticmethod
     def from_file(filename):
         devices = []
-        devcfg = ConfigParser.SafeConfigParser()
+        devcfg = configparser.SafeConfigParser()
         devcfg.optionxform = str
         devcfg.read([filename])
         print(devcfg)
