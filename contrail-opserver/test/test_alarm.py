@@ -5,6 +5,8 @@
 #
 
 from __future__ import absolute_import
+from builtins import str
+from builtins import object
 import gevent
 import time
 from gevent import monkey; monkey.patch_all()
@@ -107,7 +109,7 @@ class Mock_redis_instances(Mock_base):
 
     def __call__(self):
         ret = []
-        for k,v in self.store.iteritems():
+        for k,v in self.store.items():
             ipaddr,rport = k
             ret.append(RedisInfo(ip=ipaddr, port=rport, pid=v))
         return set(ret)
@@ -137,7 +139,7 @@ class Mock_poll(Mock_base):
 
     def __call__(self):
         vals = []
-        for key in self.store.keys():
+        for key in list(self.store.keys()):
             vals.append(self.store[key])
             del self.store[key]
         if len(vals):
@@ -405,7 +407,7 @@ class TestAlarmGen(unittest.TestCase, TestChecker):
         self.assertTrue(self.checker_dict([1, "ObjectXX", "uve1"], self._ag.ptab_info))
         self.assertTrue(self.checker_exact(\
             {"type1" : {"xx": 0}},
-            self._ag.ptab_info[1]["ObjectXX"]["uve1"].values()))
+            list(self._ag.ptab_info[1]["ObjectXX"]["uve1"].values())))
 
         # Shutdown partition
         self._ag.libpart_cb([])
@@ -455,7 +457,7 @@ class TestAlarmGen(unittest.TestCase, TestChecker):
         self.assertTrue(self.checker_dict([1, "ObjectYY", "uve2"], self._ag.ptab_info))
         self.assertTrue(self.checker_exact(\
             {"type2" : {"yy": 1}},
-            self._ag.ptab_info[1]["ObjectYY"]["uve2"].values()))
+            list(self._ag.ptab_info[1]["ObjectYY"]["uve2"].values())))
 
     @mock.patch('opserver.alarmgen.Controller.reconnect_agg_uve')
     @mock.patch('opserver.alarmgen.Controller.clear_agg_uve')
@@ -527,14 +529,14 @@ class TestAlarmGen(unittest.TestCase, TestChecker):
         self.add_test_alarm('table1', 'name1', 'type1')
         self.add_test_alarm('table1', 'name1', 'type2')
         tab_alarms_copy = {}
-        for tab in self._ag.tab_alarms.keys():
-            for uk,uv in self._ag.tab_alarms[tab].iteritems():
-                for ak,av in uv.iteritems():
+        for tab in list(self._ag.tab_alarms.keys()):
+            for uk,uv in self._ag.tab_alarms[tab].items():
+                for ak,av in uv.items():
                     uai = av.get_uai(forced=True)
                     if uai:
-                        if not tab in tab_alarms_copy.keys():
+                        if not tab in list(tab_alarms_copy.keys()):
                             tab_alarms_copy[tab] = {}
-                        if not uk in tab_alarms_copy[tab].keys():
+                        if not uk in list(tab_alarms_copy[tab].keys()):
                             tab_alarms_copy[tab][uk] = {}
                         tab_alarms_copy[tab][uk][ak] = copy.deepcopy(uai)
 
@@ -634,11 +636,11 @@ class TestAlarmGen(unittest.TestCase, TestChecker):
             if case.output.alarm_send is True:
                 # verify alarm ack message is sent
                 uvekey = table+':'+name
-                for atype, alarm in tab_alarms_copy[table][uvekey].iteritems():
+                for atype, alarm in tab_alarms_copy[table][uvekey].items():
                     if atype in case.output.ack_values:
                         alarm.ack = case.output.ack_values[atype]
                 alarms = copy.deepcopy(tab_alarms_copy[table][uvekey])
-                alarm_data = UVEAlarms(name=name, alarms=alarms.values())
+                alarm_data = UVEAlarms(name=name, alarms=list(alarms.values()))
                 MockAlarmTrace.assert_called_once_with(data=alarm_data,
                     table=table, sandesh=self._ag._sandesh)
                 MockAlarmTrace().send.assert_called_once_with(
@@ -651,9 +653,9 @@ class TestAlarmGen(unittest.TestCase, TestChecker):
             # successful acknowledgement and the table is untouched in case
             # of failure.
             #self.assertEqual(tab_alarms_copy, self._ag.tab_alarms)
-            for tab in self._ag.tab_alarms.keys():
-                for uk,uv in self._ag.tab_alarms[tab].iteritems():
-                    for ak,av in uv.iteritems():
+            for tab in list(self._ag.tab_alarms.keys()):
+                for uk,uv in self._ag.tab_alarms[tab].items():
+                    for ak,av in uv.items():
                         uai = av.get_uai(forced=True)
                         if uai:
                             self.assertEqual(uai, tab_alarms_copy[tab][uk][ak])

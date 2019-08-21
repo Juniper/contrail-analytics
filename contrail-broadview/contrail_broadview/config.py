@@ -3,7 +3,10 @@
 #
 
 from __future__ import absolute_import
-import argparse, os, ConfigParser, sys, re
+from future import standard_library
+standard_library.install_aliases()
+from builtins import object
+import argparse, os, configparser, sys, re
 from pysandesh.sandesh_base import *
 from pysandesh.gen_py.sandesh.ttypes import SandeshLevel
 from . import device_config
@@ -81,7 +84,7 @@ optional arguments:
 
         config = None
         if args.conf_file:
-            config = ConfigParser.SafeConfigParser()
+            config = configparser.SafeConfigParser()
             config.optionxform = str
             config.read(args.conf_file)
             if 'DEFAULTS' in config.sections():

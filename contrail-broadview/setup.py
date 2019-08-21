@@ -1,6 +1,8 @@
 #
 # Copyright (c) 2015 Juniper Networks, Inc. All rights reserved.
 #
+from builtins import filter
+from builtins import str
 import re, setuptools, os, distutils
 from setuptools import setup, find_packages, Command
 
@@ -40,7 +42,7 @@ def requirements(filename):
     with open(filename) as f:
         lines = f.read().splitlines()
     c = re.compile(r'\s*#.*')
-    return filter(bool, map(lambda y: c.sub('', y).strip(), lines))
+    return list(filter(bool, [c.sub('', y).strip() for y in lines]))
 
 setuptools.setup(
         name='contrail_broadview',
