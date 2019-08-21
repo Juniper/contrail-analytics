@@ -2,8 +2,11 @@
 # Copyright (c) 2015 Juniper Networks, Inc. All rights reserved.
 #
 from __future__ import absolute_import
+from future import standard_library
+standard_library.install_aliases()
+from builtins import object
 from .snmp import SnmpSession
-import copy, traceback, time, ConfigParser
+import copy, traceback, time, configparser
 
 class DeviceDict(dict):
     def __init__(self, name, obj, *a, **k):

@@ -2,16 +2,26 @@
 # Copyright (c) 2015 Juniper Networks, Inc. All rights reserved.
 #
 from __future__ import absolute_import
+from __future__ import division
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import range
+from past.utils import old_div
+from builtins import object
 from gevent.queue import Queue as GQueue
 from gevent.lock import Semaphore
 import os, json, sys, subprocess, time, gevent, socket
 from tempfile import NamedTemporaryFile, mkdtemp
-import cPickle as pickle
+import pickle as pickle
 from .snmpuve import SnmpUve
 from opserver.consistent_schdlr import ConsistentScheduler
 from .device_config import DeviceConfig, DeviceDict
 from .snmp_config_handler import SnmpConfigHandler
-import ConfigParser
+try:
+    import configparser
+except:
+    from six.moves import configparser
 import signal
 import random
 import hashlib
@@ -91,14 +101,13 @@ class Controller(object):
             if 'snmp' in data[dev]:
                 if 'ifMib' in data[dev]['snmp']:
                     if 'ifTable' in data[dev]['snmp']['ifMib']:
-                        if_cdata[dev] = dict(map(lambda x: (
-                                x['ifIndex'], (x['ifOperStatus'], t)),
-                                        filter(lambda x: 'ifOperStatus' in x\
-                                            and 'ifDescr' in x, data[dev][
-                                               'snmp']['ifMib']['ifTable'])))
+                        if_cdata[dev] = dict([(
+                                x['ifIndex'], (x['ifOperStatus'], t)) for x in [x for x in data[dev][
+                                               'snmp']['ifMib']['ifTable'] if 'ifOperStatus' in x\
+                                            and 'ifDescr' in x]])
                 elif 'ifOperStatus' in data[dev]['snmp']:
                     if_cdata[dev] = dict((k, (v, t)) for k, v in
-                                    data[dev]['snmp']['ifOperStatus'].items())
+                                    list(data[dev]['snmp']['ifOperStatus'].items()))
         return if_cdata
 
     def _delete_if_data(self, dev):
@@ -154,9 +163,9 @@ class Controller(object):
         down2up, up2down, others = self._get_if_changes(if_cdata)
         self._check_and_update_ttl(up2down)
         self._logger.debug('@chk_if_change: down2up(%s), up2down(%s), ' \
-                'others(%s)' % (', '.join(down2up.keys()),
-                                ', '.join(up2down.keys()),
-                                ', '.join(others.keys())))
+                'others(%s)' % (', '.join(list(down2up.keys())),
+                                ', '.join(list(up2down.keys())),
+                                ', '.join(list(others.keys()))))
         return down2up, up2down, others
 
     def _extra_call_params(self):
@@ -197,8 +206,8 @@ class Controller(object):
         else:
             self._sleep_time = self._config.frequency()
         self._fast_scan_freq = self._config.fast_scan_freq()
-        if self._fast_scan_freq > self._sleep_time / 2:
-            self._fast_scan_freq = self._sleep_time / 2
+        if self._fast_scan_freq > old_div(self._sleep_time, 2):
+            self._fast_scan_freq = old_div(self._sleep_time, 2)
         return self._sleep_time
 
     def _setup_io(self):
@@ -240,7 +249,7 @@ class Controller(object):
         os.rmdir(cdir)
 
     def _send_uve(self, d):
-        for dev, data in d.items():
+        for dev, data in list(d.items()):
             if dev:
                 self.uve.send(data['snmp'])
                 self.uve.send_flow_uve({'name': dev,
@@ -257,12 +266,12 @@ class Controller(object):
             self._partitions = partitions
             snmp_collector_info.partitions = partitions
         new_prouters = {p.name: p for p in prouters}
-        if self._prouters.keys() != new_prouters.keys():
-            deleted_prouters = [v for p, v in self._prouters.iteritems() \
+        if list(self._prouters.keys()) != list(new_prouters.keys()):
+            deleted_prouters = [v for p, v in self._prouters.items() \
                 if p not in new_prouters]
             self._del_uves(deleted_prouters)
             self._prouters = new_prouters
-            snmp_collector_info.prouters = self._prouters.keys()
+            snmp_collector_info.prouters = list(self._prouters.keys())
         if snmp_collector_info != SnmpCollectorInfo():
             snmp_collector_info.name = self._hostname
             SnmpCollectorUVE(data=snmp_collector_info).send()
@@ -305,7 +314,7 @@ class Controller(object):
 
     def sighup_handler(self):
         if self._config._args.conf_file:
-            config = ConfigParser.SafeConfigParser()
+            config = configparser.SafeConfigParser()
             config.read(self._config._args.conf_file)
             if 'DEFAULTS' in config.sections():
                 try:
@@ -320,7 +329,7 @@ class Controller(object):
                         # Reconnect to achieve load-balance irrespective of list
                         self.uve.sandesh_reconfig_collectors(
                                 self._config.random_collectors)
-                except ConfigParser.NoOptionError as e: 
+                except configparser.NoOptionError as e: 
                     pass
     # end sighup_handler  
 
@@ -328,15 +337,14 @@ class Controller(object):
         i = 0
         while True:
             self._logger.debug('@run: ittr(%d)' % i)
-            devices = map(lambda e: DeviceDict(e[0].split(':')[-1], e[1].obj),
-                self._config_handler.get_physical_routers())
+            devices = [DeviceDict(e[0].split(':')[-1], e[1].obj) for e in self._config_handler.get_physical_routers()]
             if self._consistent_scheduler.schedule(devices):
                 members = self._consistent_scheduler.members()
                 partitions = self._consistent_scheduler.partitions()
                 work_items = self._consistent_scheduler.work_items()
                 self._send_snmp_collector_uve(members, partitions, work_items)
                 sleep_time = self.do_work(i, work_items)
-                self._logger.debug('done work %s' % str(self._prouters.keys()))
+                self._logger.debug('done work %s' % str(list(self._prouters.keys())))
                 i += 1
                 gevent.sleep(sleep_time)
             else:

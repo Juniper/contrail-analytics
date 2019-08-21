@@ -29,11 +29,11 @@ class TopologyConfigHandler(ConfigHandler):
     # end __init__
 
     def get_logical_interfaces(self):
-        return LogicalInterfaceCT.items()
+        return list(LogicalInterfaceCT.items())
     # end get_logical_interfaces
 
     def get_virtual_machine_interfaces(self):
-        return VirtualMachineInterfaceCT.items()
+        return list(VirtualMachineInterfaceCT.items())
     # end get_virtual_machine_interfaces
 
     def get_virtual_machine_interface(self, fq_name, uuid=None):
