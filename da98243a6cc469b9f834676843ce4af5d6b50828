@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7cb543b3_fb8cc651",
+        "filename": "contrail-opserver/introspect_util.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 717
+      },
+      "writtenOn": "2019-08-21T11:04:47Z",
+      "side": 1,
+      "message": "Corrected",
+      "parentUuid": "1472aed3_39199cac",
+      "range": {
+        "startLine": 54,
+        "startChar": 51,
+        "endLine": 54,
+        "endChar": 61
+      },
+      "revId": "da98243a6cc469b9f834676843ce4af5d6b50828",
+      "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "699abe0b_0f04c113",
         "filename": "contrail-opserver/opserver_util.py",
         "patchSetId": 8
@@ -39,6 +63,24 @@
       "revId": "da98243a6cc469b9f834676843ce4af5d6b50828",
       "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "21d49d5f_0eff1d0e",
+        "filename": "contrail-opserver/opserver_util.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 525,
+      "author": {
+        "id": 717
+      },
+      "writtenOn": "2019-08-21T11:04:47Z",
+      "side": 1,
+      "message": "Corrected",
+      "parentUuid": "699abe0b_0f04c113",
+      "revId": "da98243a6cc469b9f834676843ce4af5d6b50828",
+      "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
+      "unresolved": false
     },
     {
       "key": {
@@ -88,6 +130,30 @@
     },
     {
       "key": {
+        "uuid": "27e4c824_3b9c1820",
+        "filename": "contrail-opserver/test/test_analytics_uve.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 2288,
+      "author": {
+        "id": 717
+      },
+      "writtenOn": "2019-08-21T11:04:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e388f724_9bff91b8",
+      "range": {
+        "startLine": 2288,
+        "startChar": 1,
+        "endLine": 2288,
+        "endChar": 6
+      },
+      "revId": "da98243a6cc469b9f834676843ce4af5d6b50828",
+      "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "60d023e1_8899984a",
         "filename": "contrail-opserver/test/test_analytics_uve.py",
         "patchSetId": 8
@@ -102,6 +168,24 @@
       "revId": "da98243a6cc469b9f834676843ce4af5d6b50828",
       "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c04fc745_3262e59c",
+        "filename": "contrail-opserver/test/test_analytics_uve.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 2300,
+      "author": {
+        "id": 717
+      },
+      "writtenOn": "2019-08-21T11:04:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "60d023e1_8899984a",
+      "revId": "da98243a6cc469b9f834676843ce4af5d6b50828",
+      "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
+      "unresolved": false
     },
     {
       "key": {
@@ -122,6 +206,24 @@
     },
     {
       "key": {
+        "uuid": "91d64bb0_4084100b",
+        "filename": "contrail-opserver/test/test_analytics_uve.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 2427,
+      "author": {
+        "id": 717
+      },
+      "writtenOn": "2019-08-21T11:04:47Z",
+      "side": 1,
+      "message": "Corrected",
+      "parentUuid": "33f85408_45a1a2a9",
+      "revId": "da98243a6cc469b9f834676843ce4af5d6b50828",
+      "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c0dcef15_ec6fe11e",
         "filename": "contrail-opserver/test/test_analytics_uve.py",
         "patchSetId": 8
@@ -136,6 +238,24 @@
       "revId": "da98243a6cc469b9f834676843ce4af5d6b50828",
       "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f6ac2b48_569f70bb",
+        "filename": "contrail-opserver/test/test_analytics_uve.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 2430,
+      "author": {
+        "id": 717
+      },
+      "writtenOn": "2019-08-21T11:04:47Z",
+      "side": 1,
+      "message": "Corrected",
+      "parentUuid": "c0dcef15_ec6fe11e",
+      "revId": "da98243a6cc469b9f834676843ce4af5d6b50828",
+      "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
+      "unresolved": false
     },
     {
       "key": {
@@ -159,6 +279,30 @@
       "revId": "da98243a6cc469b9f834676843ce4af5d6b50828",
       "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8e041be7_8b924997",
+        "filename": "contrail-opserver/test/utils/analytics_fixture.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 929,
+      "author": {
+        "id": 717
+      },
+      "writtenOn": "2019-08-21T11:04:47Z",
+      "side": 1,
+      "message": "Renamed it as \u0027certificate\u0027",
+      "parentUuid": "375afadf_5b6fd403",
+      "range": {
+        "startLine": 929,
+        "startChar": 12,
+        "endLine": 929,
+        "endChar": 23
+      },
+      "revId": "da98243a6cc469b9f834676843ce4af5d6b50828",
+      "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
+      "unresolved": false
     },
     {
       "key": {
