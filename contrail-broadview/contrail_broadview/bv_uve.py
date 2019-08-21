@@ -1,6 +1,7 @@
 #
 # Copyright (c) 2015 Juniper Networks, Inc. All rights reserved.
 #
+from builtins import object
 import pprint, socket
 from pysandesh.sandesh_base import *
 from pysandesh.connection_info import ConnectionState
@@ -69,7 +70,7 @@ class BroadViewOL(object):
         self._r2s, self._s2r = {}, {}
         for rp in self._raw_params:
             x = rp.split('-')
-            n = ''.join([x[0]] + map(lambda p: p.capitalize(), x[1:]))
+            n = ''.join([x[0]] + [p.capitalize() for p in x[1:]])
             self._r2s[rp] = n
             self._s2r[n] = rp
 
@@ -77,18 +78,18 @@ class BroadViewOL(object):
         return self._r2s.get(realm, None)
 
     def get_raw_params(self):
-        return self._r2s.keys()
+        return list(self._r2s.keys())
 
     def send(self, data):
         pprint.pprint(data)
         if 'device' in data:
             data['device'] = Device(data['device'])
-        for prms in self._s2r.keys():
+        for prms in list(self._s2r.keys()):
             if prms != 'device' and prms in data:
                 cl = prms[0].upper() + prms[1:]
                 fn = locals().get(cl, globals().get(cl))
                 # print cl, fn, data[prms]
-                data[prms] = map(lambda x: fn(**x), data[prms])
+                data[prms] = [fn(**x) for x in data[prms]]
         objlog = PRouterBroadViewInfo(**data)
         objlog.send()
         

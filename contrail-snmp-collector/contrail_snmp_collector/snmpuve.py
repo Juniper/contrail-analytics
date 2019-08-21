@@ -2,6 +2,10 @@
 # Copyright (c) 2015 Juniper Networks, Inc. All rights reserved.
 #
 from __future__ import print_function
+from builtins import str
+from builtins import map
+from past.builtins import basestring
+from builtins import object
 import pprint, socket, copy
 import datetime
 from pysandesh.sandesh_base import *
@@ -97,7 +101,7 @@ class SnmpUve(object):
         return self._logger
 
     def make_composites(self, ife):
-        for k in self._composite_rules.keys():
+        for k in list(self._composite_rules.keys()):
             for cmpsr in self._composite_rules[k]:
                 if cmpsr in ife:
                     if k not in ife:
@@ -116,12 +120,12 @@ class SnmpUve(object):
             elif 'ifName' in ife:
                 ifname = ife['ifName']
             else:
-                print(str(datetime.datetime.now()),'Err: ', ife.keys(), pname)
+                print(str(datetime.datetime.now()),'Err: ', list(ife.keys()), pname)
                 continue
             if ifname not in iftables:
                 iftables[ifname] = {}
             iftables[ifname].update(ife)
-        for ifname, ife in iftables.items():
+        for ifname, ife in list(iftables.items()):
             self.make_composites(ife)
 
             if ifname not in diffs:
@@ -132,7 +136,7 @@ class SnmpUve(object):
             if ifname not in self.if_stat[pname]:
                 self.if_stat[pname][ifname] = {}
             self.if_stat[pname][ifname].update(self.stat_req(ife))
-        data['ifStats'] = map(lambda x: IfStats(**x), diffs.values())
+        data['ifStats'] = [IfStats(**x) for x in list(diffs.values())]
 
     def diff(self, old, new, ifname):
         d = dict(ifIndex=new['ifIndex'], ifName=ifname)
@@ -180,19 +184,16 @@ class SnmpUve(object):
     def make_uve(self, data):
         # print 'Building UVE:', data['name']
         if 'arpTable' in data:
-            data['arpTable'] = map(lambda x: ArpTable(**x),
-                    data['arpTable'])
+            data['arpTable'] = [ArpTable(**x) for x in data['arpTable']]
         if 'ifMib' in data:
             self.get_diff(data)
             if 'ifTable' in data['ifMib']:
-                data['ifTable'] = map(lambda x: IfTable(**x),
-                    data['ifMib']['ifTable'])
+                data['ifTable'] = [IfTable(**x) for x in data['ifMib']['ifTable']]
             if 'ifXTable' in data['ifMib']:
-                data['ifXTable'] = map(lambda x: IfXTable(**x),
-                    data['ifMib']['ifXTable'])
+                data['ifXTable'] = [IfXTable(**x) for x in data['ifMib']['ifXTable']]
             del data['ifMib']
         if 'ipMib' in data:
-            data['ipMib'] = map(lambda x: IpMib(**x), data['ipMib'])
+            data['ipMib'] = [IpMib(**x) for x in data['ipMib']]
         if 'lldpTable' in data:
             if 'lldpLocalSystemData' in data['lldpTable']:
                 if 'lldpLocManAddrEntry' in data['lldpTable'][
@@ -204,21 +205,21 @@ class SnmpUve(object):
                 if 'lldpLocSysCapEnabled' in data['lldpTable'][
                   'lldpLocalSystemData']:
                     data['lldpTable']['lldpLocalSystemData'][
-                        'lldpLocSysCapEnabled'] = map(self._to_cap_map, data[
+                        'lldpLocSysCapEnabled'] = list(map(self._to_cap_map, data[
                             'lldpTable']['lldpLocalSystemData'][
-                            'lldpLocSysCapEnabled'])
+                            'lldpLocSysCapEnabled']))
                 if 'lldpLocSysCapSupported' in data['lldpTable'][
                   'lldpLocalSystemData']:
                     data['lldpTable']['lldpLocalSystemData'][
-                        'lldpLocSysCapSupported'] = map(self._to_cap_map,
+                        'lldpLocSysCapSupported'] = list(map(self._to_cap_map,
                             data['lldpTable']['lldpLocalSystemData'][
-                            'lldpLocSysCapSupported'])
+                            'lldpLocSysCapSupported']))
                 if 'lldpLocPortTable' in data['lldpTable'][
                                                         'lldpLocalSystemData']:
                     data['lldpTable']['lldpLocalSystemData'][
                         'lldpLocPortTable'] = [LldpLocPortEntry(
-                            **x) for x in data['lldpTable'][
-                            'lldpLocalSystemData']['lldpLocPortTable'].values()]
+                            **x) for x in list(data['lldpTable'][
+                            'lldpLocalSystemData']['lldpLocPortTable'].values())]
                 data['lldpTable']['lldpLocalSystemData'] = \
                     LldpLocalSystemData(**data['lldpTable'][
                             'lldpLocalSystemData'])
@@ -228,19 +229,17 @@ class SnmpUve(object):
                 for d in data['lldpTable']['lldpRemoteSystemsData']:
 
                     if 'lldpRemSysCapEnabled' in d:
-                        d['lldpRemSysCapEnabled'] = map(self._to_cap_map,
-                                d['lldpRemSysCapEnabled'])
+                        d['lldpRemSysCapEnabled'] = list(map(self._to_cap_map,
+                                d['lldpRemSysCapEnabled']))
                     if 'lldpRemSysCapSupported' in d:
-                        d['lldpRemSysCapSupported'] = map(self._to_cap_map,
-                                d['lldpRemSysCapSupported'])
+                        d['lldpRemSysCapSupported'] = list(map(self._to_cap_map,
+                                d['lldpRemSysCapSupported']))
                     if 'lldpRemOrgDefInfoEntry' in d:
                         if 'lldpRemOrgDefInfoTable' in d[
                                                 'lldpRemOrgDefInfoEntry']:
                             d['lldpRemOrgDefInfoEntry'][
-                                 'lldpRemOrgDefInfoTable'] = map(lambda x: \
-                                     LldpRemOrgDefInfoTable(**x),
-                                     d['lldpRemOrgDefInfoEntry'][
-                                        'lldpRemOrgDefInfoTable'])
+                                 'lldpRemOrgDefInfoTable'] = [LldpRemOrgDefInfoTable(**x) for x in d['lldpRemOrgDefInfoEntry'][
+                                        'lldpRemOrgDefInfoTable']]
                             d['lldpRemOrgDefInfoEntry'] = \
                                 LldpRemOrgDefInfoEntry(**d[
                                         'lldpRemOrgDefInfoEntry'])
@@ -252,11 +251,9 @@ class SnmpUve(object):
             data['lldpTable'] = LldpTable(**data['lldpTable'])
         if 'qBridgeTable' in data:
             if 'dot1qTpFdbPortTable' in data['qBridgeTable']:
-                data['fdbPortTable'] = map(lambda x: dot1qTpFdbPortTable(**x),
-                    data['qBridgeTable']['dot1qTpFdbPortTable'])
+                data['fdbPortTable'] = [dot1qTpFdbPortTable(**x) for x in data['qBridgeTable']['dot1qTpFdbPortTable']]
             if 'dot1dBasePortIfIndexTable' in data['qBridgeTable']:
-                data['fdbPortIfIndexTable'] = map(lambda x: dot1dBasePortIfIndexTable(**x),
-                    data['qBridgeTable']['dot1dBasePortIfIndexTable'])
+                data['fdbPortIfIndexTable'] = [dot1dBasePortIfIndexTable(**x) for x in data['qBridgeTable']['dot1dBasePortIfIndexTable']]
             del data['qBridgeTable']
         return PRouterUVE(data=PRouterEntry(**data))
 

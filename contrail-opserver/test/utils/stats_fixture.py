@@ -11,6 +11,7 @@
 #
 
 from __future__ import absolute_import
+from builtins import str
 from gevent import monkey
 monkey.patch_all()
 import fixtures
@@ -159,7 +160,7 @@ class StatsFixture(fixtures.Fixture):
         if (len(res) != num):
             return False
         if check_uniq is not None:
-            for k,v in check_uniq.iteritems():
+            for k,v in check_uniq.items():
                 vs=set()
                 for row in res:
                     if k in row:
@@ -175,7 +176,7 @@ class StatsFixture(fixtures.Fixture):
         for crow in check_rows:
             match = False
             for row in res:
-                for k in crow.keys():
+                for k in list(crow.keys()):
                     if k in row:
                         if crow[k] != None:
                             if isinstance(crow[k], float):

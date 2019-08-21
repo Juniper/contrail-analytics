@@ -1,7 +1,11 @@
 #
 # Copyright (c) 2015 Juniper Networks, Inc. All rights reserved.
 #
-import argparse, os, ConfigParser, sys, re
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import object
+import argparse, os, configparser, sys, re
 from pysandesh.sandesh_base import *
 from pysandesh.gen_py.sandesh.ttypes import SandeshLevel
 from pysandesh.connection_info import ConnectionState
@@ -111,7 +115,7 @@ optional arguments:
 
         config = None
         if args.conf_file:
-            config = ConfigParser.SafeConfigParser()
+            config = configparser.SafeConfigParser()
             config.optionxform = str
             config.read(args.conf_file)
             if 'DEFAULTS' in config.sections():

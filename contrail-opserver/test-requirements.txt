@@ -1,3 +1,5 @@
+future
+configparser
 testscenarios
 testrepository
 python-subunit
