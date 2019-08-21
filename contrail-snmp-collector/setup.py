@@ -41,7 +41,7 @@ def requirements(filename):
         lines = f.read().splitlines()
     c = re.compile(r'\s*#.*')
     return ['netsnmp-python'] + filter(bool, map(
-                lambda y: c.sub('', y).strip(), lines))
+                lambda y: c.sub('', y).strip(), lines)
 
 setuptools.setup(
         name='contrail_snmp_collector',

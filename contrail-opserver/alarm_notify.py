@@ -11,6 +11,7 @@
 #
 
 from __future__ import print_function
+from builtins import object
 from gevent import monkey
 monkey.patch_all()
 import time
@@ -65,7 +66,7 @@ class ContrailAlarmNotifier(object):
         self._sender_email_pwd = None
         self._analytics_api_name_to_table_name = UVE_MAP
         self._table_name_to_analytics_api_name = \
-            {v: k for k, v in UVE_MAP.iteritems()}
+            {v: k for k, v in UVE_MAP.items()}
     # end __init__
 
     def run(self):

@@ -3,6 +3,12 @@
 #
 from __future__ import print_function
 from __future__ import absolute_import
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import filter
+from builtins import range
+from builtins import object
 from .analytic_client import AnalyticApiClient
 import time, socket, os
 from .topology_uve import LinkUve
@@ -11,7 +17,10 @@ from gevent.lock import Semaphore
 from opserver.consistent_schdlr import ConsistentScheduler
 from .topology_config_handler import TopologyConfigHandler
 import traceback
-import ConfigParser
+try:
+    import configparser
+except:
+    from six.moves import configparser
 import signal
 import random
 import hashlib
@@ -115,8 +124,7 @@ class Controller(object):
     def _is_linkup(self, prouter, ifindex):
         if 'PRouterEntry' in prouter.data and \
             'ifIndexOperStatusTable' in prouter.data['PRouterEntry']:
-                status = filter(lambda x: x['ifIndex'] == ifindex,
-                        prouter.data['PRouterEntry']['ifIndexOperStatusTable'])
+                status = [x for x in prouter.data['PRouterEntry']['ifIndexOperStatusTable'] if x['ifIndex'] == ifindex]
                 if status and status[0]['ifOperStatus'] == 1:
                     return True
         return False
@@ -164,12 +172,12 @@ class Controller(object):
             self._partitions = partitions
             topology_info.partitions = partitions
         new_prouters = {p.name: p for p in prouters}
-        if self._prouters.keys() != new_prouters.keys():
-            deleted_prouters = [v for p, v in self._prouters.iteritems() \
+        if list(self._prouters.keys()) != list(new_prouters.keys()):
+            deleted_prouters = [v for p, v in self._prouters.items() \
                 if p not in new_prouters]
             self._del_uves(deleted_prouters)
             self._prouters = new_prouters
-            topology_info.prouters = self._prouters.keys()
+            topology_info.prouters = list(self._prouters.keys())
         if topology_info != TopologyInfo():
             topology_info.name = self._hostname
             TopologyUVE(data=topology_info).send()
@@ -220,8 +228,7 @@ class Controller(object):
                 continue
             self.link[pr] = []
             lldp_ints = []
-            ifm = dict(map(lambda x: (x['ifIndex'], x['ifDescr']),
-                        d['PRouterEntry']['ifTable']))
+            ifm = dict([(x['ifIndex'], x['ifDescr']) for x in d['PRouterEntry']['ifTable']])
             self.bms_links(prouter, ifm)
             for pl in d['PRouterEntry']['lldpTable']['lldpRemoteSystemsData']:
                 if d['PRouterEntry']['lldpTable']['lldpLocalSystemData'][
@@ -292,10 +299,9 @@ class Controller(object):
 
             vrouter_l2ifs = {}
             if 'fdbPortIfIndexTable' in d['PRouterEntry']:
-                dot1d2snmp = map (lambda x: (
+                dot1d2snmp = [(
                             x['dot1dBasePortIfIndex'],
-                            x['snmpIfIndex']),
-                        d['PRouterEntry']['fdbPortIfIndexTable'])
+                            x['snmpIfIndex']) for x in d['PRouterEntry']['fdbPortIfIndexTable']]
                 dot1d2snmp_dict = dict(dot1d2snmp)
                 if 'fdbPortTable' in d['PRouterEntry']:
                     for mac_entry in d['PRouterEntry']['fdbPortTable']:
@@ -328,8 +334,7 @@ class Controller(object):
                                 }
             for arp in d['PRouterEntry']['arpTable']:
                 if arp['ip'] in self.vrouter_ips:
-                    if arp['mac'] in map(lambda x: x['mac_address'],
-                            self.vrouters[self.vrouter_ips[arp['ip']]]['if']):
+                    if arp['mac'] in [x['mac_address'] for x in self.vrouters[self.vrouter_ips[arp['ip']]]['if']]:
                         vr_name = self.vrouter_macs[arp['mac']]['vrname']
                         vr_ifname = self.vrouter_macs[arp['mac']]['ifname']
                         try:
@@ -357,7 +362,7 @@ class Controller(object):
                                 remote_interface_index=1, #dont know TODO:FIX
                                 link_type=RemoteType.VRouter):
                             pass
-            for vr, intf in vrouter_l2ifs.iteritems():
+            for vr, intf in vrouter_l2ifs.items():
                 if vr in self._vrouter_l2ifs:
                     self._vrouter_l2ifs[vr].update(vrouter_l2ifs[vr])
                 else:
@@ -374,7 +379,7 @@ class Controller(object):
             VRouterL2IfUVE(data=vr_l2info).send()
         for vr in add_vrs:
             if_info = {}
-            for vrif, remif_info in self._vrouter_l2ifs[vr].iteritems():
+            for vrif, remif_info in self._vrouter_l2ifs[vr].items():
                 if_info[vrif] = RemoteIfInfo(remif_info['remote_system_name'],
                     remif_info['remote_if_name'])
             vr_l2info = VRouterL2IfInfo(name=vr, if_info=if_info)
@@ -382,7 +387,7 @@ class Controller(object):
         for vr in same_vrs:
             if self._vrouter_l2ifs[vr] != self._old_vrouter_l2ifs[vr]:
                 if_info = {}
-                for vrif, remif_info in self._vrouter_l2ifs[vr].iteritems():
+                for vrif, remif_info in self._vrouter_l2ifs[vr].items():
                     if_info[vrif] = RemoteIfInfo(
                         remif_info['remote_system_name'],
                         remif_info['remote_if_name'])
@@ -406,7 +411,7 @@ class Controller(object):
 
     def sighup_handler(self):
         if self._config._args.conf_file:
-            config = ConfigParser.SafeConfigParser()
+            config = configparser.SafeConfigParser()
             config.read(self._config._args.conf_file)
             if 'DEFAULTS' in config.sections():
                 try:
@@ -421,7 +426,7 @@ class Controller(object):
                         # Reconnect to achieve load-balance irrespective of list
                         self.uve.sandesh_reconfig_collectors(
                                 self._config.random_collectors)
-                except ConfigParser.NoOptionError as e:
+                except configparser.NoOptionError as e:
                     pass
     # end sighup_handler
 
