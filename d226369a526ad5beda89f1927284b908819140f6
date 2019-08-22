@@ -16,6 +16,24 @@
       "revId": "d226369a526ad5beda89f1927284b908819140f6",
       "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "91f81c5f_aa2207ee",
+        "filename": "contrail-opserver/opserver.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 717
+      },
+      "writtenOn": "2019-08-22T05:50:38Z",
+      "side": 1,
+      "message": "the ssl_version argument does not seem to be taking ssl.PROTOCOL_TLSv1.2 as a value.\nInstead, it takes ssl.PROTOCOL_TLSv1, which also is the default.\nSo, not passing TLS version",
+      "parentUuid": "e5799fef_a58246ec",
+      "revId": "d226369a526ad5beda89f1927284b908819140f6",
+      "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
+      "unresolved": false
     }
   ]
 }
