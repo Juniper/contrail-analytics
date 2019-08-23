@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6f636ef7_f7e1ce18",
+        "filename": "contrail-opserver/opserver.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 213
+      },
+      "writtenOn": "2019-08-23T07:18:03Z",
+      "side": 1,
+      "message": "you imported ssl at the top also, maybe you can remove that",
+      "range": {
+        "startLine": 132,
+        "startChar": 68,
+        "endLine": 132,
+        "endChar": 72
+      },
+      "revId": "38c3a9017f4e8066d1d33ff514c08d233398ea2c",
+      "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
+      "unresolved": true
+    }
+  ]
+}
