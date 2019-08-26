@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "89000e23_e24db8a1",
+        "filename": "contrail-opserver/contrail-analytics-api.conf",
+        "patchSetId": 4
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 213
+      },
+      "writtenOn": "2019-08-26T02:14:35Z",
+      "side": 1,
+      "message": "Nit: Why add an empty line?",
+      "range": {
+        "startLine": 34,
+        "startChar": 0,
+        "endLine": 34,
+        "endChar": 0
+      },
+      "revId": "adcc141f0f783f66bcee6122d796f3fc3d656163",
+      "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
+      "unresolved": true
+    }
+  ]
+}
