@@ -1,6 +1,8 @@
 #
 # Copyright (c) 2016 Juniper Networks, Inc. All rights reserved.
 #
+from builtins import str
+from builtins import object
 import sys
 import gevent
 from gevent import monkey

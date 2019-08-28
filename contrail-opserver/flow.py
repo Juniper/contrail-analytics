@@ -12,8 +12,17 @@
 
 from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import division
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import object
+from past.utils import old_div
 import sys
-import ConfigParser
+try:
+    import configparser
+except:
+    from six.moves import configparser
 import argparse
 import json
 import datetime
@@ -119,7 +128,7 @@ class FlowQuerier(object):
         if args.conf_file:
             configfile = args.conf_file
 
-        config = ConfigParser.SafeConfigParser()
+        config = configparser.SafeConfigParser()
         config.read(configfile)
         if 'KEYSTONE' in config.sections():
             if args.admin_user == None:
@@ -428,8 +437,8 @@ class FlowQuerier(object):
                 setup_time = int(flow_dict[self._SETUP_TIME])
                 if setup_time != 0:
                     setup_dt = datetime.datetime.fromtimestamp(
-                        setup_time /
-                        OpServerUtils.USECS_IN_SEC)
+                        old_div(setup_time,
+                        OpServerUtils.USECS_IN_SEC))
                     setup_dt += datetime.timedelta(
                         microseconds=
                         (setup_time %
@@ -447,8 +456,8 @@ class FlowQuerier(object):
                     self._TEARDOWN_TIME])
                 if teardown_time != 0:
                     teardown_dt = datetime.datetime.fromtimestamp(
-                        teardown_time /
-                        OpServerUtils.USECS_IN_SEC)
+                        old_div(teardown_time,
+                        OpServerUtils.USECS_IN_SEC))
                     teardown_dt += datetime.timedelta(
                         microseconds=
                         (teardown_time %

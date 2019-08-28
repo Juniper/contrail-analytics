@@ -4,6 +4,7 @@
 
 
 from __future__ import absolute_import
+from builtins import object
 import gevent
 import json
 import traceback
@@ -79,7 +80,7 @@ class ConfigHandler(object):
             if hasattr(obj, 'serialize_to_json'):
                 return obj.serialize_to_json()
             else:
-                return dict((k, v) for k, v in obj.__dict__.iteritems())
+                return dict((k, v) for k, v in obj.__dict__.items())
 
         return json.loads(json.dumps(obj, default=to_json))
     # end obj_to_dict
@@ -91,7 +92,7 @@ class ConfigHandler(object):
     # end _fqname_to_str
 
     def _sync_config_db(self):
-        for cls in self._db_cls.get_obj_type_map().values():
+        for cls in list(self._db_cls.get_obj_type_map().values()):
             cls.reinit()
         self._handle_config_sync()
         self._vnc_amqp._db_resync_done.set()
