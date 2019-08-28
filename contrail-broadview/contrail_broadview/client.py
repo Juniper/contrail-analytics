@@ -1,6 +1,7 @@
 #
 # Copyright (c) 2015 Juniper Networks, Inc. All rights reserved.
 #
+from builtins import object
 import random
 import requests, json
 from requests.exceptions import ConnectionError
@@ -27,8 +28,7 @@ class BroadviewApiClient(object):
                 {'asic-id': asic, 'params': self._get_all_bst_param()})
 
     def _get_all_bst_param(self):
-        return dict(map(lambda x:('include-' + x, 1),
-                    self._objl.get_raw_params()))
+        return dict([('include-' + x, 1) for x in self._objl.get_raw_params()])
 
     def get_switch_properties(self, prouter):
         prouter.set_switch_properties(self._get_bv_data(prouter,
@@ -61,7 +61,7 @@ class BroadviewApiClient(object):
         raise ConnectionError("bad request " + url)
 
     def _get_list_2_dict(self, j):
-        return dict(map(lambda x: (x['name'], x['href']), j))
+        return dict([(x['name'], x['href']) for x in j])
 
     def get_base(self):
         for api in self.config.analytics_api():

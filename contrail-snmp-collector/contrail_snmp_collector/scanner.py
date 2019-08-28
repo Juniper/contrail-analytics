@@ -4,11 +4,14 @@
 
 from __future__ import print_function
 from __future__ import absolute_import
+from future import standard_library
+standard_library.install_aliases()
+from builtins import object
 import argparse, os, sys
 from .snmp import SnmpSession
 import gevent
 from gevent.queue import Queue as GQueue
-import cPickle as pickle
+import pickle as pickle
 
 class Controller(object):
     def __init__(self, config):

@@ -10,6 +10,9 @@
 # Unit Tests for UVE Aggregation in Operational State Server
 #
 
+from builtins import str
+from past.builtins import basestring
+from builtins import object
 import logging
 import os
 import sys
@@ -47,7 +50,7 @@ def MakeStruct(typ, dval, aggtype=None):
     if aggtype is not None:
         item['@aggtype'] = aggtype
     item[typ] = {}
-    for k,v in dval.iteritems():
+    for k,v in dval.items():
         vmap = {}
         if isinstance(v,int):
             vmap['@type'] = 'u64'
@@ -126,7 +129,7 @@ def MakeStringMap(inmap):
     result['map']['@size'] = str(len(inmap))
     result['map']['element'] = []
     keytype = None 
-    for elem in inmap.keys():
+    for elem in list(inmap.keys()):
         result['map']['element'].append(elem)
         result['map']['element'].append(inmap[elem])
         if isinstance(elem,basestring):

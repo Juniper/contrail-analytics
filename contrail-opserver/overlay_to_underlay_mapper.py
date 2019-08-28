@@ -9,6 +9,8 @@
 #
 
 from __future__ import absolute_import
+from builtins import str
+from builtins import object
 import json
 
 from .sandesh.viz.constants import *
@@ -152,7 +154,7 @@ class OverlayToUnderlayMapper(object):
         uflow_data_where = []
         for row in flow_record_data:
             # if any of the column value is None, then skip the row
-            if any(col == None for col in row.values()):
+            if any(col == None for col in list(row.values())):
                 continue
             uflow_data_where_and_list = []
             ufname = self._flowrecord_to_uflowdata_name(

@@ -1,6 +1,9 @@
+from __future__ import division
 #
 # Copyright (c) 2015 Juniper Networks, Inc. All rights reserved.
 #
+from builtins import range
+from past.utils import old_div
 import unittest
 import tempfile
 
@@ -84,12 +87,12 @@ class MaxNinTtimeTest(unittest.TestCase):
         self.assertEqual(self.mntt._pointer, 1)
 
     def test_010_addmore(self):
-        ts = [self.mntt.add() for i in range(self.n + self.n/2)]
-        self.assertEqual(len(filter(lambda p: p>self.t/2, [t-ts[
-                        i-1] for i,t in enumerate(ts)][1:])), 1) #one jump
+        ts = [self.mntt.add() for i in range(self.n + old_div(self.n,2))]
+        self.assertEqual(len([p for p in [t-ts[
+                        i-1] for i,t in enumerate(ts)][1:] if p>old_div(self.t,2)]), 1) #one jump
 
     def test_020_fs(self):
-        ts = [self.mntt.add() for i in range(self.n + self.n/2)]
+        ts = [self.mntt.add() for i in range(self.n + old_div(self.n,2))]
         self.assertFalse(self.mntt.ready4full_scan())
         gevent.sleep(self.t + .1)
         self.assertTrue(self.mntt.ready4full_scan())
