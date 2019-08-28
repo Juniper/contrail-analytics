@@ -2,6 +2,9 @@
 # Copyright (c) 2015 Juniper Networks, Inc. All rights reserved.
 #
 from __future__ import print_function
+from builtins import map
+from builtins import range
+from builtins import object
 import struct, netsnmp, string
 
 class SnmpTable(object):
@@ -118,7 +121,7 @@ class LldpTable(SnmpTable):
 
     def py_obj(self):
         return {'lldpLocalSystemData':self.lldpLocalSystemData,
-            'lldpRemoteSystemsData':self.lldpRemoteSystemsData.values()}
+            'lldpRemoteSystemsData':list(self.lldpRemoteSystemsData.values())}
 
     def table_names(self):
         return ['lldpLocalSystemData', 'lldpRemoteSystemsData']
@@ -175,7 +178,7 @@ class LldpTable(SnmpTable):
 
     def _to_time_ifidx_nid(self, d):
         y = d.split('.')
-        q, l, p = '.'.join(y[1:3]), map(int, y[:3]), '.'.join(y[3:])
+        q, l, p = '.'.join(y[1:3]), list(map(int, y[:3])), '.'.join(y[3:])
         a, b, c = l
         return  a, b, c, p, q
 
@@ -228,8 +231,8 @@ class IfMib(SnmpTable):
         self.ifXTable = {}
 
     def py_obj(self):
-        return {'ifTable': self.ifTable.values(),
-                'ifXTable': self.ifXTable.values()}
+        return {'ifTable': list(self.ifTable.values()),
+                'ifXTable': list(self.ifXTable.values())}
 
     def table_names(self):
         return ['ifTable', 'ifXTable']
@@ -287,7 +290,7 @@ class QBridgeTable(SnmpTable):
         for x in snmp_dict['vars']:
             ns = x.iid.split('.')
             try:
-                mac = ':'.join(map(lambda x: "%02x" % int(x), ns[1:]))
+                mac = ':'.join(["%02x" % int(x) for x in ns[1:]])
             except:
                 continue
             if not isinstance(x.val, str) or not x.val.isdigit():
@@ -316,14 +319,14 @@ class SnmpSession(netsnmp.Session):
         tables = netdev.get_mibs()
         super(SnmpSession, self).__init__(**device)
         if tables:
-            self.tables = filter(lambda x: x in self.table_list, tables)
+            self.tables = [x for x in tables if x in self.table_list]
         else:
             self.tables = []
-        self.snmpTables = dict(map(lambda x:(x, eval(x + '(obj)',
-                    globals(), {'obj': self})), self.tables))
+        self.snmpTables = dict([(x, eval(x + '(obj)',
+                    globals(), {'obj': self})) for x in self.tables])
 
     def scan_device(self, fun=None):
-        for t in self.snmpTables.values():
+        for t in list(self.snmpTables.values()):
             t.snmp_get()
             if callable(fun):
                 fun()

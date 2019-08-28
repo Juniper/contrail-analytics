@@ -2,6 +2,9 @@
 
 from __future__ import print_function
 from __future__ import absolute_import
+from builtins import str
+from builtins import range
+from builtins import object
 from gevent import monkey
 monkey.patch_all()
 import logging
@@ -32,7 +35,7 @@ def sse_pack(d):
     """Pack data in SSE format"""
     buffer = ''
     for k in ['event','data']:
-        if k in d.keys():
+        if k in list(d.keys()):
             buffer += '%s: %s\n' % (k, d[k])
     return buffer + '\n'
 
@@ -61,7 +64,7 @@ class UveCacheProcessor(object):
 
     def get_cache_list(self, tables, filters, patterns, keysonly):
         if not tables:
-            tables = self._uvedb.keys()
+            tables = list(self._uvedb.keys())
         filters = filters or {}
         tfilter = filters.get('cfilt')
         ackfilter = filters.get('ackfilt')
@@ -83,7 +86,7 @@ class UveCacheProcessor(object):
                 if not table in self._uvedb:
                     continue  
                 barekeys = set()
-                for bk in self._uvedb[table].keys():
+                for bk in list(self._uvedb[table].keys()):
                     if len(tfilter) != 0:
                         if not bk in tqual[table]:
                             continue
@@ -120,14 +123,14 @@ class UveCacheProcessor(object):
                 uveparts[part] = set()
             uveparts[part].add(barekey)
         
-        for pkey,pvalue in uveparts.iteritems():
+        for pkey,pvalue in uveparts.items():
             pi = self._agp[pkey]
             lredis = self._get_agg_redis_instance(pi.ip_address, pi.port, pi.redis_agg_db)
             ppe = lredis.pipeline()
             luves = list(uveparts[pkey])
             for elem in luves:
                 if len(tfilter) != 0:
-                    ltypes = tfilter.keys()
+                    ltypes = list(tfilter.keys())
                     ppe.hmget("AGPARTVALUES:%s:%d:%s:%s" % \
                         (pi.instance_id, pkey, table, elem),
                         *ltypes)
@@ -146,7 +149,7 @@ class UveCacheProcessor(object):
                         if len(afilter_list) == 0:
                             uvestruct[ltypes[tidx]] = ppeval
                         else:      
-                            for akey, aval in ppeval.iteritems():
+                            for akey, aval in ppeval.items():
                                 if akey not in afilter_list:
                                     continue
                                 else:
@@ -154,7 +157,7 @@ class UveCacheProcessor(object):
                                         uvestruct[ltypes[tidx]] = {}
                                     uvestruct[ltypes[tidx]][akey] = aval
                 else:
-                    for tk,tv in pperes[uidx].iteritems():
+                    for tk,tv in pperes[uidx].items():
                         uvestruct[tk] = json.loads(tv)
 
                 if ackfilter is not None:
@@ -228,7 +231,7 @@ class UveCacheProcessor(object):
             # delete the entire UVE
             self._partkeys[partno].remove("%s:%s" % \
                 (table, barekey))
-            for typ1 in self._typekeys.keys():
+            for typ1 in list(self._typekeys.keys()):
                 if table in self._typekeys[typ1]:
                     if barekey in self._typekeys[typ1][table]:
                         self._typekeys[typ1][table].remove(barekey)
@@ -270,7 +273,7 @@ class UveCacheProcessor(object):
             del self._uvedb[table][barekey]
             
             # Look in the "types" index and remove this UVE
-            for tkey in self._typekeys.keys():
+            for tkey in list(self._typekeys.keys()):
                 if table in self._typekeys[tkey]:
                     if barekey in self._typekeys[tkey][table]:
                         self._typekeys[tkey][table].remove(barekey)
@@ -282,12 +285,12 @@ class UveCacheProcessor(object):
         self._partkeys[partno] = set()
 
     def get_uvedb_cache_tables(self):
-        return self._uvedb.keys()
+        return list(self._uvedb.keys())
     # end get_uvedb_cache_tables
 
     def get_uvedb_cache_table_keys(self, table):
         try:
-            return self._uvedb[table].keys()
+            return list(self._uvedb[table].keys())
         except KeyError:
             return []
     # end get_uvedb_cache_table_keys
@@ -334,7 +337,7 @@ class UveStreamPart(gevent.Greenlet):
         """
         if not self._token or self._token['is_global_read_only_role']:
             return True
-        if "ContrailConfig" in uves.keys():
+        if "ContrailConfig" in list(uves.keys()):
             cc = json.loads(uves["ContrailConfig"])
             perms2 = ast.literal_eval(cc['elements']['perms2'])
             owner = perms2['owner'].replace('-','')
@@ -345,7 +348,7 @@ class UveStreamPart(gevent.Greenlet):
             share = perms2['share']
             if 'token' in self._token_info:
                 token = self._token_info['token']
-                if 'project' in  token.keys():
+                if 'project' in  list(token.keys()):
                     tenant = token['project']['id']
                     tenant = tenant.replace('-','')
                     tenant_name = token['project']['name']
@@ -375,7 +378,7 @@ class UveStreamPart(gevent.Greenlet):
             else:
                 self._logger.error("no token specified %s" %self._token_info)
         else:
-            self._logger.error("no ContrailConfig structure %s" %uves.keys())
+            self._logger.error("no ContrailConfig structure %s" %list(uves.keys()))
         return False
     # end is_uve_read_permitted
 
@@ -415,7 +418,7 @@ class UveStreamPart(gevent.Greenlet):
                     if not self.is_uve_read_permitted(res):
                         idx += 1
                         continue
-                for tk,tv in res.iteritems():
+                for tk,tv in res.items():
                     self._uvecache[lkeys[idx]][tk] = tv
                     if self._cfilter:
                         if not tk in self._cfilter:
@@ -666,7 +669,7 @@ class UveStreamer(gevent.Greenlet):
             except gevent.GreenletExit:
                 break
         self._logger.error("Stopping UveStreamer")
-        for part, pi in self._agp.iteritems():
+        for part, pi in self._agp.items():
             self.partition_stop(part)
             self._uvedbcache.clear_partition(elem, self.clear_callback)
         if self._q:
@@ -770,7 +773,7 @@ class PartitionHandler(gevent.Greenlet):
                         self.resource_check()
                         if len(mdict):
                             counts = {}
-                            for tp,tv in mdict.iteritems():
+                            for tp,tv in mdict.items():
                                 if tp not in counts:
                                     counts[tp] = 0
                                 counts[tp] += len(tv)
@@ -871,7 +874,7 @@ class UveStreamProc(PartitionHandler):
     def stop_partition(self, kcoll=None):
         clist = []
         if not kcoll:
-            clist = self._uvedb.keys()
+            clist = list(self._uvedb.keys())
         else:
             clist = [kcoll]
         self._logger.error("Stopping part %d collectors %s" % \
@@ -881,10 +884,10 @@ class UveStreamProc(PartitionHandler):
         chg = {}
         for coll in clist:
             partdb[coll] = {}
-            for gen in self._uvedb[coll].keys():
+            for gen in list(self._uvedb[coll].keys()):
                 partdb[coll][gen] = {}
-                for tab in self._uvedb[coll][gen].keys():
-                    for rkey in self._uvedb[coll][gen][tab].keys():
+                for tab in list(self._uvedb[coll][gen].keys()):
+                    for rkey in list(self._uvedb[coll][gen][tab].keys()):
                         uk = tab + ":" + rkey
                         chg[uk] = None
                         partdb[coll][gen][uk] = \
@@ -892,7 +895,7 @@ class UveStreamProc(PartitionHandler):
 
             del self._uvedb[coll]
         self._logger.error("Stopping part %d UVEs %s" % \
-                (self._partno,str(chg.keys())))
+                (self._partno,str(list(chg.keys()))))
         if kcoll:
             self._callback(self._partno, chg)
         else:
@@ -908,13 +911,13 @@ class UveStreamProc(PartitionHandler):
         '''
         self._up = True
         self._logger.error("Starting part %d collectors %s" % \
-                (self._partno, str(cbdb.keys())))
+                (self._partno, str(list(cbdb.keys()))))
         uves  = {}
-        for kcoll,coll in cbdb.iteritems():
+        for kcoll,coll in cbdb.items():
             self._uvedb[kcoll] = {}
-            for kgen,gen in coll.iteritems():
+            for kgen,gen in coll.items():
                 self._uvedb[kcoll][kgen] = {}
-                for kk in gen.keys():
+                for kk in list(gen.keys()):
                     tabl = kk.split(":",1)
                     tab = tabl[0]
                     rkey = tabl[1]
@@ -924,7 +927,7 @@ class UveStreamProc(PartitionHandler):
 
                     if not kk in uves:
                         uves[kk] = None
-                    for typ, contents in gen[kk].iteritems():
+                    for typ, contents in gen[kk].items():
                         self._uvedb[kcoll][kgen][tab][rkey][typ] = {}
                         self._uvedb[kcoll][kgen][tab][rkey][typ]["c"] = 0
                         self._uvedb[kcoll][kgen][tab][rkey][typ]["u"] = \
@@ -1078,7 +1081,7 @@ if __name__ == '__main__':
                         res,db = ph.get()
                         print("Returned " + str(res))
                         print("State :")
-                        for k,v in db.iteritems():
+                        for k,v in db.items():
                             print("%s -> %s" % (k,str(v)))
                         del workers[int(mm.key)]
                 else:
@@ -1092,7 +1095,7 @@ if __name__ == '__main__':
             print("Payload Error: " + str(ex.args))
             gevent.sleep(0.1)
     lw=[]
-    for key, value in workers.iteritems():
+    for key, value in workers.items():
         gevent.kill(value)
         lw.append(value)
 

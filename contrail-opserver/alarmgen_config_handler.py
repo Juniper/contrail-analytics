@@ -108,7 +108,7 @@ class AlarmGenConfigHandler(ConfigHandler):
 
     def _create_inbuilt_alarms_config(self):
         self._inbuilt_alarms = {}
-        for table, plugins in self._alarm_plugins.iteritems():
+        for table, plugins in self._alarm_plugins.items():
             for extn in plugins[table]:
                 alarm_name = camel_case_to_hyphen(
                     extn.obj.__class__.__name__)
@@ -156,7 +156,7 @@ class AlarmGenConfigHandler(ConfigHandler):
         config_dict = None
         if config_obj is not None:
             config_dict = {k: json.dumps(v) for k, v in \
-                self.obj_to_dict(config_obj).iteritems()}
+                self.obj_to_dict(config_obj).items()}
         alarmgen_config_log = AlarmgenConfigLog(fq_name, config_type,
             operation, config_dict, sandesh=self._sandesh)
         alarmgen_config_log.send(sandesh=self._sandesh)
@@ -217,7 +217,7 @@ class AlarmGenConfigHandler(ConfigHandler):
     def _handle_config_sync(self):
         db_cls_list = [GlobalSystemConfigAG, AlarmAG]
         for cls in db_cls_list:
-            for fq_name, alarmgen_db_obj in cls.items():
+            for fq_name, alarmgen_db_obj in list(cls.items()):
                 self._handle_config_update(cls.obj_type, fq_name, 'UPDATE',
                     alarmgen_db_obj.obj)
     # end _handle_config_sync
