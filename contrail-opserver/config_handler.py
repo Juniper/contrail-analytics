@@ -3,13 +3,14 @@
 #
 
 
+from __future__ import absolute_import
 import gevent
 import json
 import traceback
 
 from cfgm_common.vnc_amqp import VncAmqpHandle
 from cfgm_common.vnc_object_db import VncObjectDBClient
-from analytics_logger import AnalyticsLogger
+from .analytics_logger import AnalyticsLogger
 
 
 class ConfigHandler(object):

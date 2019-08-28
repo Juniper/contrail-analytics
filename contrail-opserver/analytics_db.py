@@ -7,9 +7,10 @@
 #
 #
 
-from sandesh.viz.constants import *
+from __future__ import absolute_import
+from .sandesh.viz.constants import *
 import json
-from opserver_util import OpServerUtils
+from .opserver_util import OpServerUtils
 
 class AnalyticsDb(object):
     def __init__(self, logger, admin_port, admin_user, admin_password):

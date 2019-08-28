@@ -10,6 +10,7 @@
 # keyspace with Thrift to ContrailAnalyticsCql keyspace with Cql
 #
 
+from __future__ import print_function
 import uuid
 import socket
 import json
@@ -97,7 +98,7 @@ class SimpleClient:
         query = "SELECT * FROM {0}".format(table)
         results = self.session.execute(query)
         for row in results:
-            print row
+            print(row)
         log.info('Schema queried.')
 
 server_and_port = args.cassandra_server_ip+':'+str(args.cassandra_server_port)
@@ -106,12 +107,12 @@ sysm = pycassa.system_manager.SystemManager(server_and_port)
 
 def list_cf(keyspace = COLLECTOR_KEYSPACE):
     dict = sysm.get_keyspace_column_families(keyspace)
-    print dict.keys()
+    print(dict.keys())
 
 def copy_table(name):
     found_table = False
     for t in table_list:
-        print t.table_name, name
+        print(t.table_name, name)
         if(t.table_name == name):
             found_table = True
             if(t.is_static == True):
@@ -120,7 +121,7 @@ def copy_table(name):
                 copy_dynamic_table(name)
             break
     if found_table == False:
-        print 'Not sure, how to copy this table: ', name
+        print('Not sure, how to copy this table: ', name)
     return
 
 def _convert_to_cql_data(columns, col_num, thrift_data, data_index):
@@ -189,7 +190,7 @@ def copy_static_table(table):
 def is_json(myjson):
   try:
     json_object = json.loads(myjson)
-  except ValueError, e:
+  except ValueError as e:
     return False
   return True
 
@@ -262,13 +263,13 @@ tables = dict.keys()
 
 if args.copy_cf == None:
     startTime = datetime.utcnow()
-    print 'Start time for copying: ', startTime
+    print('Start time for copying: ', startTime)
     for table in tables:
-        print 'Start time for table ', table, ': ', datetime.utcnow()
+        print('Start time for table ', table, ': ', datetime.utcnow())
         copy_table(table)
-        print 'Finish time for table ', table, ': ', datetime.utcnow()
+        print('Finish time for table ', table, ': ', datetime.utcnow())
     endTime = datetime.utcnow()
-    print 'Total time taken: ', endTime - startTime
+    print('Total time taken: ', endTime - startTime)
 else:
     copy_table(args.copy_cf)
 

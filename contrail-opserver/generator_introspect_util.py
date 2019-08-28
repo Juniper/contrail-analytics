@@ -6,8 +6,9 @@
 # Generator Introspect Util
 #
 
+from __future__ import absolute_import
 
-from introspect_util import IntrospectUtilBase, XmlDrv, EtreeToDict
+from .introspect_util import IntrospectUtilBase, XmlDrv, EtreeToDict
 
 
 class GeneratorIntrospectUtil(IntrospectUtilBase):

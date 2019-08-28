@@ -703,12 +703,11 @@ class TestAlarmGenConfigHandler(unittest.TestCase):
             self.assertEqual(len(alarm_config_db),
                 len(test.output.alarm_config_db))
             for table, alarm_map in alarm_config_db.iteritems():
-                self.assertTrue(test.output.alarm_config_db.has_key(table))
+                self.assertTrue(table in test.output.alarm_config_db)
                 self.assertEqual(len(alarm_map),
                     len(test.output.alarm_config_db[table]))
                 for fq_name, alarm_cfg in alarm_map.iteritems():
-                    self.assertTrue(test.output.alarm_config_db[table].has_key(
-                        fq_name))
+                    self.assertTrue(fq_name in test.output.alarm_config_db[table])
                     self.assertEqual(alarm_cfg.config(),
                         test.output.alarm_config_db[table][fq_name].config())
             if test.output.alarm_config_change_map:

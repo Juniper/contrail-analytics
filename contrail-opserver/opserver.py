@@ -8,6 +8,8 @@
 # Operational State Server for VNC
 #
 
+from __future__ import print_function
+from __future__ import absolute_import
 from gevent import monkey
 monkey.patch_all()
 try:
@@ -17,7 +19,7 @@ except ImportError:
     from ordereddict import OrderedDict
 from collections import namedtuple
 TableSchema = namedtuple("TableSchema", ("name", "datatype", "index", "suffixes"))
-from uveserver import UVEServer
+from .uveserver import UVEServer
 import math
 import sys
 import ConfigParser
@@ -37,7 +39,7 @@ import errno
 import copy
 import datetime
 import platform
-from analytics_db import AnalyticsDb
+from .analytics_db import AnalyticsDb
 from gevent.server import StreamServer
 from pysandesh.util import UTCTimestampUsec
 from pysandesh.sandesh_base import *
@@ -53,32 +55,32 @@ from sandesh_common.vns.constants import ModuleNames, CategoryNames,\
      AAA_MODE_CLOUD_ADMIN, AAA_MODE_NO_AUTH, AAA_MODE_RBAC, \
      ServicesDefaultConfigurationFiles, SERVICE_OPSERVER, \
      COLLECTOR_DISCOVERY_SERVICE_NAME
-from sandesh.viz.constants import _TABLES, _OBJECT_TABLES,\
+from .sandesh.viz.constants import _TABLES, _OBJECT_TABLES,\
     _OBJECT_TABLE_SCHEMA, _OBJECT_TABLE_COLUMN_VALUES, \
     _STAT_TABLES, STAT_OBJECTID_FIELD, STAT_VT_PREFIX, \
     STAT_TIME_FIELD, STAT_TIMEBIN_FIELD, STAT_UUID_FIELD, \
     STAT_SOURCE_FIELD, SOURCE, MODULE
-from sandesh.viz.constants import *
-from sandesh.analytics.ttypes import *
-from sandesh.nodeinfo.ttypes import NodeStatusUVE, NodeStatus
-from sandesh.nodeinfo.cpuinfo.ttypes import *
-from sandesh.nodeinfo.process_info.ttypes import *
-from opserver_util import OpServerUtils
-from opserver_util import AnalyticsDiscovery
-from sandesh_req_impl import OpserverSandeshReqImpl
-from sandesh.analytics.ttypes import DbInfoSetRequest, \
+from .sandesh.viz.constants import *
+from .sandesh.analytics.ttypes import *
+from .sandesh.nodeinfo.ttypes import NodeStatusUVE, NodeStatus
+from .sandesh.nodeinfo.cpuinfo.ttypes import *
+from .sandesh.nodeinfo.process_info.ttypes import *
+from .opserver_util import OpServerUtils
+from .opserver_util import AnalyticsDiscovery
+from .sandesh_req_impl import OpserverSandeshReqImpl
+from .sandesh.analytics.ttypes import DbInfoSetRequest, \
      DbInfoGetRequest, DbInfoResponse
-from overlay_to_underlay_mapper import OverlayToUnderlayMapper, \
+from .overlay_to_underlay_mapper import OverlayToUnderlayMapper, \
      OverlayToUnderlayMapperError
-from generator_introspect_util import GeneratorIntrospectUtil
+from .generator_introspect_util import GeneratorIntrospectUtil
 from stevedore import hook, extension
-from partition_handler import PartInfo, UveStreamer, UveCacheProcessor
+from .partition_handler import PartInfo, UveStreamer, UveCacheProcessor
 from functools import wraps
-from vnc_cfg_api_client import VncCfgApiClient
-from opserver_local import LocalApp
-from opserver_util import AnalyticsDiscovery
-from strict_redis_wrapper import StrictRedisWrapper
-from sandesh.analytics_api_info.ttypes import AnalyticsApiInfoUVE, \
+from .vnc_cfg_api_client import VncCfgApiClient
+from .opserver_local import LocalApp
+from .opserver_util import AnalyticsDiscovery
+from .strict_redis_wrapper import StrictRedisWrapper
+from .sandesh.analytics_api_info.ttypes import AnalyticsApiInfoUVE, \
     AnalyticsApiInfo, UVEDbCacheTablesRequest, UVEDbCacheTable, \
     UVEDbCacheTablesResponse, UVEDbCacheTableKeysRequest, \
     UVEDbCacheTableKey, UVEDbCacheTableKeysResponse, \
@@ -257,7 +259,7 @@ def redis_query_chunk(host, port, redis_password, redis_ssl_params, qid, chunk_i
 
         #import pdb; pdb.set_trace()
         # Keep the result line valid while it is being read
-        elems = res_iter.next()
+        elems = next(res_iter)
 
         fin = True
         for elem in elems:
@@ -318,7 +320,7 @@ def redis_query_result_dict(host, port, redis_password, redis_ssl_params, qid):
         result = u''
         while not done:
             try:
-                result += gen.next()
+                result += next(gen)
                 #import pdb; pdb.set_trace()
             except StopIteration:
                 done = True
@@ -672,7 +674,7 @@ class OpServer(object):
         self._args = None
         self._socket = None
         self._parse_args(args_str)
-        print args_str
+        print(args_str)
  
         if self._args.sandesh_config is not None:
             self._dscp_value = self._args.sandesh_config.dscp_value
@@ -1493,7 +1495,7 @@ class OpServer(object):
             bottle.response.set_header('Content-Type', 'application/json')
             while not done:
                 try:
-                    yield gen.next()
+                    yield next(gen)
                 except StopIteration:
                     done = True
         except redis.exceptions.ConnectionError:
@@ -1727,7 +1729,7 @@ class OpServer(object):
             bottle.response.set_header('Content-Type', 'application/json')
             while not done:
                 try:
-                    yield gen.next()
+                    yield next(gen)
                 except StopIteration:
                     done = True
             '''

@@ -10,14 +10,16 @@
 # Query StatsOracle info from analytics
 #
 
+from __future__ import print_function
+from __future__ import absolute_import
 import sys
 import os
 import ConfigParser
 import argparse
 import json
-from opserver_util import OpServerUtils
-import sandesh.viz.constants as VizConstants
-
+from .opserver_util import OpServerUtils
+import sandesh #.viz.constants as sandesh.viz.constants
+from .sandesh.viz.constants import _STAT_TABLES 
 class StatQuerier(object):
 
     def __init__(self):
@@ -37,7 +39,7 @@ class StatQuerier(object):
                 self._args.admin_user, self._args.admin_password)
             schema = json.loads(schematxt.text)['columns']
             for pp in schema:
-                if pp.has_key('suffixes') and pp['suffixes']:
+                if 'suffixes' in pp and pp['suffixes']:
                     des = "%s %s" % (pp['name'],str(pp['suffixes']))
                 else:
                     des = "%s" % pp['name']
@@ -45,9 +47,9 @@ class StatQuerier(object):
                     valuetxt = OpServerUtils.get_url_http(
                         tab_url + "/column-values/" + pp['name'],
                         self._args.admin_user, self._args.admin_password)
-                    print "%s : %s %s" % (des,pp['datatype'], valuetxt.text)
+                    print("%s : %s %s" % (des,pp['datatype'], valuetxt.text))
                 else:
-                    print "%s : %s" % (des,pp['datatype'])
+                    print("%s : %s" % (des,pp['datatype']))
         else:
             result = self.query()
             self.display(result)
@@ -107,7 +109,7 @@ class StatQuerier(object):
         if args.analytics_api_port == None:
             args.analytics_api_port = defaults['analytics_api_port']
 
-        stat_table_list = [xx.stat_type + "." + xx.stat_attr for xx in VizConstants._STAT_TABLES]
+        stat_table_list = [xx.stat_type + "." + xx.stat_attr for xx in _STAT_TABLES]
         tab_url = "http://" + args.analytics_api_ip + ":" +\
             args.analytics_api_port + "/analytics/tables"
         tables = OpServerUtils.get_url_http(tab_url,
@@ -183,7 +185,7 @@ class StatQuerier(object):
                 where_clause = "AND".join(self._args.where),
                 sort_fields = self._args.sort)
         
-        print json.dumps(query_dict)
+        print(json.dumps(query_dict))
         resp = OpServerUtils.post_url_http(
             query_url, json.dumps(query_dict), self._args.admin_user,
             self._args.admin_password, sync = True)
@@ -200,7 +202,7 @@ class StatQuerier(object):
         if result == [] or result is None:
             return
         for res in result:
-            print res
+            print(res)
     # end display
 
 # end class StatQuerier

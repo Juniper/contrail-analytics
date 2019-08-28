@@ -2,8 +2,9 @@
 # Copyright (c) 2017 Juniper Networks, Inc. All rights reserved.
 #
 
+from __future__ import absolute_import
 
-from snmp_config_db import DBBaseSC, PhysicalRouterSC
+from .snmp_config_db import DBBaseSC, PhysicalRouterSC
 from config_handler import ConfigHandler
 
 

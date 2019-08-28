@@ -11,6 +11,7 @@
 # stunnel must be pre-installed for this to work
 #
 
+from __future__ import print_function
 import os
 import signal
 import subprocess
@@ -131,7 +132,7 @@ def stop_stunnel(stunnelPort):
 
 def replace_string_(filePath, findreplace):
     "replaces all findStr by repStr in file filePath"
-    print filePath
+    print(filePath)
     tempName = filePath + '~~~'
     input = open(filePath)
     output = open(tempName, 'w')

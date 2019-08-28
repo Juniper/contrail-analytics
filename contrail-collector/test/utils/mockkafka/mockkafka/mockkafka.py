@@ -11,6 +11,7 @@
 # It uses mock zookeeper provided by config 
 #
     
+from __future__ import print_function
 import os
 import os.path
 import subprocess
@@ -139,7 +140,7 @@ def stop_kafka(broker_listen_port):
 
 def replace_string_(filePath, findreplace):
     "replaces all findStr by repStr in file filePath"
-    print filePath
+    print(filePath)
     tempName=filePath+'~~~'
     input = open(filePath)
     output = open(tempName,'w')

@@ -2,8 +2,10 @@
 # Copyright (c) 2015 Juniper Networks, Inc. All rights reserved.
 #
 
+from __future__ import print_function
+from __future__ import absolute_import
 import argparse, os, sys
-from snmp import SnmpSession
+from .snmp import SnmpSession
 import gevent
 from gevent.queue import Queue as GQueue
 import cPickle as pickle

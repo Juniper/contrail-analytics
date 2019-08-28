@@ -3,6 +3,7 @@
 #
 
 
+from __future__ import absolute_import
 import socket
 import json
 
@@ -10,12 +11,12 @@ from vnc_api.gen.resource_client import Alarm
 from vnc_api.gen.resource_xsd import IdPermsType, AlarmExpression, \
     AlarmOperand2, AlarmAndList, AlarmOrList, UveKeysType
 from pysandesh.gen_py.sandesh.ttypes import SandeshLevel
-from sandesh.alarmgen_ctrl.ttypes import AlarmgenConfigLog
-from config_handler import ConfigHandler
-from alarmgen_config_db import DBBaseAG, GlobalSystemConfigAG, AlarmAG
-from opserver_util import camel_case_to_hyphen, inverse_dict
-from plugins.alarm_base import AlarmBase 
-from sandesh.viz.constants import UVE_MAP
+from .sandesh.alarmgen_ctrl.ttypes import AlarmgenConfigLog
+from .config_handler import ConfigHandler
+from .alarmgen_config_db import DBBaseAG, GlobalSystemConfigAG, AlarmAG
+from .opserver_util import camel_case_to_hyphen, inverse_dict
+from .plugins.alarm_base import AlarmBase 
+from .sandesh.viz.constants import UVE_MAP
 
 
 _INVERSE_UVE_MAP = inverse_dict(UVE_MAP)
@@ -87,7 +88,7 @@ class AlarmGenConfigHandler(ConfigHandler):
                 finally:
                     if operation == 'CREATE' or operation == 'UPDATE':
                         if not isinstance(alarm_obj, AlarmBase):
-                            if alarm_table.has_key(alarm_fqname):
+                            if alarm_fqname in alarm_table:
                                 alarm_table[alarm_fqname].set_config(alarm_obj)
                             else:
                                 alarm_base_obj = AlarmBase(config=alarm_obj)
@@ -95,7 +96,7 @@ class AlarmGenConfigHandler(ConfigHandler):
                         else:
                             alarm_table[alarm_fqname] = alarm_obj
                     elif operation == 'DELETE':
-                        if alarm_table.has_key(alarm_fqname):
+                        if alarm_fqname in alarm_table:
                             del alarm_table[alarm_fqname]
                         if not len(alarm_table):
                             del self._alarm_config_db[uve_key]
@@ -111,7 +112,7 @@ class AlarmGenConfigHandler(ConfigHandler):
             for extn in plugins[table]:
                 alarm_name = camel_case_to_hyphen(
                     extn.obj.__class__.__name__)
-                if self._inbuilt_alarms.has_key(alarm_name):
+                if alarm_name in self._inbuilt_alarms:
                     uve_keys = self._inbuilt_alarms[alarm_name].get_uve_keys()
                     uve_keys.uve_key.append(_INVERSE_UVE_MAP[table])
                     self._inbuilt_alarms[alarm_name].set_uve_keys(uve_keys)
