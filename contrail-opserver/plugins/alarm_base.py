@@ -1,3 +1,5 @@
+from builtins import range
+from builtins import object
 import abc
 from collections import namedtuple
 
@@ -5,7 +7,7 @@ class AlarmBase(object):
     """Base class for Alarms
     """
 
-    ALARM_CRITICAL, ALARM_MAJOR, ALARM_MINOR = range(3)
+    ALARM_CRITICAL, ALARM_MAJOR, ALARM_MINOR = list(range(3))
 
     _RULES = None
 

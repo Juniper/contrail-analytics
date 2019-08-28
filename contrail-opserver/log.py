@@ -12,8 +12,17 @@
 
 from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import division
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import object
+from past.utils import old_div
 import sys
-import ConfigParser
+try:
+    import configparser
+except:
+    from six.moves import configparser
 import argparse
 import json
 import datetime
@@ -32,13 +41,13 @@ from .sandesh.viz.constants import _OBJECT_TABLES, OBJECT_LOG, SYSTEM_LOG, \
 from pysandesh.gen_py.sandesh.ttypes import SandeshType, SandeshLevel
 from pysandesh.sandesh_logger import SandeshLogger
 from pysandesh.util import UTCTimestampUsec
-import commands
+import subprocess
 import ast
 
 OBJECT_TYPE_LIST = [table_info.log_query_name for table_info in \
-    _OBJECT_TABLES.values()]
+    list(_OBJECT_TABLES.values())]
 OBJECT_TABLE_MAP = dict((table_info.log_query_name, table_name) for \
-   (table_name, table_info) in _OBJECT_TABLES.items())
+   (table_name, table_info) in list(_OBJECT_TABLES.items()))
 output_file_handle = None
 
 class LogQuerier(object):
@@ -157,7 +166,7 @@ class LogQuerier(object):
         if args.conf_file:
             configfile = args.conf_file
 
-        config = ConfigParser.SafeConfigParser()
+        config = configparser.SafeConfigParser()
         config.read(configfile)
         if 'KEYSTONE' in config.sections():
             if args.admin_user == None:
@@ -185,7 +194,7 @@ class LogQuerier(object):
                 for table in table_list:
                     if table['type'] == 'OBJECT':
                         # append to OBJECT_TYPE_LIST only if not existing
-                        if table['name'] not in OBJECT_TABLE_MAP.values():
+                        if table['name'] not in list(OBJECT_TABLE_MAP.values()):
                             OBJECT_TYPE_LIST.append(str(table['name']))
                             # For object table the mapping between the actual table
                             # name and the table name used in help msg are the same
@@ -207,9 +216,9 @@ class LogQuerier(object):
         parser.add_argument("--source", nargs="*",
             help="list of sources separated by space")
         parser.add_argument("--node-type", help="Logs from node type",
-            choices=NodeTypeNames.values())
+            choices=list(NodeTypeNames.values()))
         parser.add_argument("--module", nargs="*",
-            help="list of modules separated by space", choices=ModuleNames.values())
+            help="list of modules separated by space", choices=list(ModuleNames.values()))
         parser.add_argument("--instance-id", help="Logs from module instance")
         parser.add_argument("--category", help="Logs of category")
         parser.add_argument("--level", help="Logs of level")
@@ -292,7 +301,7 @@ class LogQuerier(object):
                " --end-time " + str(end_time) +
                " --analytics-api-ip " + str(self._args.analytics_api_ip) +
                " --analytics-api-port " + str(self._args.analytics_api_port))
-            res = commands.getoutput(command_str)
+            res = subprocess.getoutput(command_str)
             res = res.splitlines()
             res = res[1:]
             for r in res:
@@ -621,8 +630,8 @@ class LogQuerier(object):
 
             if TIMESTAMP in messages_dict:
                 message_dt = datetime.datetime.fromtimestamp(
-                    int(messages_dict[TIMESTAMP]) /
-                    OpServerUtils.USECS_IN_SEC)
+                    old_div(int(messages_dict[TIMESTAMP]),
+                    OpServerUtils.USECS_IN_SEC))
                 message_dt += datetime.timedelta(
                     microseconds=
                     (int(messages_dict[TIMESTAMP]) %

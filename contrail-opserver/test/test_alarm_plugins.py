@@ -4,6 +4,7 @@
 # Copyright (c) 2016 Juniper Networks, Inc. All rights reserved.
 #
 
+from builtins import str
 import signal
 import unittest
 import logging
