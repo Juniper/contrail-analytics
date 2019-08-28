@@ -3,6 +3,11 @@
 #
 
 from __future__ import absolute_import
+from __future__ import division
+from builtins import str
+from builtins import range
+from past.utils import old_div
+from builtins import object
 import resource
 import socket
 import fixtures
@@ -1220,7 +1225,7 @@ class AnalyticsFixture(fixtures.Fixture):
             self.admin_user, self.admin_password)
         prefix_key_value_map = {'Source': socket.getfqdn("127.0.0.1")[:-1],
             'ModuleId': 'contrail-', 'Messagetype': 'Collector'}
-        for key, value in prefix_key_value_map.iteritems():
+        for key, value in prefix_key_value_map.items():
             self.logger.info('verify where_prefix: %s = %s*' % (key, value))
             res = vns.post_query(MESSAGE_TABLE, start_time='-10m',
                     end_time='now', select_fields=[key],
@@ -1956,7 +1961,7 @@ class AnalyticsFixture(fixtures.Fixture):
         #Helper function for stats aggregation
         def _aggregate_stats(session, ip=None, port=None, protocol=None):
             stats = {'sum_fwd_bytes':0, 'sum_rev_pkts':0}
-            for key, agg_info in session.session_data[0].sess_agg_info.iteritems():
+            for key, agg_info in session.session_data[0].sess_agg_info.items():
                 if (ip is None or ip == key.ip) and \
                     (port is None or port == key.port) and \
                     (protocol is None or protocol == key.protocol):
@@ -1989,7 +1994,7 @@ class AnalyticsFixture(fixtures.Fixture):
         assert(len(res) == 1)
         exp_sum_fwd_bytes = exp_sum_rev_pkts = 0
         for s in generator_obj.client_sessions:
-            for agg_info in s.session_data[0].sess_agg_info.values():
+            for agg_info in list(s.session_data[0].sess_agg_info.values()):
                 exp_sum_fwd_bytes += agg_info.sampled_forward_bytes
                 exp_sum_rev_pkts += agg_info.sampled_reverse_pkts
         assert(res[0]['SUM(forward_sampled_bytes)'] == exp_sum_fwd_bytes)
@@ -2019,7 +2024,7 @@ class AnalyticsFixture(fixtures.Fixture):
             sum_rev_pkts = 0
             for s in generator_obj.client_sessions:
                 if r['deployment'] == s.session_data[0].deployment:
-                    for key,agg_info in s.session_data[0].sess_agg_info.iteritems():
+                    for key,agg_info in s.session_data[0].sess_agg_info.items():
                         sum_fwd_bytes += agg_info.sampled_forward_bytes
                         sum_rev_pkts += agg_info.sampled_reverse_pkts
                     assert(r['SUM(forward_sampled_bytes)'] == sum_fwd_bytes)
@@ -2043,7 +2048,7 @@ class AnalyticsFixture(fixtures.Fixture):
         sum_rev_pkts = 0
         exp_sample_cnt = 0
         for s in generator_obj.server_sessions:
-            for key,agg_info in s.session_data[0].sess_agg_info.iteritems():
+            for key,agg_info in s.session_data[0].sess_agg_info.items():
                 sum_fwd_bytes += agg_info.sampled_forward_bytes
                 sum_rev_pkts += agg_info.sampled_reverse_pkts
                 exp_sample_cnt += 1
@@ -2086,7 +2091,7 @@ class AnalyticsFixture(fixtures.Fixture):
             session_type = "client",
             filter='vrouter=%s' % vrouter)
         diff_t = int(et) - int(st)
-        num_records = (diff_t/gms) + bool(diff_t%gms)
+        num_records = (old_div(diff_t,gms)) + bool(diff_t%gms)
         assert(len(res) == num_records)
         res_start_time = generator_obj.session_start_time - \
                             (generator_obj.session_start_time % gms)
@@ -2124,7 +2129,7 @@ class AnalyticsFixture(fixtures.Fixture):
             filter='vrouter=%s' % vrouter,
             session_type = "client")
         diff_t = int(et) - int(st)
-        num_ts = (diff_t/gms) + bool(diff_t%gms)
+        num_ts = (old_div(diff_t,gms)) + bool(diff_t%gms)
         res_start_time = generator_obj.session_start_time - \
                             (generator_obj.session_start_time % gms)
         ts_list = [res_start_time + (x * gms) \
@@ -2164,7 +2169,7 @@ class AnalyticsFixture(fixtures.Fixture):
             filter="vrouter=%s" % (vrouter),
             session_type="client")
         diff_t = int(et) - int(st)
-        num_ts = (diff_t/gms) + bool(diff_t%gms)
+        num_ts = (old_div(diff_t,gms)) + bool(diff_t%gms)
         res_start_time = generator_obj.session_start_time - \
                             (generator_obj.session_start_time % gms)
         ts = [res_start_time + (x * gms) \
@@ -2214,7 +2219,7 @@ class AnalyticsFixture(fixtures.Fixture):
             for session_obj in generator_obj.client_sessions:
                 session = session_obj.session_data[0]
                 if (r['T'] == session_obj._timestamp):
-                    for key, agg_info in session.sess_agg_info.iteritems():
+                    for key, agg_info in session.sess_agg_info.items():
                         if(key.service_port == server_port):
                             assert(r['forward_sampled_bytes'] ==
                                 agg_info.sampled_forward_bytes)
@@ -2245,7 +2250,7 @@ class AnalyticsFixture(fixtures.Fixture):
             for session_obj in generator_obj.client_sessions:
                 session = session_obj.session_data[0]
                 if (r['T'] == session_obj._timestamp):
-                    for key, agg_info in session.sess_agg_info.iteritems():
+                    for key, agg_info in session.sess_agg_info.items():
                         if (key.service_port == server_port and key.protocol == proto):
                             assert(r['forward_sampled_bytes'] ==
                                 agg_info.sampled_forward_bytes)
@@ -2270,7 +2275,7 @@ class AnalyticsFixture(fixtures.Fixture):
             for session_obj in generator_obj.client_sessions:
                 session = session_obj.session_data[0]
                 if (r['T'] == session_obj._timestamp):
-                    for key, agg_info in session.sess_agg_info.iteritems():
+                    for key, agg_info in session.sess_agg_info.items():
                         if (key.service_port == r['server_port']):
                             assert(r['protocol'] == key.protocol)
                             assert(r['deployment'] == session.deployment)
@@ -2298,7 +2303,7 @@ class AnalyticsFixture(fixtures.Fixture):
         assert(len(res) == 6)
 
         diff_t = int(et) - int(st)
-        num_ts = (diff_t/gms) + bool(diff_t%gms)
+        num_ts = (old_div(diff_t,gms)) + bool(diff_t%gms)
         res_start_time = generator_obj.session_start_time - \
                             (generator_obj.session_start_time % gms)
         ts_list = [res_start_time + (x * gms) \
@@ -2456,7 +2461,7 @@ class AnalyticsFixture(fixtures.Fixture):
         exp_sum_pkts = {}
         for i in range(generator_obj.flow_cnt*generator_obj.flow_cnt):
             sport = 32747 + i*10
-            dport = 100 + i/3
+            dport = 100 + old_div(i,3)
             if sport not in exp_sum_bytes:
                 exp_sum_bytes[sport] = {}
             exp_sum_bytes[sport][dport] = generator_obj.forward_flows[i].sampled_bytes
@@ -2464,7 +2469,7 @@ class AnalyticsFixture(fixtures.Fixture):
                 exp_sum_pkts[sport] = {}
             exp_sum_pkts[sport][dport] = generator_obj.forward_flows[i].sampled_pkts
         for i in range(generator_obj.flow_cnt*generator_obj.flow_cnt):
-            sport = 100 + i/3
+            sport = 100 + old_div(i,3)
             dport = 32747 + i*10
             if sport not in exp_sum_bytes:
                 exp_sum_bytes[sport] = {}
@@ -2522,7 +2527,7 @@ class AnalyticsFixture(fixtures.Fixture):
             where_clause='sourcevn=domain1:admin:vn2 ' +
             'AND destvn=domain1:admin:vn1 AND vrouter=%s'% vrouter)
         diff_t = int(et) - int(st)
-        num_records = (diff_t/(10*1000*1000)) + bool(diff_t%(10*1000*1000))
+        num_records = (old_div(diff_t,(10*1000*1000))) + bool(diff_t%(10*1000*1000))
         #assert(len(res) == num_records)
         res_start_time = generator_obj.session_start_time - \
                             (generator_obj.session_start_time % gms)
@@ -2558,15 +2563,15 @@ class AnalyticsFixture(fixtures.Fixture):
                            'SUM(packets)'],
             where_clause='vrouter=%s'% vrouter)
         diff_t = int(et) - int(st)
-        num_ts = (diff_t/(10*1000*1000)) + bool(diff_t%(10*1000*1000))
+        num_ts = (old_div(diff_t,(10*1000*1000))) + bool(diff_t%(10*1000*1000))
         res_start_time = generator_obj.session_start_time - \
                             (generator_obj.session_start_time % gms)
         ts = [res_start_time + (x * 10*1000*1000) for x in range(num_records)]
 
         exp_result = {}
         client_session = generator_obj.client_sessions[0].session_data[0]
-        for key, value in client_session.sess_agg_info.iteritems():
-            for key2, value2 in value.sessionMap.iteritems():
+        for key, value in client_session.sess_agg_info.items():
+            for key2, value2 in value.sessionMap.items():
                 if not key2.port in exp_result:
                     exp_result[key2.port] = {'protocol':key.protocol,
                                              'SUM(bytes)':value2.forward_flow_info.sampled_bytes,
@@ -2575,8 +2580,8 @@ class AnalyticsFixture(fixtures.Fixture):
                     exp_result[key2.port]['SUM(bytes)'] += value2.forward_flow_info.sampled_bytes
                     exp_result[key2.port]['SUM(packets)'] += value2.forward_flow_info.sampled_pkts
         server_session = generator_obj.server_sessions[0].session_data[0]
-        for key, value in server_session.sess_agg_info.iteritems():
-            for key2, value2 in value.sessionMap.iteritems():
+        for key, value in server_session.sess_agg_info.items():
+            for key2, value2 in value.sessionMap.items():
                 if not key.service_port in exp_result:
                     exp_result[key.service_port] = {'protocol':key.protocol,
                                              'SUM(bytes)':value2.reverse_flow_info.sampled_bytes,
@@ -2646,7 +2651,7 @@ class AnalyticsFixture(fixtures.Fixture):
                            'sport', 'dport'],
             where_clause='vrouter=%s'% vrouter)
         diff_t = int(et) - int(st)
-        num_ts = (diff_t/gms) + bool(diff_t%gms)
+        num_ts = (old_div(diff_t,gms)) + bool(diff_t%gms)
         res_start_time = generator_obj.session_start_time - \
                             (generator_obj.session_start_time % gms)
         ts = [res_start_time + (x * gms) for x in range(num_records)]
@@ -2655,8 +2660,8 @@ class AnalyticsFixture(fixtures.Fixture):
         client_session = generator_obj.client_sessions[0].session_data[0]
         server_session = generator_obj.server_sessions[0].session_data[0]
         for t in ts:
-            for key, value in client_session.sess_agg_info.iteritems():
-                for key2, value2 in value.sessionMap.iteritems():
+            for key, value in client_session.sess_agg_info.items():
+                for key2, value2 in value.sessionMap.items():
                     exp_result.append({'protocol':key.protocol,
                                        'sourcevn':client_session.vn,
                                        'destvn':client_session.remote_vn,
@@ -2664,8 +2669,8 @@ class AnalyticsFixture(fixtures.Fixture):
                                        'dport':key.service_port,
                                        'T=':t,
                                        'vrouter':vrouter})
-            for key, value in server_session.sess_agg_info.iteritems():
-                for key2, value2 in value.sessionMap.iteritems():
+            for key, value in server_session.sess_agg_info.items():
+                for key2, value2 in value.sessionMap.items():
                     exp_result.append({'protocol':key.protocol,
                                        'sourcevn':server_session.vn,
                                        'destvn':server_session.remote_vn,
@@ -2692,7 +2697,7 @@ class AnalyticsFixture(fixtures.Fixture):
             where_clause='sourcevn=domain1:admin:vn1' +
             'AND destvn=domain1:admin:vn2')
         diff_t = int(et) - int(st)
-        num_ts = (diff_t/(10*1000*1000)) + bool(diff_t%(10*1000*1000))
+        num_ts = (old_div(diff_t,(10*1000*1000))) + bool(diff_t%(10*1000*1000))
         ts = []
         res_start_time = generator_obj.session_start_time - \
                             (generator_obj.session_start_time % gms)
@@ -2713,16 +2718,16 @@ class AnalyticsFixture(fixtures.Fixture):
 
         exp_result = []
         session = generator_obj.client_sessions[0].session_data[0]
-        for key, value in session.sess_agg_info.iteritems():
-            for key2, value2 in value.sessionMap.iteritems():
+        for key, value in session.sess_agg_info.items():
+            for key2, value2 in value.sessionMap.items():
                 dict = {'protocol':key.protocol, 'sport':key2.port,
                         'dport':key.service_port,
                         'bytes':value2.forward_flow_info.sampled_bytes,
                         'packets':value2.forward_flow_info.sampled_pkts}
                 exp_result.append(dict)
         session = generator_obj.server_sessions[0].session_data[0]
-        for key, value in session.sess_agg_info.iteritems():
-            for key2, value2 in value.sessionMap.iteritems():
+        for key, value in session.sess_agg_info.items():
+            for key2, value2 in value.sessionMap.items():
                 dict = {'protocol':key.protocol, 'sport':key.service_port,
                         'dport':key2.port,
                         'bytes':value2.reverse_flow_info.sampled_bytes,
@@ -3072,8 +3077,8 @@ class AnalyticsFixture(fixtures.Fixture):
                             start_time="now-1h",
                             end_time="now",
                             select_fields=["Xmlmessage","Level"],
-                            where=map(lambda x:[{"name": "Keyword", "value": x,
-                                "op": 1}], keywords))
+                            where=[[{"name": "Keyword", "value": x,
+                                "op": 1}] for x in keywords])
         json_qstr = json.dumps(query.__dict__)
         res = vns.post_query_json(json_qstr)
         self.logger.info("res %s" % str(res))
@@ -3134,7 +3139,7 @@ class AnalyticsFixture(fixtures.Fixture):
     def _get_filters_url_param(self, filters):
         if filters is None:
             return None
-        filt = {k:v for k, v in filters.iteritems() if v is not None}
+        filt = {k:v for k, v in filters.items() if v is not None}
         if 'kfilt' in filt:
             filt['kfilt'] = ','.join(filt['kfilt'])
         if 'cfilt' in filt:
@@ -3147,7 +3152,7 @@ class AnalyticsFixture(fixtures.Fixture):
     def _get_filters_json(self, filters):
         if filters is None:
             filters = {}
-        filt = {k:v for k, v in filters.iteritems() if v is not None}
+        filt = {k:v for k, v in filters.items() if v is not None}
         return json.dumps(filt)
     # end _get_filters_json
 
@@ -3191,8 +3196,8 @@ class AnalyticsFixture(fixtures.Fixture):
         self.logger.info('Actual UVEs: %s' % (str(actual_uves)))
         if actual_uves is None:
             return False
-        etk = exp_uves.keys()
-        atk = actual_uves.keys()
+        etk = list(exp_uves.keys())
+        atk = list(actual_uves.keys())
         etk.sort()
         atk.sort()
         if etk != atk:
@@ -3519,7 +3524,7 @@ class AnalyticsFixture(fixtures.Fixture):
                              preexec_fn = preexec)
       
         pmap = {} 
-        for k,v in pipes.iteritems(): 
+        for k,v in pipes.items(): 
             tries = 50
             port = None
             pipein , pipe_name = v

@@ -10,6 +10,12 @@
 
 from __future__ import print_function
 from __future__ import absolute_import
+from future import standard_library
+standard_library.install_aliases()
+from builtins import next
+from builtins import str
+from builtins import range
+from builtins import object
 from gevent import monkey
 monkey.patch_all()
 try:
@@ -22,7 +28,6 @@ TableSchema = namedtuple("TableSchema", ("name", "datatype", "index", "suffixes"
 from .uveserver import UVEServer
 import math
 import sys
-import ConfigParser
 import bottle
 import json
 import uuid
@@ -39,6 +44,12 @@ import errno
 import copy
 import datetime
 import platform
+
+try:
+    import configparser
+except:
+    from six.moves import configparser
+
 from .analytics_db import AnalyticsDb
 from gevent.server import StreamServer
 from pysandesh.util import UTCTimestampUsec
@@ -163,7 +174,7 @@ class ContrailGeventServer(bottle.GeventServer):
 
 def obj_to_dict(obj):
     # Non-null fields in object get converted to json fields
-    return dict((k, v) for k, v in obj.__dict__.iteritems())
+    return dict((k, v) for k, v in obj.__dict__.items())
 # end obj_to_dict
 
 
@@ -171,7 +182,7 @@ def redis_query_start(host, port, redis_password, redis_ssl_params, qid, inp, co
     redish = StrictRedisWrapper(db=0, host=host, port=port,
                                password=redis_password,
                                **redis_ssl_params)
-    for key, value in inp.items():
+    for key, value in list(inp.items()):
         redish.hset("QUERY:" + qid, key, json.dumps(value))
     col_list = []
     if columns is not None:
@@ -536,7 +547,7 @@ class OpServer(object):
             if res_list is None:
                 return None
             user_accessible_resources = set()
-            for _, resources in res_list.iteritems():
+            for _, resources in res_list.items():
                 for res in resources:
                     user_accessible_resources.add(':'.join(res['fq_name']))
             return user_accessible_resources
@@ -768,7 +779,7 @@ class OpServer(object):
                 self._LEVEL_LIST.append(d)
         self._CATEGORY_MAP =\
             dict((ModuleNames[k], [CategoryNames[ce] for ce in v])
-                 for k, v in ModuleCategoryMap.iteritems())
+                 for k, v in ModuleCategoryMap.items())
 
         self.agp = {}
         ConnectionState.update(conn_type = ConnectionType.UVEPARTITIONS,
@@ -778,15 +789,26 @@ class OpServer(object):
         self._uvepartitions_state = ConnectionStatus.UP
 
         self.redis_uve_list = []
-        if type(self._args.redis_uve_list) is str:
+        if isinstance(self._args.redis_uve_list, (basestring, str)):
+            print("pankaj")
             self._args.redis_uve_list = self._args.redis_uve_list.split()
+            print(self._args.redis_uve_list)
         ad_freq = 10
         us_freq = 5
         is_local = True
         for redis_uve in self._args.redis_uve_list:
+            print("pankaj")
+            print(self._args.redis_uve_list)
+            print(redis_uve)
+            print(type(self._args.redis_uve_list))
             redis_ip_port = redis_uve.split(':')
+            print(type(redis_ip_port))
             if redis_ip_port[0] != "127.0.0.1":
                 is_local = False
+            print("pankaj=====")
+            print(redis_ip_port)
+            print(type(redis_ip_port[0]))
+            print(redis_ip_port[0])
             redis_elem = (redis_ip_port[0], int(redis_ip_port[1]))
             self.redis_uve_list.append(redis_elem)
         if is_local:
@@ -884,7 +906,7 @@ class OpServer(object):
         for schema_file in stat_schema_files:
             with open(schema_file) as data_file:
                 data = json.load(data_file)
-            for _, tables in data.iteritems():
+            for _, tables in data.items():
                 for table in tables:
                     if table not in stat_tables:
                         stat_tables.append(table)
@@ -921,8 +943,8 @@ class OpServer(object):
             for aln in table["attributes"]:
                 if aln["name"]==STAT_OBJECTID_FIELD:
                     isname = True
-                if "suffixes" in aln.keys():
-                    if "uve_type" in aln.keys():
+                if "suffixes" in list(aln.keys()):
+                    if "uve_type" in list(aln.keys()):
                         aln_col = stat_query_column(name=aln["name"], \
                         datatype=aln["datatype"], index=aln["index"], \
                         suffixes=aln["suffixes"], uve_type=aln["uve_type"])
@@ -931,7 +953,7 @@ class OpServer(object):
                         datatype=aln["datatype"], index=aln["index"], \
                         suffixes=aln["suffixes"])
                 else:
-                    if "uve_type" in aln.keys():
+                    if "uve_type" in list(aln.keys()):
                         aln_col = stat_query_column(name=aln["name"], \
                         datatype=aln["datatype"], index=aln["index"], \
                         uve_type=aln["uve_type"])
@@ -1122,7 +1144,7 @@ class OpServer(object):
         # read contrail-analytics-api own conf file
         config = None
         if args.conf_file:
-            config = ConfigParser.SafeConfigParser()
+            config = configparser.SafeConfigParser()
             config.read(args.conf_file)
             if 'DEFAULTS' in config.sections():
                 defaults.update(dict(config.items("DEFAULTS")))
@@ -1352,7 +1374,7 @@ class OpServer(object):
         """
         if not self.is_role_cloud_admin():
             user_token_info = self.get_user_token_info()
-            config_types = self.ObjectLogTypeToConfigObjectType.keys()
+            config_types = list(self.ObjectLogTypeToConfigObjectType.keys())
             if filters['tablefilt']:
                 for filtr in filters['tablefilt']:
                     if not filtr in config_types:
@@ -1513,7 +1535,7 @@ class OpServer(object):
     def _is_valid_stats_table_query(self, request, tabn):
         isT_ = False
         isT = False
-        for key, value in request.iteritems():
+        for key, value in request.items():
             if key == "select_fields":
                 for select_field in value:
                     if select_field == STAT_TIME_FIELD:
@@ -1579,7 +1601,7 @@ class OpServer(object):
             self._logger.info("Starting Query %s" % qid)
 
             tabl = ""
-            for key, value in request.json.iteritems():
+            for key, value in request.json.items():
                 if key == "table":
                     tabl = value
 
@@ -2013,7 +2035,7 @@ class OpServer(object):
         except Exception as e:
             yield bottle.HTTPError(_ERRORS[errno.EBADMSG], e)
         flat = False
-        if 'flat' in req.keys() or any(filters.values()):
+        if 'flat' in list(req.keys()) or any(filters.values()):
             flat = True
 
         stats = AnalyticsApiStatistics(self._sandesh, table)
@@ -2083,13 +2105,13 @@ class OpServer(object):
             filters['cfilt'] = { 'UVEAlarms':set() }
             alarm_list = self._uve_server.get_alarms(filters)
             alms = {}
-            for ak,av in alarm_list.iteritems():
+            for ak,av in alarm_list.items():
                 alm_type = ak
                 if ak in _OBJECT_TABLES:
                     alm_type = _OBJECT_TABLES[ak].log_query_name
                 res_list = self.get_resource_list_from_uve_type(alm_type, False)
                 ulist = []
-                for uk, uv in av.iteritems():
+                for uk, uv in av.items():
                    if res_list is None or uk in res_list:
                        ulist.append({'name':uk, 'value':uv})
                 if ulist:
@@ -2181,7 +2203,7 @@ class OpServer(object):
         # Show the list of UVE table-types based on actual raw UVE contents
         tables = self._uve_server.get_tables()
         known = set()
-        for apiname,rawname in UVE_MAP.iteritems():
+        for apiname,rawname in UVE_MAP.items():
             known.add(rawname)
             entry = obj_to_dict(LinkObject(apiname + 's',
                                     base_url + apiname + 's'))
@@ -2208,7 +2230,7 @@ class OpServer(object):
             (code, msg) = result
             bottle.abort(code, msg)
         uve_types = {}
-        for name, info in _OBJECT_TABLES.iteritems():
+        for name, info in _OBJECT_TABLES.items():
             if info.is_uve:
                 uve_types[info.log_query_name] = {
                     'global_system_object': info.global_system_object}
@@ -2577,7 +2599,7 @@ class OpServer(object):
             if not elem['partitions']:
                 continue
             parts = json.loads(elem['partitions'])
-            for partstr,acq_time in parts.iteritems():
+            for partstr,acq_time in parts.items():
                 partno = int(partstr)
                 pi = PartInfo(instance_id=instance_id,
                               ip_address=ip_address,
@@ -2652,12 +2674,12 @@ class OpServer(object):
 
     def sighup_handler(self):
         if self._args.conf_file:
-            config = ConfigParser.SafeConfigParser()
+            config = configparser.SafeConfigParser()
             config.read(self._args.conf_file)
             if 'DEFAULTS' in config.sections():
                 try:
                     collectors = config.get('DEFAULTS', 'collectors')
-                except ConfigParser.NoOptionError as e:
+                except configparser.NoOptionError as e:
                     pass
                 else:
                     if type(collectors) is str:
@@ -2670,7 +2692,7 @@ class OpServer(object):
                         self._sandesh.reconfig_collectors(self.random_collectors)
                 try:
                     api_servers = config.get('DEFAULTS', 'api_server')
-                except ConfigParser.NoOptionError as e:
+                except configparser.NoOptionError as e:
                     pass
                 else:
                     if type(api_servers) is str:
@@ -2693,7 +2715,7 @@ class OpServer(object):
             if 'REDIS' in config.sections():
                 try:
                     new_redis_list = config.get('REDIS', 'redis_uve_list')
-                except ConfigParser.NoOptionError:
+                except configparser.NoOptionError:
                     pass
                 else:
                     redis_uve_list = []
@@ -2705,7 +2727,7 @@ class OpServer(object):
             if 'SANDESH' in config.sections():
                 try:
                     new_dscp_value = config.get('SANDESH', 'sandesh_dscp_value')
-                except ConfigParser.NoOptionError as e:
+                except configparser.NoOptionError as e:
                     pass
                 else:
                     if new_dscp_value == self._dscp_value :
