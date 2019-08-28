@@ -4,6 +4,7 @@
 # Copyright (c) 2016 Juniper Networks, Inc. All rights reserved.
 #
 
+from builtins import str
 import signal
 import unittest
 import mock
@@ -702,11 +703,11 @@ class TestAlarmGenConfigHandler(unittest.TestCase):
             logging.info('Actual alarm_config_db: %s' % (str(alarm_config_db)))
             self.assertEqual(len(alarm_config_db),
                 len(test.output.alarm_config_db))
-            for table, alarm_map in alarm_config_db.iteritems():
+            for table, alarm_map in alarm_config_db.items():
                 self.assertTrue(table in test.output.alarm_config_db)
                 self.assertEqual(len(alarm_map),
                     len(test.output.alarm_config_db[table]))
-                for fq_name, alarm_cfg in alarm_map.iteritems():
+                for fq_name, alarm_cfg in alarm_map.items():
                     self.assertTrue(fq_name in test.output.alarm_config_db[table])
                     self.assertEqual(alarm_cfg.config(),
                         test.output.alarm_config_db[table][fq_name].config())

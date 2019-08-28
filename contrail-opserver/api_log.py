@@ -1,6 +1,10 @@
 from __future__ import print_function
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import object
 import argparse
-import commands
+import subprocess
 
 class LogQuerier(object):
 
@@ -39,7 +43,7 @@ class LogQuerier(object):
             " --start-time " + str(start_time) +
             " --end-time " + str(end_time) +
             options)
-        res = commands.getoutput(command_str)
+        res = subprocess.getoutput(command_str)
         print(res)
 
 def main():

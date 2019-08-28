@@ -4,6 +4,7 @@
 # Copyright (c) 2014 Juniper Networks, Inc. All rights reserved.
 #
 
+from builtins import range
 import sys
 import gevent
 import json
