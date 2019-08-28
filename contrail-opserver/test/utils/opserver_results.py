@@ -9,7 +9,7 @@ from opserver.introspect_util import *
 
 def _OpResult_get_list_name(lst):
     sname = ""
-    for sattr in lst.keys():
+    for sattr in list(lst.keys()):
         if sattr[0] not in ['@']:
             sname = sattr
     return sname
@@ -23,7 +23,7 @@ def _OpResultFlatten(inp):
         if (sname == ""):
             return Exception('Struct Parse Error')
         ret = {}
-        for k, v in inp[sname].items():
+        for k, v in list(inp[sname].items()):
             ret[k] = _OpResultFlatten(v)
         return ret
     elif (inp['@type'] == 'list'):
@@ -40,7 +40,7 @@ def _OpResultFlatten(inp):
                 lst.append(elem)
             else:
                 lst_elem = {}
-                for k, v in elem.items():
+                for k, v in list(elem.items()):
                     lst_elem[k] = _OpResultFlatten(v)
                 lst.append(lst_elem)
         ret[sname] = lst
@@ -75,7 +75,7 @@ def _OpResultListParse(dct, match):
         else:
             dret = {}
             isMatcher = True
-            for k, v in elem.items():
+            for k, v in list(elem.items()):
                 if '#text' in v:
                     dret[k] = v["#text"]
                     if '@aggtype' in v:

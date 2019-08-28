@@ -2,7 +2,15 @@
 # Copyright (c) 2017 Juniper Networks, Inc. All rights reserved.
 #
 
-import argparse, os, ConfigParser, sys, re
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import object
+import argparse, os, sys, re
+try:
+    import configparser
+except:
+    from six.moves import configparser
 from pysandesh.sandesh_base import *
 from pysandesh.gen_py.sandesh.ttypes import SandeshLevel
 from sandesh_common.vns.constants import SERVICE_ALARM_GENERATOR, \
@@ -107,7 +115,7 @@ class CfgParser(object):
 
         config = None
         if args.conf_file:
-            config = ConfigParser.SafeConfigParser()
+            config = configparser.SafeConfigParser()
             config.optionxform = str
             config.read(args.conf_file)
             if 'DEFAULTS' in config.sections():

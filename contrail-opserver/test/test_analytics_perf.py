@@ -11,6 +11,8 @@
 #
 
 from __future__ import absolute_import
+from builtins import str
+from builtins import object
 import os
 import sys
 from gevent import monkey; monkey.patch_all()
@@ -35,7 +37,7 @@ logging.basicConfig(level=logging.INFO,
                             format='%(asctime)s %(levelname)s %(message)s')
 builddir = find_buildroot(os.getcwd())
 
-class cd:
+class cd(object):
     #
     # License: CC-BY-SA-3.0
     # https://stackoverflow.com/questions/431684/how-do-i-cd-in-python

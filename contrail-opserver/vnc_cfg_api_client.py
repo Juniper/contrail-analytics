@@ -2,6 +2,8 @@
 # Copyright (c) 2016 Juniper Networks, Inc. All rights reserved.
 #
 
+from builtins import str
+from builtins import object
 import time
 import requests
 import bottle
