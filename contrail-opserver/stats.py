@@ -12,9 +12,16 @@
 
 from __future__ import print_function
 from __future__ import absolute_import
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import object
 import sys
 import os
-import ConfigParser
+try:
+    import configparser
+except:
+    from six.moves import configparser
 import argparse
 import json
 from .opserver_util import OpServerUtils
@@ -91,7 +98,7 @@ class StatQuerier(object):
         if args.conf_file:
             configfile = args.conf_file
 
-        config = ConfigParser.SafeConfigParser()
+        config = configparser.SafeConfigParser()
         config.read(configfile)
         if 'KEYSTONE' in config.sections():
             if args.admin_user == None:

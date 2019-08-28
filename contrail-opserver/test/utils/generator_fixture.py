@@ -11,6 +11,11 @@
 #
 
 from __future__ import absolute_import
+from __future__ import division
+from builtins import chr
+from builtins import str
+from builtins import range
+from past.utils import old_div
 from gevent import monkey
 monkey.patch_all()
 import fixtures
@@ -156,19 +161,19 @@ class GeneratorFixture(fixtures.Fixture):
 
         for i in range(self.flow_cnt*self.flow_cnt):
             self.forward_flows.append(SessionFlowInfo(flow_uuid=uuid.uuid1(),
-                sampled_bytes=((i/3)+1)*20,
-                sampled_pkts=((i/3)+1)*2,
+                sampled_bytes=((old_div(i,3))+1)*20,
+                sampled_pkts=((old_div(i,3))+1)*2,
                 action='pass',
                 sg_rule_uuid=uuid.uuid1(),
                 nw_ace_uuid=uuid.uuid1(),
-                underlay_source_port=i/3))
+                underlay_source_port=old_div(i,3)))
             self.reverse_flows.append(SessionFlowInfo(flow_uuid=uuid.uuid1(),
-                sampled_bytes=((i/3)+1)*10,
-                sampled_pkts=(i/3)+1,
+                sampled_bytes=((old_div(i,3))+1)*10,
+                sampled_pkts=(old_div(i,3))+1,
                 action='pass',
                 sg_rule_uuid=uuid.uuid1(),
                 nw_ace_uuid=uuid.uuid1(),
-                underlay_source_port=(10 + i/3)))
+                underlay_source_port=(10 + old_div(i,3))))
 
         for i in range(self.client_session_cnt):
             session_agg_info = {}
@@ -186,19 +191,19 @@ class GeneratorFixture(fixtures.Fixture):
                         session_map[sess_ip_port].forward_flow_info.action \
                                 = 'drop'
                         session_map[sess_ip_port].forward_flow_info.teardown_bytes \
-                                = 3*(((i/3)+1)*20)
+                                = 3*(((old_div(i,3))+1)*20)
                         session_map[sess_ip_port].forward_flow_info.teardown_pkts \
-                                = 3*(((i/3)+1)*2)
+                                = 3*(((old_div(i,3))+1)*2)
                         session_map[sess_ip_port].reverse_flow_info.action \
                                 = 'drop'
                         session_map[sess_ip_port].reverse_flow_info.teardown_bytes \
-                                = 3*(((i/3)+1)*10)
+                                = 3*(((old_div(i,3))+1)*10)
                         session_map[sess_ip_port].reverse_flow_info.teardown_pkts \
-                                = 3*(((i/3)+1)*1)
+                                = 3*(((old_div(i,3))+1)*1)
                     cnt += 1
                 sess_ip_port_proto = SessionIpPortProtocol(
                     local_ip=netaddr.IPAddress('10.10.10.1'),
-                    service_port=j+100, protocol=j/2)
+                    service_port=j+100, protocol=old_div(j,2))
                 session_agg_info[sess_ip_port_proto] = SessionAggInfo(
                     sampled_forward_bytes = (j+1)*60,
                     sampled_forward_pkts = (j+1)*6,
@@ -241,19 +246,19 @@ class GeneratorFixture(fixtures.Fixture):
                         session_map[sess_ip_port].forward_flow_info.action \
                                 = 'drop'
                         session_map[sess_ip_port].forward_flow_info.teardown_bytes \
-                                = 3*(((i/3)+1)*20)
+                                = 3*(((old_div(i,3))+1)*20)
                         session_map[sess_ip_port].forward_flow_info.teardown_pkts \
-                                = 3*(((i/3)+1)*2)
+                                = 3*(((old_div(i,3))+1)*2)
                         session_map[sess_ip_port].reverse_flow_info.action \
                                 = 'drop'
                         session_map[sess_ip_port].reverse_flow_info.teardown_bytes \
-                                = 3*(((i/3)+1)*10)
+                                = 3*(((old_div(i,3))+1)*10)
                         session_map[sess_ip_port].reverse_flow_info.teardown_pkts \
-                                = 3*(((i/3)+1)*1)
+                                = 3*(((old_div(i,3))+1)*1)
                     cnt += 1
                 sess_ip_port_proto = SessionIpPortProtocol(
                     local_ip=netaddr.IPAddress('2001:db8::1:2'),
-                    service_port=j+100, protocol=j/2)
+                    service_port=j+100, protocol=old_div(j,2))
                 session_agg_info[sess_ip_port_proto] = SessionAggInfo(
                     sampled_forward_bytes = (j+1)*60,
                     sampled_forward_pkts = (j+1)*6,
@@ -447,6 +452,8 @@ class GeneratorFixture(fixtures.Fixture):
                 build_info="testinfo"
                 if non_ascii:
                     build_info += ' ' + chr(201) + chr(203) + chr(213) + ' ' + build_info
+                if isinstance(build_info, unicode):
+                    build_info = build_info.encode('utf-8')
                 vinfo = VrouterAgent(name=name,
                                      build_info=build_info,
                                      state="OK")

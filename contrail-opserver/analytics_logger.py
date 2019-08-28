@@ -3,6 +3,7 @@
 #
 
 
+from builtins import object
 from pysandesh.sandesh_logger import SandeshLogger
 from pysandesh.gen_py.sandesh.ttypes import SandeshLevel
 

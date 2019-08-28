@@ -11,6 +11,10 @@
 #
 
 from __future__ import print_function
+from builtins import str
+from builtins import hex
+from builtins import range
+from builtins import object
 import uuid
 import socket
 import json
@@ -70,7 +74,7 @@ logging.basicConfig()
 log = logging.getLogger()
 log.setLevel('INFO')
 
-class SimpleClient:
+class SimpleClient(object):
     session = None
 
     def connect(self, nodes):
@@ -107,7 +111,7 @@ sysm = pycassa.system_manager.SystemManager(server_and_port)
 
 def list_cf(keyspace = COLLECTOR_KEYSPACE):
     dict = sysm.get_keyspace_column_families(keyspace)
-    print(dict.keys())
+    print(list(dict.keys()))
 
 def copy_table(name):
     found_table = False
@@ -165,11 +169,11 @@ def copy_static_table(table):
             command += 'APPLY BATCH;'
             client.session.execute(command)
             command = "BEGIN BATCH INSERT INTO {0} (key".format(table)
-        if isinstance(rowKey, unicode):
+        if isinstance(rowKey, str):
             rowKey = rowKey.encode('utf-8')
         values = [rowKey]
         ttl = 0
-        for key in columns.keys():
+        for key in list(columns.keys()):
             value, ttl = columns.get(key)
             if(DbDataType.Unsigned32Type == field_dict['key']):
                 value = numpy.int32(value)
@@ -233,7 +237,7 @@ def copy_dynamic_table(table):
         else:
             key_value.append(_convert_to_cql_data(table_columns, rowKey_size, rowKey, rowKey_size))
             rowKey_size += 1
-        for key in columns.keys():
+        for key in list(columns.keys()):
             value, ttl = columns.get(key)
             jsonValue = value
             if is_json(value) != True:
@@ -259,7 +263,7 @@ client.create_schema()
 table_list = _VIZD_TABLE_SCHEMA + _VIZD_FLOW_TABLE_SCHEMA + _VIZD_STAT_TABLE_SCHEMA
 
 dict = sysm.get_keyspace_column_families(COLLECTOR_KEYSPACE)
-tables = dict.keys()
+tables = list(dict.keys())
 
 if args.copy_cf == None:
     startTime = datetime.utcnow()

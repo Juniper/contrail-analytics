@@ -2,6 +2,8 @@
 # Copyright (c) 2015 Juniper Networks, Inc. All rights reserved.
 #
 from __future__ import print_function
+from builtins import str
+from builtins import object
 import requests, json
 from requests.exceptions import ConnectionError
 from requests.auth import HTTPBasicAuth
@@ -32,7 +34,7 @@ class AnalyticApiClient(object):
         raise ConnectionError("bad request " + url)
 
     def _get_list_2_dict(self, j):
-        return dict(map(lambda x: (x['name'], x['href']), j))
+        return dict([(x['name'], x['href']) for x in j])
 
     def get_base(self):
         for api in self.config.analytics_api():
@@ -78,7 +80,7 @@ class AnalyticApiClient(object):
         return self._vrouters
 
     def list_vrouters(self):
-        return self._vrouters.keys()
+        return list(self._vrouters.keys())
 
     def get_vrouter(self, vrouter, filters=None):
         if vrouter in self.list_vrouters():
@@ -99,7 +101,7 @@ class AnalyticApiClient(object):
         return self._prouters
 
     def list_prouters(self):
-        return self._prouters.keys()
+        return list(self._prouters.keys())
 
     def get_prouter(self, prouter, filters=None):
         if prouter in self.list_prouters():
