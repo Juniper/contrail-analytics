@@ -9,6 +9,12 @@
 #
 
 from __future__ import print_function
+from builtins import zip
+from builtins import next
+from builtins import str
+from builtins import range
+from past.builtins import basestring
+from builtins import object
 from gevent import monkey
 import os
 monkey.patch_all()
@@ -57,7 +63,7 @@ def camel_case_to_hyphen(name):
 
 
 def inverse_dict(d):
-    return dict(zip(d.values(), d.keys()))
+    return dict(list(zip(list(d.values()), list(d.keys()))))
 # end inverse_dict
 
 
@@ -231,12 +237,12 @@ class AnalyticsDiscovery(gevent.Greenlet):
             self._reconnect = False
             # Done connecting to ZooKeeper
 
-            for wk in self._data_watchers.keys():
+            for wk in list(self._data_watchers.keys()):
                 self._zk.ensure_path(self._basepath + "/" + wk)
                 self._wchildren[wk] = {}
                 self._zk.ChildrenWatch(self._basepath + "/" + wk,
                         partial(self._zk_watcher, wk))
-            for wk in self._child_watchers.keys():
+            for wk in list(self._child_watchers.keys()):
                 self._zk.ensure_path(self._basepath + "/" + wk)
                 self._zk.ChildrenWatch(self._basepath + "/" + wk,
                         self._child_watchers[wk])
@@ -261,7 +267,7 @@ class AnalyticsDiscovery(gevent.Greenlet):
                         self._pendingcb = set()
                         self.publish(self._pubinfo)
 
-                        for wk in self._data_watchers.keys():
+                        for wk in list(self._data_watchers.keys()):
                             self._zk.ensure_path(self._basepath + "/" + wk)
                             children = self._zk.get_children(self._basepath + "/" + wk)
 
@@ -342,7 +348,7 @@ class OpServerUtils(object):
     @staticmethod
     def _get_list_name(lst):
         sname = ""
-        for sattr in lst.keys():
+        for sattr in list(lst.keys()):
             if sattr[0] not in ['@']:
                 sname = sattr
         return sname
@@ -357,7 +363,7 @@ class OpServerUtils(object):
             ret = {}
             if inp[sname] is None:
                 return ret
-            for k, v in inp[sname].items():
+            for k, v in list(inp[sname].items()):
                 ret[k] = OpServerUtils.uve_attr_flatten(v)
             return ret
         elif (inp['@type'] == 'list'):
@@ -374,7 +380,7 @@ class OpServerUtils(object):
                     lst.append(elem)
                 else:
                     lst_elem = {}
-                    for k, v in elem.items():
+                    for k, v in list(elem.items()):
                         lst_elem[k] = OpServerUtils.uve_attr_flatten(v)
                     lst.append(lst_elem)
             #ret[sname] = lst
@@ -384,7 +390,7 @@ class OpServerUtils(object):
             fmap = {}
 
             sname = None
-            for ss in inp['map'].keys():
+            for ss in list(inp['map'].keys()):
                 if ss[0] != '@':
                     if ss != 'element':
                         sname = ss
@@ -402,7 +408,7 @@ class OpServerUtils(object):
                     m_attr = inp['map']['element'][idx]
                     subst = {}
                     if inp['map'][sname][idx]:
-                        for sk,sv in inp['map'][sname][idx].iteritems():
+                        for sk,sv in inp['map'][sname][idx].items():
                             subst[sk] = OpServerUtils.uve_attr_flatten(sv)
                     fmap[m_attr] = subst
             return fmap
@@ -725,7 +731,7 @@ class OpServerUtils(object):
 
     @staticmethod
     def _messages_dict_remove_keys(messages_dict, key_pattern):
-        for key, value in messages_dict.items():
+        for key, value in list(messages_dict.items()):
             if key_pattern in key:
                 del messages_dict[key]
             if isinstance(value, list):
@@ -739,7 +745,7 @@ class OpServerUtils(object):
 
     @staticmethod
     def _messages_dict_flatten_key(messages_dict, key_match):
-        for key, value in messages_dict.items():
+        for key, value in list(messages_dict.items()):
             if isinstance(value, dict):
                 if key_match in value:
                     messages_dict[key] = value[key_match]
@@ -775,7 +781,7 @@ class OpServerUtils(object):
     # Evaluate messages dict using json.loads() or ast.literal_eval()
     @staticmethod
     def _messages_dict_eval(messages_dict):
-        for key, value in messages_dict.iteritems():
+        for key, value in messages_dict.items():
             if isinstance(value, basestring):
                 # First try json.loads
                 success, json_value = OpServerUtils._json_loads_check(value)
@@ -817,7 +823,7 @@ class OpServerUtils(object):
         data_str = None
         if not data_dict:
             return ''
-        for key, value in data_dict.iteritems():
+        for key, value in data_dict.items():
             # Ignore if type is sandesh
             if '@type' == key and value == 'sandesh':
                 continue
@@ -836,7 +842,7 @@ class OpServerUtils(object):
                     elem = int(value_dict['#text'])
                     value_dict['#text'] = socket.inet_ntoa(struct.pack('!L',elem))
                 if value_dict['@type'] == 'struct':
-                    for vdict_key, vdict_value in value_dict.iteritems():
+                    for vdict_key, vdict_value in value_dict.items():
                         if isinstance(vdict_value, dict):
                             if data_str is None:
                                 data_str = ''
@@ -871,7 +877,7 @@ class OpServerUtils(object):
                     # Handle list of complex types
                     else:
                         data_str += '[' + key + ':'
-                        for vlist_key, vlist_value in vlist_dict.iteritems():
+                        for vlist_key, vlist_value in vlist_dict.items():
                             if isinstance(vlist_value, dict):
                                 vlist_value_list = [vlist_value]
                             elif isinstance(vlist_value, list):
@@ -893,7 +899,7 @@ class OpServerUtils(object):
                     data_str += key + ': {'
 
                     sname = None
-                    for ss in vdict.keys():
+                    for ss in list(vdict.keys()):
                         if ss[0] != '@':
                             if ss != 'element':
                                 sname = ss
@@ -901,7 +907,7 @@ class OpServerUtils(object):
                     if sname is not None:
                         keys = []
                         values = []
-                        for key, value in vdict.iteritems():
+                        for key, value in vdict.items():
                             if key == 'element':
                                 if isinstance(value, list):
                                     keys = value
