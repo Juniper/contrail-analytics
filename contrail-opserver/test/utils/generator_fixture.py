@@ -109,6 +109,24 @@ class GeneratorFixture(fixtures.Fixture):
     def set_sandesh_send_queue_watermarks(self):
         self._sandesh_instance.client().connection().session().\
             set_send_queue_watermarks(GeneratorFixture._SENDQ_WATERMARKS)
+
+    def set_sandesh_config(self, sandesh_config):
+        if sandesh_config:
+            self._sandesh_config = SandeshConfig(
+                keyfile = sandesh_config.get('sandesh_keyfile'),
+                certfile = sandesh_config.get('sandesh_certfile'),
+                ca_cert = sandesh_config.get('sandesh_ca_cert'),
+                sandesh_ssl_enable = \
+                        sandesh_config.get('sandesh_ssl_enable', False),
+                introspect_ssl_enable = \
+                        sandesh_config.get('introspect_ssl_enable', False),
+                disable_object_logs = \
+                        sandesh_config.get('disable_object_logs', False),
+                system_logs_rate_limit = \
+                        sandesh_config.get('system_logs_rate_limit', \
+                        DEFAULT_SANDESH_SEND_RATELIMIT))
+        else:
+            self._sandesh_config = None
     # end set_sandesh_send_queue_watermarks
     @retry(delay=2, tries=5)
     def verify_on_setup(self):
@@ -339,9 +357,9 @@ class GeneratorFixture(fixtures.Fixture):
     @retry(delay=2, tries=5)
     def verify_vm_uve(self, vm_id, num_vm_ifs, msg_count, opserver_port=None):
         if opserver_port is not None:
-            vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1"), opserver_port)
+            vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1"), opserver_port, sandesh_config=self._sandesh_config)
         else:
-            vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1"), self._opserver_port)
+            vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1"), self._opserver_port, sandesh_config=self._sandesh_config)
         res = vns.get_ops_vm(vm_id)
         if res == {}:
             return False

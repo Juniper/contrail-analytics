@@ -18,7 +18,8 @@ class JsonDrv (object):
                 auth=HTTPBasicAuth(user, password)
             else:
                 auth=None
-            resp = requests.get(url, headers=headers, auth=auth, timeout=10, verify=ca_cert, cert=cert)
+            resp = requests.get(url, headers=headers, auth=auth, timeout=10,
+                                verify=ca_cert, cert=cert)
             return json.loads(resp.text)
         except requests.ConnectionError, e:
             print "Socket Connection error : " + str(e)
@@ -32,7 +33,8 @@ class XmlDrv (object):
                 auth=HTTPBasicAuth(user, password)
             else:
                 auth=None
-            resp = requests.get(url, headers=headers, auth=auth, timeout=10, verify=ca_cert, cert=cert)
+            resp = requests.get(url, headers=headers, auth=auth, timeout=10,
+                                verify=ca_cert, cert=cert)
             return etree.fromstring(str(resp.text))
         except requests.ConnectionError, e:
             print "Socket Connection error : " + str(e)
@@ -87,7 +89,8 @@ class Result (dict):
 
     def __init__(self, d={}):
         super(Result, self).__init__()
-        self.update(d)
+        if d is not None:
+            self.update(d)
 
     def xpath(self, *plist):
         ''' basic path '''
