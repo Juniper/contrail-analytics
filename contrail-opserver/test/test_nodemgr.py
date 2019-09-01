@@ -51,6 +51,7 @@ class config:
         self.tcp_keepalive_idle_time = None
         self.tcp_keepalive_interval = None
         self.tcp_keepalive_probes = None
+        self.hostname = None
 
 class NodemgrTest(unittest.TestCase):
 
