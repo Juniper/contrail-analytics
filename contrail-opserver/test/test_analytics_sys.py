@@ -438,7 +438,7 @@ class AnalyticsTest(testtools.TestCase, fixtures.TestWithFixtures):
             exp_object_values=['vm11&>'])
     # end test_10_verify_object_table_query
 
-    #@unittest.skip('verify message non ascii')
+    @unittest.skip('verify message non ascii')
     def test_12_verify_message_non_ascii(self):
         '''
         This test verifies message sent with non ascii character does not

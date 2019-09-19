@@ -270,7 +270,7 @@ class AlarmProcessor(object):
             return [self._get_uve_attribute(elem, attr_list,
                     uve_path+[{'__list_element__': elem}]) \
                     for elem in tuve]
-        elif isinstance(tuve, str):
+        elif isinstance(tuve, (basestring, str)):
             try:
                 json_elem = json.loads(tuve)
             except ValueError:
