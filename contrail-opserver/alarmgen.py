@@ -270,7 +270,7 @@ class AlarmProcessor(object):
             return [self._get_uve_attribute(elem, attr_list,
                     uve_path+[{'__list_element__': elem}]) \
                     for elem in tuve]
-        elif isinstance(tuve, str):
+        elif isinstance(tuve, (basestring, str)):
             try:
                 json_elem = json.loads(tuve)
             except ValueError:
@@ -2579,7 +2579,7 @@ class Controller(object):
             if 'DEFAULTS' in config.sections():
                 try:
                     collectors = config.get('DEFAULTS', 'collectors')
-                    if type(collectors) is str:
+                    if isinstance(collectors, (basestring, str)):
                         collectors = collectors.split()
                         new_chksum = hashlib.md5("".join(collectors)).hexdigest()
                         if new_chksum != self._chksum:

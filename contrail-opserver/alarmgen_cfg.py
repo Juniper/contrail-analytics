@@ -223,17 +223,17 @@ class CfgParser(object):
             help="Location of kafka ssl CA certificate")
         SandeshConfig.add_parser_arguments(parser)
         self._args = parser.parse_args(remaining_argv)
-        if type(self._args.collectors) is str:
+        if isinstance(self._args.collectors, (basestring, str)):
             self._args.collectors = self._args.collectors.split()
-        if type(self._args.kafka_broker_list) is str:
+        if isinstance(self._args.kafka_broker_list, (basestring, str)):
             self._args.kafka_broker_list= self._args.kafka_broker_list.split()
-        if type(self._args.zk_list) is str:
+        if isinstance(self._args.zk_list, (basestring, str)):
             self._args.zk_list= self._args.zk_list.split()
-        if type(self._args.redis_uve_list) is str:
+        if isinstance(self._args.redis_uve_list, (basestring, str)):
             self._args.redis_uve_list = self._args.redis_uve_list.split()
-        if type(self._args.alarmgen_list) is str:
+        if isinstance(self._args.alarmgen_list, (basestring, str)):
             self._args.alarmgen_list = self._args.alarmgen_list.split()
-        if type(self._args.config_db_server_list) is str:
+        if isinstance(self._args.config_db_server_list, (basestring, str)):
             self._args.config_db_server_list = \
                 self._args.config_db_server_list.split()
         self._args.conf_file = args.conf_file
