@@ -937,9 +937,39 @@ query_status_t SelectQuery::process_query() {
                                             col_res_map.find(g_viz_constants.UUID_KEY);
                 boost::uuids::uuid u = boost::get<boost::uuids::uuid>(uuid_it->second);
                 uuid_rkey = boost::get<boost::uuids::uuid>(uuid_it->second);
-                std::map<std::string, GenDb::DbDataValue>::iterator objectid_it =
-                                            col_res_map.find(g_viz_constants.OBJECT_TYPE_NAME1);
-                std::string object_id(GenDb::DbDataValueToString(objectid_it->second));
+
+
+                /* Create an array of OBJECT_TYPE_NAME* columns */
+                std::vector <string> column_name;
+                std::map<std::string, GenDb::DbDataValue>::iterator objectid_it;
+                unsigned int i = 0;
+                std::string object_id;
+                column_name.push_back(g_viz_constants.OBJECT_TYPE_NAME1);
+                column_name.push_back(g_viz_constants.OBJECT_TYPE_NAME2);
+                column_name.push_back(g_viz_constants.OBJECT_TYPE_NAME3);
+                column_name.push_back(g_viz_constants.OBJECT_TYPE_NAME4);
+                column_name.push_back(g_viz_constants.OBJECT_TYPE_NAME5);
+                column_name.push_back(g_viz_constants.OBJECT_TYPE_NAME6);
+
+                for (i = 0; i < column_name.size(); i++) {
+                    objectid_it = col_res_map.find(column_name[i]);
+                    object_id = GenDb::DbDataValueToString(objectid_it->second);
+                    if (object_id.find(m_query->table()) == 0) {
+                        QE_LOG(DEBUG, "Column " << i << " Table " << m_query->table()
+                                        << " object_id " << object_id);
+                        break;
+                    }
+                }
+
+                /* If none of the above match then use first column */
+                if (i == column_name.size()) {
+                    object_id = GenDb::DbDataValueToString(g_viz_constants.OBJECT_TYPE_NAME1);
+                }
+
+                /* Remove Tablename from object-id */
+                object_id.erase(object_id.begin(),
+                                object_id.begin() + object_id.find_first_of(":") + 1);
+
                 uuid_to_object_id.insert(std::make_pair(u, object_id));
             }
 
@@ -1005,13 +1035,6 @@ void SelectQuery::get_query_column_value(const GenDb::DbDataValueVec &info,
             std::string value_str(GenDb::DbDataValueToString(*value));
             value_str.erase(value_str.begin(),
                             value_str.begin() + value_str.find_first_of(":") + 1);
-
-            // Remove "<object-type>:" from OBJECT_TYPE_NAME[1..6] values
-            if (boost::starts_with(*query_column,
-                                   g_viz_constants.OBJECT_TYPE_NAME_PFX)) {
-                value_str.erase(value_str.begin(),
-                                value_str.begin() + value_str.find_first_of(":") + 1);
-            }
             *value = value_str;
         }
     }
