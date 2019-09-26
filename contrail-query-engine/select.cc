@@ -916,11 +916,12 @@ query_status_t SelectQuery::process_query() {
                 it != query_result.end(); it++) {
 
             std::map<std::string, GenDb::DbDataValue> col_res_map;
+            std::string object_id = std::string();
             for (unsigned int i = 0; i < it->info.size(); i++) {
 
                 std::string query_column;
                 GenDb::DbDataValue value;
-                get_query_column_value(it->info, i, &query_column, &value);
+                get_query_column_value(it->info, i, &query_column, &value, &object_id);
                 // timestamp has T2+T1 already calculated
                 if (query_column == g_viz_constants.TIMESTAMP) {
                     value = it->timestamp;
@@ -937,9 +938,11 @@ query_status_t SelectQuery::process_query() {
                                             col_res_map.find(g_viz_constants.UUID_KEY);
                 boost::uuids::uuid u = boost::get<boost::uuids::uuid>(uuid_it->second);
                 uuid_rkey = boost::get<boost::uuids::uuid>(uuid_it->second);
-                std::map<std::string, GenDb::DbDataValue>::iterator objectid_it =
-                                            col_res_map.find(g_viz_constants.OBJECT_TYPE_NAME1);
-                std::string object_id(GenDb::DbDataValueToString(objectid_it->second));
+                if (object_id.empty()) {
+                    std::map<std::string, GenDb::DbDataValue>::iterator objectid_it =
+                            col_res_map.find(g_viz_constants.OBJECT_TYPE_NAME1);
+                    object_id = GenDb::DbDataValueToString(objectid_it->second);
+                }
                 uuid_to_object_id.insert(std::make_pair(u, object_id));
             }
 
@@ -992,8 +995,10 @@ query_status_t SelectQuery::process_query() {
 void SelectQuery::get_query_column_value(const GenDb::DbDataValueVec &info,
                                          unsigned int index,
                                          std::string *query_column,
-                                         GenDb::DbDataValue *value) {
+                                         GenDb::DbDataValue *value,
+                                         std::string *object_id) {
 
+    AnalyticsQuery *m_query = (AnalyticsQuery *)main_query;
     std::string columnN = MsgTableIndexToColumn(index);
     *query_column = MsgTableColumnToQueryColumn(columnN);
     *value = info.at(index);
@@ -1009,8 +1014,16 @@ void SelectQuery::get_query_column_value(const GenDb::DbDataValueVec &info,
             // Remove "<object-type>:" from OBJECT_TYPE_NAME[1..6] values
             if (boost::starts_with(*query_column,
                                    g_viz_constants.OBJECT_TYPE_NAME_PFX)) {
-                value_str.erase(value_str.begin(),
+                if (boost::starts_with(value_str, m_query->table())) {
+                    value_str.erase(value_str.begin(),
                                 value_str.begin() + value_str.find_first_of(":") + 1);
+                    *object_id = value_str;
+                    QE_LOG(DEBUG, "Column " << *query_column << " Table " <<
+                                  m_query->table() << " object_id " << *object_id);
+                } else {
+                    value_str.erase(value_str.begin(),
+                                value_str.begin() + value_str.find_first_of(":") + 1);
+                }
             }
             *value = value_str;
         }
