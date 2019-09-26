@@ -632,7 +632,8 @@ private:
     void get_query_column_value(const GenDb::DbDataValueVec &info,
                                 unsigned int index,
                                 std::string *query_column,
-                                GenDb::DbDataValue *value);
+                                GenDb::DbDataValue *value,
+                                std::string *object_id);
     bool process_object_query_specific_select_params(
                         const std::string& sel_field,
                         std::map<std::string, GenDb::DbDataValue>& col_res_map,
