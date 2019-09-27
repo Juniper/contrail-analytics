@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c7813b2f_243da18f",
+        "filename": "contrail-query-engine/select.cc",
+        "patchSetId": 2
+      },
+      "lineNbr": 957,
+      "author": {
+        "id": 213
+      },
+      "writtenOn": "2019-09-27T17:43:13Z",
+      "side": 1,
+      "message": "I think we should use starts_with function here?\nAlso, we can move this entire logic to get_query_column_value function rather than doing it here, no? I feel that is cleaner. Sorry for not making clear earlier itself.",
+      "range": {
+        "startLine": 957,
+        "startChar": 34,
+        "endLine": 957,
+        "endChar": 38
+      },
+      "revId": "6462d171263a9a4ad0100a0be7eef4582212ad69",
+      "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
+      "unresolved": true
+    }
+  ]
+}
