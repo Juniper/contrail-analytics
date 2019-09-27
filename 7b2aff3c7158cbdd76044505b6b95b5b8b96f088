@@ -22,6 +22,30 @@
       "revId": "7b2aff3c7158cbdd76044505b6b95b5b8b96f088",
       "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "201d9594_ef234aec",
+        "filename": "contrail-query-engine/select.cc",
+        "patchSetId": 1
+      },
+      "lineNbr": 957,
+      "author": {
+        "id": 752
+      },
+      "writtenOn": "2019-09-27T16:18:10Z",
+      "side": 1,
+      "message": "Thanks. Now checking the return value with 0 as find returns 0 if match is found at starting.",
+      "parentUuid": "5d98f72a_b2ffc0be",
+      "range": {
+        "startLine": 957,
+        "startChar": 34,
+        "endLine": 957,
+        "endChar": 41
+      },
+      "revId": "7b2aff3c7158cbdd76044505b6b95b5b8b96f088",
+      "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
+      "unresolved": true
     }
   ]
 }
