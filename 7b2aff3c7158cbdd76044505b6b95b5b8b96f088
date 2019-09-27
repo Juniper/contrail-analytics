@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5d98f72a_b2ffc0be",
+        "filename": "contrail-query-engine/select.cc",
+        "patchSetId": 1
+      },
+      "lineNbr": 957,
+      "author": {
+        "id": 213
+      },
+      "writtenOn": "2019-09-27T00:20:51Z",
+      "side": 1,
+      "message": "should it not be starts_with or whatever corresponding function is? table name may be there at other places also.",
+      "range": {
+        "startLine": 957,
+        "startChar": 34,
+        "endLine": 957,
+        "endChar": 41
+      },
+      "revId": "7b2aff3c7158cbdd76044505b6b95b5b8b96f088",
+      "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
+      "unresolved": true
+    }
+  ]
+}
