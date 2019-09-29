@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "55b25600_be047639",
+        "filename": "contrail-query-engine/select.cc",
+        "patchSetId": 4
+      },
+      "lineNbr": 1025,
+      "author": {
+        "id": 213
+      },
+      "writtenOn": "2019-09-29T09:31:19Z",
+      "side": 1,
+      "message": "Nit:This is common code so no need to put it in else part. We can have this as common code and put the value is object_id if query matches.",
+      "range": {
+        "startLine": 1024,
+        "startChar": 0,
+        "endLine": 1025,
+        "endChar": 86
+      },
+      "revId": "46e18930e965eaf1cd4b743fe0ad0069b01142e6",
+      "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
+      "unresolved": true
+    }
+  ]
+}
