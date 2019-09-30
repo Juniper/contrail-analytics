@@ -47,7 +47,7 @@ database_libs.append('gendb')
 env.Prepend(LIBS=database_libs)
 
 def MapBuildDir(list):
-    return map(lambda x: '#/' + Dir('.').path + '/../' + x, list)
+    return ['#/' + Dir('.').path + '/../' + x for x in list]
 
 
 def SrcBuildDir(x):
@@ -127,8 +127,8 @@ qed_except_sources = [
     'where_query.cc',
 ]
 
-qed_objs = map(lambda x : env.Object(x), qed_sources)
-qed_except_objs = map(lambda x : env_excep.Object(x), qed_except_sources)
+qed_objs = [env.Object(x) for x in qed_sources]
+qed_except_objs = [env_excep.Object(x) for x in qed_except_sources]
 
 env.GenerateBuildInfoCode(
     target = ['buildinfo.h', 'buildinfo.cc'],
@@ -137,7 +137,7 @@ env.GenerateBuildInfoCode(
     ['../analytics/redis_connection.cc', '../analytics/vizd_table_desc.cc', 'rac_alloc.cc'],
     path = Dir('.').path)
 
-build_obj = map(lambda x : env.Object(x), ['buildinfo.cc'])
+build_obj = [env.Object(x) for x in ['buildinfo.cc']]
 
 lib_cpuinfo = File('../base/libcpuinfo.a')
 lib_base = File('../base/libbase.a')

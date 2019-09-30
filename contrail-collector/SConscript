@@ -17,7 +17,7 @@ if sys.platform != 'darwin':
 # get appropriate python lib
 import subprocess
 output,error = subprocess.Popen(["python","-V"],stdout = subprocess.PIPE, stderr=subprocess.PIPE).communicate()
-full_version = error.split()[1].split('.')
+full_version = error.decode('utf8').split()[1].split('.')
 python = 'python'+full_version[0]+'.'+full_version[1]
 
 AnalyticsEnv.Append(CPPPATH = ['/usr/include/'+ python,
@@ -33,7 +33,7 @@ AnalyticsEnv.Append(CPPPATH = ['/usr/include/'+ python,
 AnalyticsEnv.Append(LIBS=['boost_python', python])
 
 def MapBuildDir(list):
-    return map(lambda x: '#/' + Dir('.').path + '/../' + x, list)
+    return ['#/' + Dir('.').path + '/../' + x for x in list]
 
 etcd_incl = os.environ.get('CONTRAIL_ETCD_INCL');
 
@@ -230,7 +230,7 @@ def code_coverage(target, source, env):
     for test in test_suite:
         cmd = test[0].path
         logfile = open(cmd + '.log', 'w')
-        print("Executing for coverage... " + cmd)
+        print(("Executing for coverage... " + cmd))
         subprocess.call([cmd], stdout=logfile, env=ShEnv)
 
     # lcov --base-directory $ROOT -- directory . -c -o analytics_test.info
