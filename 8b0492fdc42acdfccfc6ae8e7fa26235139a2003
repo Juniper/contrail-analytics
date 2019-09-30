@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6368bfb0_ce197f36",
+        "filename": "contrail-collector/SConscript",
+        "patchSetId": 1
+      },
+      "lineNbr": 233,
+      "author": {
+        "id": 213
+      },
+      "writtenOn": "2019-09-30T10:21:31Z",
+      "side": 1,
+      "message": "double braces are not needed?",
+      "range": {
+        "startLine": 233,
+        "startChar": 13,
+        "endLine": 233,
+        "endChar": 17
+      },
+      "revId": "8b0492fdc42acdfccfc6ae8e7fa26235139a2003",
+      "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
+      "unresolved": true
+    }
+  ]
+}
