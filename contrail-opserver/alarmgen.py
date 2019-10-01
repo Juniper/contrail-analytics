@@ -8,6 +8,8 @@
 # Operational State Server for VNC
 #
 
+from __future__ import print_function
+from __future__ import absolute_import
 from gevent import monkey
 monkey.patch_all()
 import sys
@@ -30,24 +32,25 @@ from pysandesh.sandesh_base import *
 from pysandesh.connection_info import ConnectionState
 from pysandesh.sandesh_logger import SandeshLogger
 from pysandesh.gen_py.sandesh_alarm.ttypes import SandeshAlarmAckResponseCode
-import sandesh.viz.constants as viz_constants
-from sandesh.alarmgen_ctrl.sandesh_alarm_base.ttypes import AlarmTrace, \
+import sandesh #.viz.constants as viz_constants
+from .sandesh.viz.constants import VM_TABLE
+from .sandesh.alarmgen_ctrl.sandesh_alarm_base.ttypes import AlarmTrace, \
     UVEAlarms, UVEAlarmInfo, UVEAlarmConfig, AlarmOperand2, AlarmCondition, \
     AlarmMatch, AlarmConditionMatch, AlarmAndList, AlarmRules
-from sandesh.analytics.ttypes import *
-from sandesh.nodeinfo.ttypes import NodeStatusUVE, NodeStatus
-from sandesh.nodeinfo.cpuinfo.ttypes import *
-from sandesh.nodeinfo.process_info.ttypes import *
+from .sandesh.analytics.ttypes import *
+from .sandesh.nodeinfo.ttypes import NodeStatusUVE, NodeStatus
+from .sandesh.nodeinfo.cpuinfo.ttypes import *
+from .sandesh.nodeinfo.process_info.ttypes import *
 from sandesh_common.vns.ttypes import Module, NodeType
 from sandesh_common.vns.constants import ModuleNames, CategoryNames,\
      ModuleCategoryMap, Module2NodeType, NodeTypeNames, ModuleIds,\
      INSTANCE_ID_DEFAULT, ALARM_GENERATOR_SERVICE_NAME, \
      COLLECTOR_DISCOVERY_SERVICE_NAME
-from alarmgen_cfg import CfgParser
-from uveserver import UVEServer
-from partition_handler import PartitionHandler, UveStreamProc
-from alarmgen_config_handler import AlarmGenConfigHandler, _INVERSE_UVE_MAP
-from sandesh.alarmgen_ctrl.ttypes import PartitionOwnershipReq, \
+from .alarmgen_cfg import CfgParser
+from .uveserver import UVEServer
+from .partition_handler import PartitionHandler, UveStreamProc
+from .alarmgen_config_handler import AlarmGenConfigHandler, _INVERSE_UVE_MAP
+from .sandesh.alarmgen_ctrl.ttypes import PartitionOwnershipReq, \
     PartitionOwnershipResp, PartitionStatusReq, UVECollInfo, UVEGenInfo, \
     PartitionStatusResp, UVETableAlarmReq, UVETableAlarmResp, \
     AlarmgenTrace, UVEKeyInfo, UVETypeCount, UVETypeInfo, AlarmgenStatusTrace, \
@@ -60,13 +63,13 @@ from sandesh.alarmgen_ctrl.ttypes import PartitionOwnershipReq, \
     AlarmConfigResponse, AlarmgenUVEStats, AlarmgenAlarmStats, \
     AlarmgenPartitionTrace, AlarmExceptionTrace
 
-from opserver_util import AnalyticsDiscovery
+from .opserver_util import AnalyticsDiscovery
 from stevedore import hook, extension
 from pysandesh.util import UTCTimestampUsec
 from libpartition.libpartition import PartitionClient
 import redis
 from collections import namedtuple
-from strict_redis_wrapper import StrictRedisWrapper
+from .strict_redis_wrapper import StrictRedisWrapper
 from kafka import common, KafkaProducer
 
 OutputRow = namedtuple("OutputRow",["key","typ","val"])
@@ -299,9 +302,9 @@ class AlarmProcessor(object):
         pnode = uve_path[ui]
         while (ai < len(attr_list) and ui < len(uve_path)):
             if attr_list[ai] == '__key':
-                return uve_path[ui].iterkeys().next()
+                return next(uve_path[ui].iterkeys())
             elif attr_list[ai] == '__value':
-                return uve_path[ui].itervalues().next()
+                return next(uve_path[ui].itervalues())
             if attr_list[ai] != '*' and attr_list[ai] not in uve_path[ui]:
                 break
             pnode = uve_path[ui]
@@ -312,7 +315,7 @@ class AlarmProcessor(object):
                 ui += 1
         if not ui:
             return None
-        val = pnode.itervalues().next()
+        val = next(pnode.itervalues())
         for a in attr_list[ai:]:
             if val is None or not isinstance(val, dict):
                 return None
@@ -414,7 +417,7 @@ class AlarmProcessor(object):
         try:
             # virtual-machine UVE key doesn't have project name in the prefix.
             # Hence extract the project name from the interface_list.
-            if table == viz_constants.VM_TABLE:
+            if table == VM_TABLE:
                 return uve['UveVirtualMachineAgent']['interface_list'][0].\
                     rsplit(':', 1)[0]
             else:
@@ -1646,12 +1649,12 @@ class Controller(object):
         self.tab_perf[table].record_call(UTCTimestampUsec() - prevt)
 
         del_types = []
-        if not self.tab_alarms.has_key(table):
+        if table not in self.tab_alarms:
             self.tab_alarms[table] = {}
-        if self.tab_alarms[table].has_key(uve_key):
+        if uve_key in self.tab_alarms[table]:
             for nm, asm in self.tab_alarms[table][uve_key].iteritems():
                 # This type was present earlier, but is now gone
-                if not new_uve_alarms.has_key(nm):
+                if nm not in new_uve_alarms:
                     del_types.append(nm)
                 else:
                     # This type has no new information
@@ -1668,7 +1671,7 @@ class Controller(object):
                 uai = copy.deepcopy(uai2)
                 uai.timestamp = UTCTimestampUsec()
                 uai.token = Controller.token(self._sandesh, uai.timestamp)
-                if not self.tab_alarms[table].has_key(uve_key):
+                if uve_key not in self.tab_alarms[table]:
                     self.tab_alarms[table][uve_key] = {}
                 if not nm in self.tab_alarms[table][uve_key]:
                     self.tab_alarms[table][uve_key][nm] = AlarmStateMachine(
@@ -1685,11 +1688,11 @@ class Controller(object):
                 # go through alarm set state machine code
                 asm.set_alarms()
                 # increment alarm set count here.
-                if not self._alarmstats.has_key(part):
+                if part not in self._alarmstats:
                     self._alarmstats[part] = {}
-                if not self._alarmstats[part].has_key(table_str):
+                if table_str not in self._alarmstats[part]:
                     self._alarmstats[part][table_str] = {}
-                if not self._alarmstats[part][table_str].has_key(nm):
+                if nm not in self._alarmstats[part][table_str]:
                     self._alarmstats[part][table_str][nm] = \
                                             AlarmgenAlarmStats(table_str, nm,
                                                                0, 0, 0)
@@ -1698,11 +1701,11 @@ class Controller(object):
             for dnm in del_types:
                 if dnm in self.tab_alarms[table][uve_key]:
                     # increment alarm reset count here.
-                    if not self._alarmstats.has_key(part):
+                    if part not in self._alarmstats:
                         self._alarmstats[part] = {}
-                    if not self._alarmstats[part].has_key(table_str):
+                    if table_str not in self._alarmstats[part]:
                         self._alarmstats[part][table_str] = {}
-                    if not self._alarmstats[part][table_str].has_key(dnm):
+                    if dnm not in self._alarmstats[part][table_str]:
                         self._alarmstats[part][table_str][dnm] = \
                                             AlarmgenAlarmStats(table_str, dnm,
                                                                0, 0, 0)
@@ -2288,10 +2291,10 @@ class Controller(object):
                     table_str = _INVERSE_UVE_MAP[table_name]
                 else:
                     table_str = table_name
-                if not alarm_stats.has_key(table_str):
+                if table_str not in alarm_stats:
                     alarm_stats[table_str] = {}
                 for alarm_name,alarm_val in table_val.iteritems():
-                    if not alarm_stats[table_str].has_key(alarm_name):
+                    if alarm_name not in alarm_stats[table_str]:
                         alarm_stats[table_str][alarm_name] \
                             = AlarmgenAlarmStats(table_str, alarm_name,
                                                  alarm_val.set_count,
@@ -2310,9 +2313,9 @@ class Controller(object):
             else:
                 table_str = table_name
             for alarm_name in self.tab_alarms[table_name]:
-                if not alarm_stats.has_key(table_str):
+                if table_str not in alarm_stats:
                     alarm_stats[table_str] = {}
-                if not alarm_stats[table_str].has_key(alarm_name):
+                if alarm_name not in alarm_stats[table_str]:
                     alarm_stats[table_str][alarm_name] \
                         = AlarmgenAlarmStats(table_str, alarm_name,
                                              0, 0, 0)
@@ -2358,7 +2361,7 @@ class Controller(object):
         for pt in parts:
             resp = PartitionStatusResp()
             resp.partition = pt
-            if self._workers.has_key(pt):
+            if pt in self._workers:
                 resp.enabled = True
                 resp.offset = self._workers[pt]._partoffset
                 resp.uves = []
@@ -2540,7 +2543,7 @@ class Controller(object):
         try:
             gevent.joinall(self.gevs)
         except KeyboardInterrupt:
-            print 'AlarmGen Exiting on ^C'
+            print('AlarmGen Exiting on ^C')
         except gevent.GreenletExit:
             self._logger.error('AlarmGen Exiting on gevent-kill')
         except:

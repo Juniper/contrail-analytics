@@ -10,14 +10,18 @@
 # Query flow messages from analytics
 #
 
+from __future__ import print_function
+from __future__ import absolute_import
 import sys
 import ConfigParser
 import argparse
 import json
 import datetime
-import sandesh.viz.constants as VizConstants
-from sandesh.viz.ttypes import FlowRecordFields
-from opserver_util import OpServerUtils
+import sandesh #.viz.constants as sandesh.viz.constants
+from .sandesh.viz.constants import FlowRecordNames, FLOW_TABLE,\
+        FLOW_TABLE_UUID, FLOW_TABLE_AGG_BYTES, FLOW_TABLE_AGG_PKTS
+from .sandesh.viz.ttypes import FlowRecordFields
+from .opserver_util import OpServerUtils
 import uuid
 
 
@@ -25,45 +29,45 @@ class FlowQuerier(object):
 
     def __init__(self):
         self._args = None
-        self._VROUTER = VizConstants.FlowRecordNames[
+        self._VROUTER = FlowRecordNames[
             FlowRecordFields.FLOWREC_VROUTER]
-        self._SETUP_TIME = VizConstants.FlowRecordNames[
+        self._SETUP_TIME = FlowRecordNames[
             FlowRecordFields.FLOWREC_SETUP_TIME]
-        self._TEARDOWN_TIME = VizConstants.FlowRecordNames[
+        self._TEARDOWN_TIME = FlowRecordNames[
             FlowRecordFields.FLOWREC_TEARDOWN_TIME]
-        self._SOURCE_VN = VizConstants.FlowRecordNames[
+        self._SOURCE_VN = FlowRecordNames[
             FlowRecordFields.FLOWREC_SOURCEVN]
-        self._DESTINATION_VN = VizConstants.FlowRecordNames[
+        self._DESTINATION_VN = FlowRecordNames[
             FlowRecordFields.FLOWREC_DESTVN]
-        self._SOURCE_IP = VizConstants.FlowRecordNames[
+        self._SOURCE_IP = FlowRecordNames[
             FlowRecordFields.FLOWREC_SOURCEIP]
-        self._DESTINATION_IP = VizConstants.FlowRecordNames[
+        self._DESTINATION_IP = FlowRecordNames[
             FlowRecordFields.FLOWREC_DESTIP]
-        self._PROTOCOL = VizConstants.FlowRecordNames[
+        self._PROTOCOL = FlowRecordNames[
             FlowRecordFields.FLOWREC_PROTOCOL]
-        self._SOURCE_PORT = VizConstants.FlowRecordNames[
+        self._SOURCE_PORT = FlowRecordNames[
             FlowRecordFields.FLOWREC_SPORT]
-        self._DESTINATION_PORT = VizConstants.FlowRecordNames[
+        self._DESTINATION_PORT = FlowRecordNames[
             FlowRecordFields.FLOWREC_DPORT]
-        self._DIRECTION = VizConstants.FlowRecordNames[
+        self._DIRECTION = FlowRecordNames[
             FlowRecordFields.FLOWREC_DIRECTION_ING]
-        self._ACTION = VizConstants.FlowRecordNames[
+        self._ACTION = FlowRecordNames[
             FlowRecordFields.FLOWREC_ACTION]
-        self._SG_RULE_UUID = VizConstants.FlowRecordNames[
+        self._SG_RULE_UUID = FlowRecordNames[
             FlowRecordFields.FLOWREC_SG_RULE_UUID]
-        self._NW_ACE_UUID = VizConstants.FlowRecordNames[
+        self._NW_ACE_UUID = FlowRecordNames[
             FlowRecordFields.FLOWREC_NW_ACE_UUID]
-        self._VROUTER_IP = VizConstants.FlowRecordNames[
+        self._VROUTER_IP = FlowRecordNames[
             FlowRecordFields.FLOWREC_VROUTER_IP]
-        self._OTHER_VROUTER_IP = VizConstants.FlowRecordNames[
+        self._OTHER_VROUTER_IP = FlowRecordNames[
             FlowRecordFields.FLOWREC_OTHER_VROUTER_IP]
-        self._UNDERLAY_PROTO = VizConstants.FlowRecordNames[
+        self._UNDERLAY_PROTO = FlowRecordNames[
             FlowRecordFields.FLOWREC_UNDERLAY_PROTO]
-        self._UNDERLAY_SPORT = VizConstants.FlowRecordNames[
+        self._UNDERLAY_SPORT = FlowRecordNames[
             FlowRecordFields.FLOWREC_UNDERLAY_SPORT]
-        self._VMI = VizConstants.FlowRecordNames[
+        self._VMI = FlowRecordNames[
             FlowRecordFields.FLOWREC_VMI]
-        self._DROP_REASON = VizConstants.FlowRecordNames[
+        self._DROP_REASON = FlowRecordNames[
             FlowRecordFields.FLOWREC_DROP_REASON]
     # end __init__
 
@@ -187,21 +191,21 @@ class FlowQuerier(object):
 
         # Validate flow arguments
         if self._args.source_ip is not None and self._args.source_vn is None:
-            print 'Please provide source virtual network in addtion to '\
-                'source IP address'
+            print('Please provide source virtual network in addtion to '\
+                'source IP address')
             return -1
         if self._args.destination_ip is not None and \
                 self._args.destination_vn is None:
-            print 'Please provide destination virtual network in addtion to '\
-                'destination IP address'
+            print('Please provide destination virtual network in addtion to '\
+                'destination IP address')
             return -1
         if self._args.source_port is not None and self._args.protocol is None:
-            print 'Please provide protocol in addtion to source port'
+            print('Please provide protocol in addtion to source port')
             return -1
         if self._args.destination_port is not None and \
                 self._args.protocol is None:
-            print 'Please provide protocol in addtion to '\
-                'destination port'
+            print('Please provide protocol in addtion to '\
+                'destination port')
             return -1
 
         # Convert direction
@@ -210,7 +214,7 @@ class FlowQuerier(object):
         elif self._args.direction.lower() == "egress":
             self._args.direction = 0
         else:
-            print 'Direction should be ingress or egress'
+            print('Direction should be ingress or egress')
             return -1
 
         # Protocol
@@ -219,7 +223,7 @@ class FlowQuerier(object):
                 protocol = OpServerUtils.str_to_ip_protocol(
                     self._args.protocol)
                 if protocol == -1:
-                    print 'Please provide valid protocol'
+                    print('Please provide valid protocol')
                     return -1
                 self._args.protocol = protocol
 
@@ -319,14 +323,14 @@ class FlowQuerier(object):
             filter.append(vmi_match.__dict__)
 
         # Flow Record Table Query
-        table = VizConstants.FLOW_TABLE
+        table = FLOW_TABLE
         if len(where) == 0:
             where = None
         else:
             where = [where]
 
         select_list = [
-            VizConstants.FLOW_TABLE_UUID,
+            FLOW_TABLE_UUID,
             self._VROUTER,
             self._SETUP_TIME,
             self._TEARDOWN_TIME,
@@ -339,8 +343,8 @@ class FlowQuerier(object):
             self._DESTINATION_PORT,
             self._ACTION,
             self._DIRECTION,
-            VizConstants.FLOW_TABLE_AGG_BYTES,
-            VizConstants.FLOW_TABLE_AGG_PKTS,
+            FLOW_TABLE_AGG_BYTES,
+            FLOW_TABLE_AGG_PKTS,
             self._SG_RULE_UUID,
             self._NW_ACE_UUID,
             self._VROUTER_IP,
@@ -363,9 +367,9 @@ class FlowQuerier(object):
                                          filter=filter,
                                          dir=self._args.direction)
         if self._args.verbose:
-            print 'Performing query: {0}'.format(
-                json.dumps(flow_query.__dict__))
-        print ''
+            print('Performing query: {0}'.format(
+                json.dumps(flow_query.__dict__)))
+        print('')
         resp = OpServerUtils.post_url_http(
             flow_url, json.dumps(flow_query.__dict__), self._args.admin_user,
             self._args.admin_password)
@@ -403,14 +407,14 @@ class FlowQuerier(object):
         tunnel_info = output_dict['tunnel_info']
         flow_uuid = output_dict['flow_uuid']
 
-        print '[SRC-VR:{0}{1}] {2} {3} {4} ({5} -- {6}) {7} '\
+        print('[SRC-VR:{0}{1}] {2} {3} {4} ({5} -- {6}) {7} '\
                 '{8}:{9}:{10}:{11} ---> {12}:{13}:{14}{15} <{16} P ({17} B)>'\
                 ' : SG:{18} ACL:{19} {20}{21}'.format(
                vrouter, vrouter_ip, direction, action, drop_reason, setup_ts,
                teardown_ts, protocol, source_vn, source_ip, source_port,
                src_vmi, destination_vn, destination_ip, destination_port,
                other_vrouter_ip, agg_pkts, agg_bytes, sg_rule_uuid,
-               nw_ace_uuid, tunnel_info, flow_uuid)
+               nw_ace_uuid, tunnel_info, flow_uuid))
 
     def display(self, result):
         if result == [] or result is None:
@@ -474,9 +478,9 @@ class FlowQuerier(object):
             else:
                 direction = 'Direction: NA'
             # Flow UUID 
-            if VizConstants.FLOW_TABLE_UUID in flow_dict and\
-                flow_dict[VizConstants.FLOW_TABLE_UUID] is not None:
-                flow_uuid = flow_dict[VizConstants.FLOW_TABLE_UUID]
+            if FLOW_TABLE_UUID in flow_dict and\
+                flow_dict[FLOW_TABLE_UUID] is not None:
+                flow_uuid = flow_dict[FLOW_TABLE_UUID]
             else:
                 flow_uuid = 'UUID: NA'
             # Source VN
@@ -529,14 +533,14 @@ class FlowQuerier(object):
             else:
                 action = ''
             # Agg packets and bytes
-            if VizConstants.FLOW_TABLE_AGG_BYTES in flow_dict and\
-                flow_dict[VizConstants.FLOW_TABLE_AGG_BYTES] is not None:
-                agg_bytes = int(flow_dict[VizConstants.FLOW_TABLE_AGG_BYTES])
+            if FLOW_TABLE_AGG_BYTES in flow_dict and\
+                flow_dict[FLOW_TABLE_AGG_BYTES] is not None:
+                agg_bytes = int(flow_dict[FLOW_TABLE_AGG_BYTES])
             else:
                 agg_bytes = 'Agg Bytes: NA'
-            if VizConstants.FLOW_TABLE_AGG_PKTS in flow_dict and\
-                flow_dict[VizConstants.FLOW_TABLE_AGG_PKTS] is not None:
-                agg_pkts = int(flow_dict[VizConstants.FLOW_TABLE_AGG_PKTS])
+            if FLOW_TABLE_AGG_PKTS in flow_dict and\
+                flow_dict[FLOW_TABLE_AGG_PKTS] is not None:
+                agg_pkts = int(flow_dict[FLOW_TABLE_AGG_PKTS])
             else:
                 agg_pkts = 'Agg Packets: NA'
             # SG rule UUID

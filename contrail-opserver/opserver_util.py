@@ -8,6 +8,7 @@
 # Utility functions for Operational State Server for VNC
 #
 
+from __future__ import print_function
 from gevent import monkey
 import os
 monkey.patch_all()
@@ -458,8 +459,8 @@ class OpServerUtils(object):
                         OpServerUtils.convert_to_utc_timestamp_usec(
                             end_time)
             except:
-                print 'Incorrect start-time (%s) or end-time (%s) format' %\
-                    (start_time, end_time)
+                print('Incorrect start-time (%s) or end-time (%s) format' %\
+                    (start_time, end_time))
                 raise
 
         if ostart_time is None and oend_time is None:
@@ -509,13 +510,13 @@ class OpServerUtils(object):
                                          data=params,
                                          auth=HTTPBasicAuth(user, password),
                                          headers=hdrs)
-        except requests.exceptions.ConnectionError, e:
-            print "Connection to %s failed %s" % (url, str(e))
+        except requests.exceptions.ConnectionError as e:
+            print("Connection to %s failed %s" % (url, str(e)))
             return None
         if (response.status_code == 202) or (response.status_code) == 200:
             return response.text
         else:
-            print "HTTP error code: %d" % response.status_code
+            print("HTTP error code: %d" % response.status_code)
         return None
     # end post_url_http
 
@@ -534,7 +535,7 @@ class OpServerUtils(object):
                                     auth=HTTPBasicAuth(user, password),
                                     cert=cert, verify=ca_cert, headers=headers)
         except requests.exceptions.ConnectionError, e:
-            print "Connection to %s failed %s" % (url, str(e))
+            print("Connection to %s failed %s" % (url, str(e)))
 
         return data
     # end get_url_http
@@ -545,7 +546,7 @@ class OpServerUtils(object):
         resit = result.iter_lines()
         while not done:
             try:
-                ln = resit.next()
+                ln = next(resit)
                 if ln == '{"value": [':
                     continue
                 if ln == ']}':
@@ -561,7 +562,7 @@ class OpServerUtils(object):
                 for i in out_list:
                     yield i
             except Exception as e:
-                print "Error parsing %s results: %s" % (ln, str(e))
+                print("Error parsing %s results: %s" % (ln, str(e)))
                 done = True
         return
     # end parse_query_result
@@ -580,14 +581,14 @@ class OpServerUtils(object):
                 return
             status = json.loads(resp.text)
             if status['progress'] < 0:
-                print 'Error in query processing'
+                print('Error in query processing')
                 return
             elif status['progress'] != 100:
                 if time_out is not None:
                     if time_left > 0:
                         time_left -= sleep_interval
                     else:
-                        print 'query timed out'
+                        print('query timed out')
                         yield {}
                         return
 
@@ -1025,7 +1026,7 @@ class OpServerUtils(object):
                             op=OpServerUtils.MatchOp.CONTAINS)
                     elif match_v[0][-1] is '*':
                         match_prefix = match_v[0][:(len(match_v[0]) - 1)]
-                        print match_prefix
+                        print(match_prefix)
                         match_elem = OpServerUtils.Match(
                             name=tname, value=match_prefix,
                             op=OpServerUtils.MatchOp.PREFIX)

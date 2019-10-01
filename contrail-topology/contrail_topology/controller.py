@@ -1,13 +1,15 @@
 #
 # Copyright (c) 2015 Juniper Networks, Inc. All rights reserved.
 #
-from analytic_client import AnalyticApiClient
+from __future__ import print_function
+from __future__ import absolute_import
+from .analytic_client import AnalyticApiClient
 import time, socket, os
-from topology_uve import LinkUve
+from .topology_uve import LinkUve
 import gevent
 from gevent.lock import Semaphore
 from opserver.consistent_schdlr import ConsistentScheduler
-from topology_config_handler import TopologyConfigHandler
+from .topology_config_handler import TopologyConfigHandler
 import traceback
 import ConfigParser
 import signal
@@ -75,7 +77,7 @@ class Controller(object):
                 d = self.analytic_api.get_vrouter(vr, ','.join(cfilt))
             except Exception as e:
                 traceback.print_exc()
-                print str(e)
+                print(str(e))
                 d = {}
             if 'VrouterAgent' not in d or\
                 'self_ip_list' not in d['VrouterAgent'] or\
@@ -108,7 +110,7 @@ class Controller(object):
                     self.prouters.append(PRouter(pr, data))
             except Exception as e:
                 traceback.print_exc()
-                print str(e)
+                print(str(e))
 
     def _is_linkup(self, prouter, ifindex):
         if 'PRouterEntry' in prouter.data and \
@@ -437,7 +439,7 @@ class Controller(object):
                         self.send_uve()
                 except Exception as e:
                     traceback.print_exc()
-                    print str(e)
+                    print(str(e))
                 gevent.sleep(self._sleep_time)
             else:
                 gevent.sleep(1)

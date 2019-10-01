@@ -10,6 +10,7 @@
 # System tests for analytics
 #
 
+from __future__ import absolute_import
 import os
 import sys
 import threading
@@ -24,9 +25,9 @@ import testtools
 import fixtures
 import socket
 import mock
-from utils.analytics_fixture import AnalyticsFixture
-from utils.generator_fixture import GeneratorFixture
-from utils.stats_fixture import StatsFixture
+from .utils.analytics_fixture import AnalyticsFixture
+from .utils.generator_fixture import GeneratorFixture
+from .utils.stats_fixture import StatsFixture
 from mockcassandra import mockcassandra
 import logging
 import time
@@ -35,7 +36,7 @@ from opserver.opserver import OpServer
 from opserver.vnc_cfg_api_client import VncCfgApiClient
 from sandesh_common.vns.ttypes import Module
 from sandesh_common.vns.constants import ModuleNames
-from utils.util import find_buildroot
+from .utils.util import find_buildroot
 from cassandra.cluster import Cluster
 import bottle
 

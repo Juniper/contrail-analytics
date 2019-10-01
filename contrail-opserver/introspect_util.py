@@ -2,6 +2,7 @@
 # Copyright (c) 2013 Juniper Networks, Inc. All rights reserved.
 #
 
+from __future__ import print_function
 import urllib
 import xmltodict
 import json
@@ -21,8 +22,8 @@ class JsonDrv (object):
             resp = requests.get(url, headers=headers, auth=auth, timeout=10,
                                 verify=ca_cert, cert=cert)
             return json.loads(resp.text)
-        except requests.ConnectionError, e:
-            print "Socket Connection error : " + str(e)
+        except requests.ConnectionError as e:
+            print("Socket Connection error : " + str(e))
             return None
 
 class XmlDrv (object):
@@ -36,8 +37,8 @@ class XmlDrv (object):
             resp = requests.get(url, headers=headers, auth=auth, timeout=10,
                                 verify=ca_cert, cert=cert)
             return etree.fromstring(str(resp.text))
-        except requests.ConnectionError, e:
-            print "Socket Connection error : " + str(e)
+        except requests.ConnectionError as e:
+            print("Socket Connection error : " + str(e))
             return None
 
 

@@ -1,10 +1,12 @@
 #
 # Copyright (c) 2015 Juniper Networks, Inc. All rights reserved.
 #
+
+from __future__ import absolute_import
 import argparse, os, ConfigParser, sys, re
 from pysandesh.sandesh_base import *
 from pysandesh.gen_py.sandesh.ttypes import SandeshLevel
-import device_config
+from . import device_config
 
 class CfgParser(object):
     CONF_DEFAULT_PATH = '/etc/contrail/contrail-broadview.conf'

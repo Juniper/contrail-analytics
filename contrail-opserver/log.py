@@ -10,6 +10,8 @@
 # Query log messages from analytics
 #
 
+from __future__ import print_function
+from __future__ import absolute_import
 import sys
 import ConfigParser
 import argparse
@@ -20,10 +22,13 @@ import logging.handlers
 import time
 import re
 from multiprocessing import Process
-from opserver_util import OpServerUtils
+from .opserver_util import OpServerUtils
 from sandesh_common.vns.ttypes import Module
 from sandesh_common.vns.constants import ModuleNames, NodeTypeNames
-import sandesh.viz.constants as VizConstants
+import sandesh #.viz.constants as sandesh.viz.constants
+from .sandesh.viz.constants import _OBJECT_TABLES, OBJECT_LOG, SYSTEM_LOG, \
+    SOURCE, MODULE, MESSAGE_TYPE, LEVEL, NODE_TYPE, INSTANCE_ID, CATEGORY, \
+    TIMESTAMP, MESSAGE_TABLE, SEQUENCE_NUM, DATA, SANDESH_TYPE 
 from pysandesh.gen_py.sandesh.ttypes import SandeshType, SandeshLevel
 from pysandesh.sandesh_logger import SandeshLogger
 from pysandesh.util import UTCTimestampUsec
@@ -31,9 +36,9 @@ import commands
 import ast
 
 OBJECT_TYPE_LIST = [table_info.log_query_name for table_info in \
-    VizConstants._OBJECT_TABLES.values()]
+    _OBJECT_TABLES.values()]
 OBJECT_TABLE_MAP = dict((table_info.log_query_name, table_name) for \
-   (table_name, table_info) in VizConstants._OBJECT_TABLES.items())
+   (table_name, table_info) in _OBJECT_TABLES.items())
 output_file_handle = None
 
 class LogQuerier(object):
@@ -224,7 +229,7 @@ class LogQuerier(object):
         parser.add_argument("--object-id", help="Logs of object name")
         parser.add_argument(
             "--object-select-field", help="Select field to filter the log",
-            choices=[VizConstants.OBJECT_LOG, VizConstants.SYSTEM_LOG])
+            choices=[OBJECT_LOG, SYSTEM_LOG])
         parser.add_argument("--trace", help="Dump trace buffer")
         parser.add_argument("--limit", help="Limit the number of messages")
         parser.add_argument("--send-syslog", action="store_true",
@@ -262,7 +267,7 @@ class LogQuerier(object):
                  invalid_combination += ", --start-time"
             if self._args.end_time:
                  invalid_combination += ", --end-time"
-            print "Combination of options" + invalid_combination + " are not valid."
+            print("Combination of options" + invalid_combination + " are not valid.")
             return -1
         global output_file_handle
         if self._args.output_file is not None:
@@ -274,9 +279,9 @@ class LogQuerier(object):
                    else:
                       output_file_handle = open(self._args.output_file, "w")
                except Exception as e:
-                   print e
-                   print "Exception occured when creating/opening file %s" % \
-                         self._args.output_file
+                   print(e)
+                   print("Exception occured when creating/opening file %s" % \
+                         self._args.output_file)
                    return -1
 
         start_time, end_time = self._start_time, self._end_time
@@ -291,7 +296,7 @@ class LogQuerier(object):
             res = res.splitlines()
             res = res[1:]
             for r in res:
-                print ast.literal_eval(r)['fields.value']
+                print(ast.literal_eval(r)['fields.value'])
             return None
         messages_url = OpServerUtils.opserver_query_url(
             self._args.analytics_api_ip,
@@ -307,7 +312,7 @@ class LogQuerier(object):
                 else:
                     val = source
                     oper = OpServerUtils.MatchOp.EQUAL
-                source_match = OpServerUtils.Match(name=VizConstants.SOURCE,
+                source_match = OpServerUtils.Match(name=SOURCE,
                                                    value=val, op=oper)
                 where_or_list.append([])
                 where_or_list[-1].append(source_match.__dict__)
@@ -315,7 +320,7 @@ class LogQuerier(object):
         if self._args.module is not None:
             module_list = []
             for module in self._args.module:
-                module_match = OpServerUtils.Match(name=VizConstants.MODULE,
+                module_match = OpServerUtils.Match(name=MODULE,
                                                    value=module,
                                                    op=OpServerUtils.MatchOp.EQUAL)
                 module_list.append(module_match.__dict__)
@@ -335,7 +340,7 @@ class LogQuerier(object):
                     val = message_type
                     oper = OpServerUtils.MatchOp.EQUAL
                 message_type_match = OpServerUtils.Match(
-                    name=VizConstants.MESSAGE_TYPE,
+                    name=MESSAGE_TYPE,
                     value=val, op=oper)
                 message_type_list.append(message_type_match.__dict__)
             if not where_or_list:
@@ -346,21 +351,21 @@ class LogQuerier(object):
 
         if self._args.level is not None:
             level_match = OpServerUtils.Match(
-                name=VizConstants.LEVEL,
+                name=LEVEL,
                 value=SandeshLevel._NAMES_TO_VALUES[self._args.level],
                 op=OpServerUtils.MatchOp.LEQ)
             and_filter.append(level_match.__dict__)
 
         if self._args.node_type is not None:
             node_type_match = OpServerUtils.Match(
-                name=VizConstants.NODE_TYPE,
+                name=NODE_TYPE,
                 value=self._args.node_type,
                 op=OpServerUtils.MatchOp.EQUAL)
             and_filter.append(node_type_match.__dict__)
 
         if self._args.instance_id is not None:
             instance_id_match = OpServerUtils.Match(
-                name=VizConstants.INSTANCE_ID,
+                name=INSTANCE_ID,
                 value=self._args.instance_id,
                 op=OpServerUtils.MatchOp.EQUAL)
             and_filter.append(instance_id_match.__dict__)
@@ -373,7 +378,7 @@ class LogQuerier(object):
                 val = self._args.category
                 oper = OpServerUtils.MatchOp.EQUAL
             category_match = OpServerUtils.Match(
-                name=VizConstants.CATEGORY,
+                name=CATEGORY,
                 value=val,
                 op=oper)
             and_filter.append(category_match.__dict__)
@@ -394,14 +399,14 @@ class LogQuerier(object):
                     if self._args.object_type in OBJECT_TABLE_MAP:
                         table = OBJECT_TABLE_MAP[self._args.object_type]
                     else:
-                        print 'Table not found for object-type [%s]' % \
-                            (self._args.object_type)
+                        print('Table not found for object-type [%s]' % \
+                            (self._args.object_type))
                         return -1
                 else:
-                    print 'Unknown object-type [%s]' % (self._args.object_type)
+                    print('Unknown object-type [%s]' % (self._args.object_type))
                     return -1
             else:
-                print 'Object-type required for query'
+                print('Object-type required for query')
                 return -1
             # Validate object-id and object-values
             if self._args.object_id is not None and \
@@ -423,7 +428,7 @@ class LogQuerier(object):
                     where_msg.append(id_match.__dict__)
             elif self._args.object_id is not None and \
                self._args.object_values is True:
-                print 'Please specify either object-id or object-values but not both'
+                print('Please specify either object-id or object-values but not both')
                 return -1
 
             if self._args.object_values is False:
@@ -431,47 +436,47 @@ class LogQuerier(object):
                     obj_sel_field = self._args.object_select_field
                     if not isinstance(self._args.object_select_field, list):
                          obj_sel_field = [self._args.object_select_field]
-                    if VizConstants.OBJECT_LOG or VizConstants.SYSTEM_LOG \
+                    if OBJECT_LOG or SYSTEM_LOG \
                        in obj_sel_field:
                          self._args.object_select_field = obj_sel_field
                     else:
-                         print 'Invalid object-select-field. '\
+                         print('Invalid object-select-field. '\
                             'Valid values are "%s" or "%s"' \
-                            % (VizConstants.OBJECT_LOG,
-                               VizConstants.SYSTEM_LOG)
+                            % (OBJECT_LOG,
+                               SYSTEM_LOG))
                          return -1
                 else:
                     self._args.object_select_field = obj_sel_field = [
-                        VizConstants.OBJECT_LOG, VizConstants.SYSTEM_LOG]
+                        OBJECT_LOG, SYSTEM_LOG]
                 select_list = [
-                    VizConstants.TIMESTAMP,
-                    VizConstants.SOURCE,
-                    VizConstants.MODULE,
-                    VizConstants.MESSAGE_TYPE,
+                    TIMESTAMP,
+                    SOURCE,
+                    MODULE,
+                    MESSAGE_TYPE,
                 ] + obj_sel_field
             else:
                 if self._args.object_select_field:
-                    print 'Please specify either object-id with ' + \
-                        'object-select-field or only object-values'
+                    print('Please specify either object-id with ' + \
+                        'object-select-field or only object-values')
                     return -1
                 if len(where_or_list):
                     options = [where['name'] for where_msg in where_or_list for where in where_msg]
-                    print 'Invalid/unsupported where-clause options %s for object-values query' % str(options)
+                    print('Invalid/unsupported where-clause options %s for object-values query' % str(options))
                     return -1
                 select_list = [
                     OpServerUtils.OBJECT_ID
                 ]
 
         elif self._args.trace is not None:
-            table = VizConstants.MESSAGE_TABLE
+            table = MESSAGE_TABLE
             if self._args.source is None:
-                print 'Source is required for trace buffer dump'
+                print('Source is required for trace buffer dump')
                 return -1
             if self._args.module is None:
-                print 'Module is required for trace buffer dump'
+                print('Module is required for trace buffer dump')
                 return -1
             trace_buf_match = OpServerUtils.Match(
-                name=VizConstants.CATEGORY,
+                name=CATEGORY,
                 value=self._args.trace,
                 op=OpServerUtils.MatchOp.EQUAL)
             if not where_or_list:
@@ -479,34 +484,34 @@ class LogQuerier(object):
             for where_msg in where_or_list:
                 where_msg.append(trace_buf_match.__dict__)
             select_list = [
-                VizConstants.TIMESTAMP,
-                VizConstants.MESSAGE_TYPE,
-                VizConstants.SEQUENCE_NUM,
-                VizConstants.DATA,
-                VizConstants.SANDESH_TYPE
+                TIMESTAMP,
+                MESSAGE_TYPE,
+                SEQUENCE_NUM,
+                DATA,
+                SANDESH_TYPE
             ]
             sandesh_type_filter = OpServerUtils.Match(
-                name=VizConstants.SANDESH_TYPE,
+                name=SANDESH_TYPE,
                 value=str(
                     SandeshType.TRACE),
                 op=OpServerUtils.MatchOp.EQUAL)
             and_filter.append(sandesh_type_filter.__dict__)
         else:
             # Message Table Query
-            table = VizConstants.MESSAGE_TABLE
+            table = MESSAGE_TABLE
 
             select_list = [
-                VizConstants.TIMESTAMP,
-                VizConstants.SOURCE,
-                VizConstants.MODULE,
-                VizConstants.CATEGORY,
-                VizConstants.MESSAGE_TYPE,
-                VizConstants.SEQUENCE_NUM,
-                VizConstants.DATA,
-                VizConstants.SANDESH_TYPE,
-                VizConstants.LEVEL,
-                VizConstants.NODE_TYPE,
-                VizConstants.INSTANCE_ID,
+                TIMESTAMP,
+                SOURCE,
+                MODULE,
+                CATEGORY,
+                MESSAGE_TYPE,
+                SEQUENCE_NUM,
+                DATA,
+                SANDESH_TYPE,
+                LEVEL,
+                NODE_TYPE,
+                INSTANCE_ID,
             ]
 
         filter = None
@@ -528,7 +533,7 @@ class LogQuerier(object):
                 sort_op = OpServerUtils.SortOp.DESCENDING
             else:
                 sort_op = OpServerUtils.SortOp.ASCENDING
-            sort_fields = [VizConstants.TIMESTAMP]
+            sort_fields = [TIMESTAMP]
 
         if self._args.limit:
             limit = int(self._args.limit)
@@ -545,8 +550,8 @@ class LogQuerier(object):
                                              sort_fields=sort_fields,
                                              limit=limit)
         if self._args.verbose:
-            print 'Performing query: {0}'.format(
-                json.dumps(messages_query.__dict__))
+            print('Performing query: {0}'.format(
+                json.dumps(messages_query.__dict__)))
         resp = OpServerUtils.post_url_http(
             messages_url, json.dumps(messages_query.__dict__),
             self._args.admin_user, self._args.admin_password)
@@ -572,16 +577,16 @@ class LogQuerier(object):
                 output_file_handle.write("\n")
                 return
             except Exception as e:
-                print e
-                print "Exception occured when writing file %s" % \
-                      self._args.output_file
+                print(e)
+                print("Exception occured when writing file %s" % \
+                      self._args.output_file)
                 return -1
         if self._args.send_syslog:
             syslog_level = SandeshLogger._SANDESH_LEVEL_TO_LOGGER_LEVEL[
                 sandesh_level]
             self._logger.log(syslog_level, log_str)
         else:
-            print log_str
+            print(log_str)
     #end output
 
     def read_result(self, result_gen):
@@ -614,72 +619,72 @@ class LogQuerier(object):
             self.output('[', SandeshLevel.INVALID)
         for messages_dict in messages_dict_list:
 
-            if VizConstants.TIMESTAMP in messages_dict:
+            if TIMESTAMP in messages_dict:
                 message_dt = datetime.datetime.fromtimestamp(
-                    int(messages_dict[VizConstants.TIMESTAMP]) /
+                    int(messages_dict[TIMESTAMP]) /
                     OpServerUtils.USECS_IN_SEC)
                 message_dt += datetime.timedelta(
                     microseconds=
-                    (int(messages_dict[VizConstants.TIMESTAMP]) %
+                    (int(messages_dict[TIMESTAMP]) %
                      OpServerUtils.USECS_IN_SEC))
                 message_ts = message_dt.strftime(OpServerUtils.TIME_FORMAT_STR)
             else:
                 message_ts = 'Time: NA'
-            messages_dict[VizConstants.TIMESTAMP] = message_ts
-            if VizConstants.SOURCE in messages_dict:
-                source = messages_dict[VizConstants.SOURCE]
+            messages_dict[TIMESTAMP] = message_ts
+            if SOURCE in messages_dict:
+                source = messages_dict[SOURCE]
             else:
                 source = 'Source: NA'
-            if VizConstants.NODE_TYPE in messages_dict:
-                node_type = messages_dict[VizConstants.NODE_TYPE]
+            if NODE_TYPE in messages_dict:
+                node_type = messages_dict[NODE_TYPE]
             else:
                 node_type = ''
-            if VizConstants.MODULE in messages_dict:
-                module = messages_dict[VizConstants.MODULE]
+            if MODULE in messages_dict:
+                module = messages_dict[MODULE]
             else:
                 module = 'Module: NA'
-            if VizConstants.INSTANCE_ID in messages_dict:
-                instance_id = messages_dict[VizConstants.INSTANCE_ID]
+            if INSTANCE_ID in messages_dict:
+                instance_id = messages_dict[INSTANCE_ID]
             else:
                 instance_id = ''
-            if VizConstants.MESSAGE_TYPE in messages_dict:
-                message_type = messages_dict[VizConstants.MESSAGE_TYPE]
+            if MESSAGE_TYPE in messages_dict:
+                message_type = messages_dict[MESSAGE_TYPE]
             else:
                 message_type = 'Message Type: NA'
-            if VizConstants.SANDESH_TYPE in messages_dict:
-                sandesh_type = messages_dict[VizConstants.SANDESH_TYPE]
+            if SANDESH_TYPE in messages_dict:
+                sandesh_type = messages_dict[SANDESH_TYPE]
             else:
                 sandesh_type = SandeshType.INVALID
             # By default SYS_DEBUG
             sandesh_level = SandeshLevel.SYS_DEBUG
             if self._args.object_type is None:
-                if VizConstants.CATEGORY in messages_dict:
-                    category = messages_dict[VizConstants.CATEGORY]
+                if CATEGORY in messages_dict:
+                    category = messages_dict[CATEGORY]
                 else:
                     category = 'Category: NA'
-                if VizConstants.LEVEL in messages_dict:
-                    sandesh_level = messages_dict[VizConstants.LEVEL]
+                if LEVEL in messages_dict:
+                    sandesh_level = messages_dict[LEVEL]
                     level = SandeshLevel._VALUES_TO_NAMES[sandesh_level]
                 else:
                     level = 'Level: NA'
-                messages_dict[VizConstants.LEVEL] = level
-                if VizConstants.SEQUENCE_NUM in messages_dict:
-                    seq_num = messages_dict[VizConstants.SEQUENCE_NUM]
+                messages_dict[LEVEL] = level
+                if SEQUENCE_NUM in messages_dict:
+                    seq_num = messages_dict[SEQUENCE_NUM]
                 else:
                     seq_num = 'Sequence Number: NA'
-                if VizConstants.DATA in messages_dict:
+                if DATA in messages_dict:
                     # Convert XML data to dict
                     if self._args.raw:
-                        data_str = messages_dict[VizConstants.DATA]
+                        data_str = messages_dict[DATA]
                     else:
                         OpServerUtils.messages_xml_data_to_dict(
-                            messages_dict, VizConstants.DATA)
-                        if isinstance(messages_dict[VizConstants.DATA], dict):
-                            data_dict = messages_dict[VizConstants.DATA]
+                            messages_dict, DATA)
+                        if isinstance(messages_dict[DATA], dict):
+                            data_dict = messages_dict[DATA]
                             data_str = OpServerUtils.messages_data_dict_to_str(
                                 data_dict, message_type, sandesh_type)
                         else:
-                            data_str = messages_dict[VizConstants.DATA]
+                            data_str = messages_dict[DATA]
                 else:
                     data_str = 'Data not present'
                 if self._args.json:
@@ -704,7 +709,7 @@ class LogQuerier(object):
                 if self._args.object_values is True:
                     if OpServerUtils.OBJECT_ID in messages_dict:
                         obj_str = messages_dict[OpServerUtils.OBJECT_ID]
-                        print obj_str
+                        print(obj_str)
                         continue
                 for obj_sel_field in self._args.object_select_field:
                     if obj_sel_field in messages_dict:

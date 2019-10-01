@@ -8,6 +8,8 @@
 # Operational State Server for UVEs
 #
 
+from __future__ import print_function
+from __future__ import absolute_import
 import gevent
 import json
 import copy
@@ -16,17 +18,17 @@ import redis
 import datetime
 import sys
 import socket
-from opserver_util import OpServerUtils
+from .opserver_util import OpServerUtils
 import re
 from gevent.lock import BoundedSemaphore
 from pysandesh.util import UTCTimestampUsec
 from pysandesh.connection_info import ConnectionState
-from sandesh.viz.constants import UVE_MAP
+from .sandesh.viz.constants import UVE_MAP
 from pysandesh.gen_py.process_info.ttypes import ConnectionType,\
      ConnectionStatus
 import traceback
 from collections import namedtuple
-from strict_redis_wrapper import StrictRedisWrapper
+from .strict_redis_wrapper import StrictRedisWrapper
 from kazoo.client import KazooClient
 from kazoo.client import KazooState
 
@@ -744,7 +746,7 @@ class ParallelAggregator:
         for source in oattr.keys():
             if sname is None:
                 for subidx in range(0,int(oattr[source]['map']['@size'])):
-                    print "map_union_agg Content %s" % (oattr[source]['map'])
+                    print("map_union_agg Content %s" % (oattr[source]['map']))
                     result['map']['element'].append(source + ":" + \
                             json.dumps(oattr[source]['map']['element'][subidx*2]))
                     result['map']['element'].append(\
@@ -909,12 +911,12 @@ class ParallelAggregator:
         except KeyError:
             pass
         except Exception as ex:
-            print "Aggregation Error key %s type %s attr %s in %s" % \
-                    (key, str(ltyp), str(objattr), str(self._state[key][typ][objattr]))
+            print("Aggregation Error key %s type %s attr %s in %s" % \
+                    (key, str(ltyp), str(objattr), str(self._state[key][typ][objattr])))
         return result
 
 if __name__ == '__main__':
     uveserver = UVEServer(None, 0, None, None)
     gevent.spawn(uveserver.run())
     _, uve_state = json.loads(uveserver.get_uve("abc-corp:vn02", False))
-    print json.dumps(uve_state, indent=4, sort_keys=True)
+    print(json.dumps(uve_state, indent=4, sort_keys=True))

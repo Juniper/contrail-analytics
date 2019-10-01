@@ -1,7 +1,8 @@
 #
 # Copyright (c) 2015 Juniper Networks, Inc. All rights reserved.
 #
-from snmp import SnmpSession
+from __future__ import absolute_import
+from .snmp import SnmpSession
 import copy, traceback, time, ConfigParser
 
 class DeviceDict(dict):

@@ -58,7 +58,7 @@ class BroadviewApiClient(object):
         page = self.client.post(url, data=json.dumps(req), headers=h)
         if page.status_code == 200:
             return json.loads(page.text)
-        raise ConnectionError, "bad request " + url
+        raise ConnectionError("bad request " + url)
 
     def _get_list_2_dict(self, j):
         return dict(map(lambda x: (x['name'], x['href']), j))

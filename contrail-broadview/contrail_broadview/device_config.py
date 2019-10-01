@@ -1,6 +1,8 @@
 #
 # Copyright (c) 2015 Juniper Networks, Inc. All rights reserved.
 #
+
+from __future__ import print_function
 import copy
 import ConfigParser
 
@@ -36,7 +38,7 @@ class DeviceConfig(object):
         devcfg = ConfigParser.SafeConfigParser()
         devcfg.optionxform = str
         devcfg.read([filename])
-        print devcfg
+        print(devcfg)
         for dev in devcfg.sections():
             nd = dict(devcfg.items(dev))
             devices.append(DeviceConfig(dev, nd))

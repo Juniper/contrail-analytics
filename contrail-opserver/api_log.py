@@ -1,3 +1,4 @@
+from __future__ import print_function
 import argparse
 import commands
 
@@ -21,7 +22,7 @@ class LogQuerier(object):
 
     def validate_query(self):
         if self._args.identifier_name is not None and self._args.object_type is None:
-            print "object-type is required for identifier-name"
+            print("object-type is required for identifier-name")
             return None
         return True
 
@@ -39,7 +40,7 @@ class LogQuerier(object):
             " --end-time " + str(end_time) +
             options)
         res = commands.getoutput(command_str)
-        print res
+        print(res)
 
 def main():
     try:

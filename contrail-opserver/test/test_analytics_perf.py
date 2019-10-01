@@ -10,6 +10,7 @@
 # Copyright (c) 2013, Contrail Systems, Inc. All rights reserved.
 #
 
+from __future__ import absolute_import
 import os
 import sys
 from gevent import monkey; monkey.patch_all()
@@ -20,15 +21,15 @@ import unittest
 import testtools
 import fixtures
 import socket
-from utils.analytics_fixture import AnalyticsFixture
-from utils.generator_fixture import GeneratorFixture
-from utils.opserver_introspect_utils import VerificationOpsSrv
+from .utils.analytics_fixture import AnalyticsFixture
+from .utils.generator_fixture import GeneratorFixture
+from .utils.opserver_introspect_utils import VerificationOpsSrv
 from mockcassandra import mockcassandra
 import logging
 import time
 import json
 from opserver.sandesh.viz.constants import *
-from utils.util import find_buildroot
+from .utils.util import find_buildroot
 
 logging.basicConfig(level=logging.INFO,
                             format='%(asctime)s %(levelname)s %(message)s')

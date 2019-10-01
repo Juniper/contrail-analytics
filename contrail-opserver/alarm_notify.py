@@ -10,6 +10,7 @@
 # Send Email notification for alarms based on /analytics/alarm-stream REST API
 #
 
+from __future__ import print_function
 from gevent import monkey
 monkey.patch_all()
 import time
@@ -136,7 +137,7 @@ class ContrailAlarmNotifier(object):
     # end _parse_args
 
     def _get_sender_password(self):
-        print 'Please enter password for {0}'.format(self._args.sender_email)
+        print('Please enter password for {0}'.format(self._args.sender_email))
         return getpass.getpass()
     # end _get_sender_password
 
@@ -147,7 +148,7 @@ class ContrailAlarmNotifier(object):
                                               timeout=10)
             self._email_server.starttls()
         except Exception as e:
-            print 'Failed to connect to SMTP Server: {0}'.format(e)
+            print('Failed to connect to SMTP Server: {0}'.format(e))
         else:
             if self._sender_email_pwd is not None:
                 return self._login_to_smtp_server()
@@ -161,9 +162,9 @@ class ContrailAlarmNotifier(object):
             self._email_server.login(self._sender_email,
                                      self._sender_email_pwd)
         except smtplib.SMTPAuthenticationError:
-            print 'Invalid email id and/or password'
+            print('Invalid email id and/or password')
         except Exception as e:
-            print 'Could not login to the SMTP server: {0}'.format(e)
+            print('Could not login to the SMTP server: {0}'.format(e))
         else:
             return True
         return False
@@ -214,7 +215,7 @@ class ContrailAlarmNotifier(object):
             if value:
                 alarm_elts = value['alarms']
         except KeyError:
-            print 'Error parsing alarm object'
+            print('Error parsing alarm object')
             self._log_alarm(alarm.data)
         else:
             alarm_data = ContrailAlarm()
@@ -251,7 +252,7 @@ class ContrailAlarmNotifier(object):
                         alarm_info.details = json.dumps(
                             alarm_elt['alarm_rules'], indent=4)
                     except KeyError:
-                        print 'Error parsing alarm'
+                        print('Error parsing alarm')
                         self._log_alarm(alarm_elt)
                     else:
                         alarm_data.alarms.append(alarm_info)
@@ -297,7 +298,7 @@ class ContrailAlarmNotifier(object):
     # end _send_email
 
     def _log_alarm(self, alarm):
-        print alarm
+        print(alarm)
     # end _log_alarm
 
 

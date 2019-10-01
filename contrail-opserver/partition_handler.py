@@ -1,12 +1,14 @@
 #!/usr/bin/python
 
+from __future__ import print_function
+from __future__ import absolute_import
 from gevent import monkey
 monkey.patch_all()
 import logging
 import gevent
 from gevent.lock import BoundedSemaphore
 from kafka import KeyedProducer, KafkaConsumer, common
-from uveserver import UVEServer
+from .uveserver import UVEServer
 import os
 import ast
 import json
@@ -22,7 +24,7 @@ import redis
 import errno
 import time
 from collections import namedtuple
-from strict_redis_wrapper import StrictRedisWrapper
+from .strict_redis_wrapper import StrictRedisWrapper
 
 PartInfo = namedtuple("PartInfo",["ip_address","instance_id","redis_agg_db","acq_time","port"])
 
@@ -338,7 +340,7 @@ class UveStreamPart(gevent.Greenlet):
             owner = perms2['owner'].replace('-','')
             perms = perms2['owner_access'] << 6
             perms |= perms2['global_access']
-            mask = 07
+            mask = 0o7
             mode = 4
             share = perms2['share']
             if 'token' in self._token_info:
@@ -349,7 +351,7 @@ class UveStreamPart(gevent.Greenlet):
                     tenant_name = token['project']['name']
                     domain = token['project']['domain']['id']
                     if tenant == owner:
-                        mask |= 0700
+                        mask |= 0o700
                     # grant access if shared with tenant or domain
                     for item in share:
                         (share_type, share_uuid) = cfgm_common.utils.\
@@ -359,7 +361,7 @@ class UveStreamPart(gevent.Greenlet):
                                  or (share_type == 'domain' and domain == \
                                      share_uuid)):
                             perms |= item['tenant_access'] << 3
-                            mask |= 0070
+                            mask |= 0o070
                             break
                     mode_mask = mode | mode << 3 | mode << 6
                     ok = (mask & perms & mode_mask)
@@ -970,13 +972,13 @@ class UveStreamProc(PartitionHandler):
             else:
                 uv["value"] = json.loads(om.value)
 
-            if not self._uvedb.has_key(coll):
+            if coll not in self._uvedb:
                 # This partition is not synced yet.
                 # Ignore this message
                 self._logger.debug("%s Ignoring UVE %s" % (self._topic, str(om)))
                 return True
 
-            if not self._uvedb[coll].has_key(gen):
+            if gen not in self._uvedb[coll]:
                 self._uvedb[coll][gen] = {}
 
             tabl = uv["key"].split(":",1)
@@ -1021,13 +1023,13 @@ class UveStreamProc(PartitionHandler):
             chg[uv["key"]] = { uv["type"] : uv["value"] }
 
             # Record stats on the input UVE Notifications
-            if not self._uvein.has_key(tab):
+            if tab not in self._uvein:
                 self._uvein[tab] = {}
-            if not self._uvein[tab].has_key(coll):
+            if coll not in self._uvein[tab]:
                 self._uvein[tab][coll] = {}
-            if not self._uvein[tab][coll].has_key(gen):
+            if gen not in self._uvein[tab][coll]:
                 self._uvein[tab][coll][gen] = {}
-            if not self._uvein[tab][coll][gen].has_key(uv["type"]):
+            if uv["type"] not in self._uvein[tab][coll][gen]:
                 self._uvein[tab][coll][gen][uv["type"]] = 1
             else:
                 self._uvein[tab][coll][gen][uv["type"]] += 1
@@ -1052,17 +1054,17 @@ if __name__ == '__main__':
     kafka = KafkaClient(brokers,str(os.getpid()))
     cons = SimpleConsumer(kafka, group, "ctrl")
     cons.provide_partition_info()
-    print "Starting control"
+    print("Starting control")
     end_ready = False
     while end_ready == False:
         try:
             while True:
                 part, mmm = cons.get_message(timeout=None)
                 mm = mmm.message
-                print "Consumed ctrl " + str(mm)
+                print("Consumed ctrl " + str(mm))
                 if mm.value == "start":
-                    if workers.has_key(mm.key):
-                        print "Dup partition %s" % mm.key
+                    if mm.key in workers:
+                        print("Dup partition %s" % mm.key)
                         raise ValueError
                     else:
                         ph = UveStreamProc(brokers, int(mm.key), "uve-" + mm.key, "alarm-x" + mm.key, logging)
@@ -1070,14 +1072,14 @@ if __name__ == '__main__':
                         workers[int(mm.key)] = ph
                 elif mm.value == "stop":
                     #import pdb; pdb.set_trace()
-                    if workers.has_key(int(mm.key)):
+                    if int(mm.key) in workers:
                         ph = workers[int(mm.key)]
                         gevent.kill(ph)
                         res,db = ph.get()
-                        print "Returned " + str(res)
-                        print "State :"
+                        print("Returned " + str(res))
+                        print("State :")
                         for k,v in db.iteritems():
-                            print "%s -> %s" % (k,str(v))
+                            print("%s -> %s" % (k,str(v)))
                         del workers[int(mm.key)]
                 else:
                     end_ready = True
@@ -1087,7 +1089,7 @@ if __name__ == '__main__':
         except TypeError:
             gevent.sleep(0.1)
         except common.FailedPayloadsError as ex:
-            print "Payload Error: " + str(ex.args)
+            print("Payload Error: " + str(ex.args))
             gevent.sleep(0.1)
     lw=[]
     for key, value in workers.iteritems():
@@ -1095,5 +1097,5 @@ if __name__ == '__main__':
         lw.append(value)
 
     gevent.joinall(lw)
-    print "Ending Consumers"
+    print("Ending Consumers")
 

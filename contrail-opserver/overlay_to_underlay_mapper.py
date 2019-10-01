@@ -8,10 +8,11 @@
 # Utility to get the Underlay information for the Overlay flow(s).
 #
 
+from __future__ import absolute_import
 import json
 
-from sandesh.viz.constants import *
-from opserver_util import OpServerUtils
+from .sandesh.viz.constants import *
+from .opserver_util import OpServerUtils
 
 
 class OverlayToUnderlayMapperError(Exception):
