@@ -198,9 +198,9 @@ Mibs = LldpTable, ArpTable
         group.add_argument("--device-config-file",
             help="where to look for snmp credentials")
         self._args = parser.parse_args(remaining_argv)
-        if type(self._args.collectors) is str:
+        if isinstance(self._args.collectors, (basestring, str)):
             self._args.collectors = self._args.collectors.split()
-        if type(self._args.config_db_server_list) is str:
+        if isinstance(self._args.config_db_server_list, (basestring, str)):
             self._args.config_db_server_list = \
                 self._args.config_db_server_list.split()
         self._args.config_sections = config
