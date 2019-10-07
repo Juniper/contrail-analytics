@@ -5,7 +5,7 @@
 from __future__ import absolute_import
 
 from .snmp_config_db import DBBaseSC, PhysicalRouterSC
-from config_handler import ConfigHandler
+from .config_handler import ConfigHandler
 
 
 class SnmpConfigHandler(ConfigHandler):

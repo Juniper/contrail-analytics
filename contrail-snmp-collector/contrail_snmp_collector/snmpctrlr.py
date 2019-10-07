@@ -15,7 +15,7 @@ import ConfigParser
 import signal
 import random
 import hashlib
-from sandesh.snmp_collector_info.ttypes import SnmpCollectorInfo, \
+from .sandesh.snmp_collector_info.ttypes import SnmpCollectorInfo, \
     SnmpCollectorUVE
 
 class MaxNinTtime(object):

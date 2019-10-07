@@ -15,8 +15,8 @@ import ConfigParser
 import signal
 import random
 import hashlib
-from sandesh.topology_info.ttypes import TopologyInfo, TopologyUVE
-from sandesh.link.ttypes import RemoteType, RemoteIfInfo, VRouterL2IfInfo,\
+from .sandesh.topology_info.ttypes import TopologyInfo, TopologyUVE
+from .sandesh.link.ttypes import RemoteType, RemoteIfInfo, VRouterL2IfInfo,\
     VRouterL2IfUVE
 
 

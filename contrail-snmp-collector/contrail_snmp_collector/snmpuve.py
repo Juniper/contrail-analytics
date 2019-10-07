@@ -14,7 +14,7 @@ from sandesh.prouter.ttypes import ArpTable, IfTable, IfXTable, IfStats, \
          dot1qTpFdbPortTable, dot1dBasePortIfIndexTable, \
          LldpTable, PRouterEntry, PRouterUVE, PRouterFlowEntry, \
          PRouterFlowUVE, IfIndexOperStatusTable, LldpLocPortEntry
-from sandesh.nodeinfo.ttypes import NodeStatusUVE, NodeStatus
+from .sandesh.nodeinfo.ttypes import NodeStatusUVE, NodeStatus
 from sandesh_common.vns.ttypes import Module, NodeType
 from sandesh_common.vns.constants import ModuleNames, CategoryNames,\
      ModuleCategoryMap, Module2NodeType, NodeTypeNames, ModuleIds,\

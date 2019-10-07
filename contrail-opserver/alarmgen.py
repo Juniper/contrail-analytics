@@ -32,7 +32,6 @@ from pysandesh.sandesh_base import *
 from pysandesh.connection_info import ConnectionState
 from pysandesh.sandesh_logger import SandeshLogger
 from pysandesh.gen_py.sandesh_alarm.ttypes import SandeshAlarmAckResponseCode
-import sandesh #.viz.constants as viz_constants
 from .sandesh.viz.constants import VM_TABLE
 from .sandesh.alarmgen_ctrl.sandesh_alarm_base.ttypes import AlarmTrace, \
     UVEAlarms, UVEAlarmInfo, UVEAlarmConfig, AlarmOperand2, AlarmCondition, \

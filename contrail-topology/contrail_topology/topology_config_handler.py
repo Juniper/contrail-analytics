@@ -6,7 +6,7 @@ from __future__ import absolute_import
 
 from .topology_config_db import DBBaseCT, LogicalInterfaceCT, \
     VirtualMachineInterfaceCT
-from config_handler import ConfigHandler
+from .config_handler import ConfigHandler
 
 
 class TopologyConfigHandler(ConfigHandler):
