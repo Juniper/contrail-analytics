@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a0c41e25_fc5a1d3e",
+        "filename": "contrail-snmp-collector/contrail_snmp_collector/snmpuve.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 213
+      },
+      "writtenOn": "2019-10-09T03:48:22Z",
+      "side": 1,
+      "message": "dont we need to add . here also? Not sure on what basis you added it in the previous line",
+      "range": {
+        "startLine": 18,
+        "startChar": 5,
+        "endLine": 19,
+        "endChar": 8
+      },
+      "revId": "d284cb31ed13b8c81f5d5cce8ee2912d30fcf34e",
+      "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3561ae09_7ccf7ff2",
+        "filename": "contrail-topology/contrail_topology/topology_uve.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 213
+      },
+      "writtenOn": "2019-10-09T03:48:22Z",
+      "side": 1,
+      "message": "same here? do we need to add .?",
+      "range": {
+        "startLine": 9,
+        "startChar": 5,
+        "endLine": 11,
+        "endChar": 7
+      },
+      "revId": "d284cb31ed13b8c81f5d5cce8ee2912d30fcf34e",
+      "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
+      "unresolved": true
+    }
+  ]
+}
