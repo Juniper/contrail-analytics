@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "56859b60_2af68444",
+        "filename": "contrail-snmp-collector/contrail_snmp_collector/snmpuve.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 750
+      },
+      "writtenOn": "2019-10-09T06:09:12Z",
+      "side": 1,
+      "message": "I am adding \u0027.\u0027 based on error that I am receiving while running the code",
+      "parentUuid": "a0c41e25_fc5a1d3e",
+      "range": {
+        "startLine": 18,
+        "startChar": 5,
+        "endLine": 19,
+        "endChar": 8
+      },
+      "revId": "d284cb31ed13b8c81f5d5cce8ee2912d30fcf34e",
+      "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "3561ae09_7ccf7ff2",
         "filename": "contrail-topology/contrail_topology/topology_uve.py",
         "patchSetId": 2
