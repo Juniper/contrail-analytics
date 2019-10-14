@@ -1,6 +1,7 @@
 #
 # Copyright (c) 2015 Juniper Networks, Inc. All rights reserved.
 #
+from builtins import object
 import socket
 from pysandesh.sandesh_base import *
 from pysandesh.connection_info import ConnectionState
@@ -60,7 +61,7 @@ class LinkUve(object):
 
     def send(self, data):
         for prouter in data:
-            lt = map(lambda x: LinkEntry(**x), data[prouter])
+            lt = [LinkEntry(**x) for x in data[prouter]]
             uve = PRouterLinkUVE(data=PRouterLinkEntry(name=prouter,
                         link_table=lt))
             uve.send()

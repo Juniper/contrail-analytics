@@ -10,6 +10,7 @@
 # Unit Tests for testing nodemgr
 #
 
+from builtins import object
 import logging
 import os
 import sys
@@ -27,7 +28,7 @@ from nodemgr.common.docker_process_manager import DockerProcessInfoManager
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s %(levelname)s %(message)s')
-class config:
+class config(object):
     def __init__(self):
         self.collectors = ['0.0.0.0']
         self.sandesh_keyfile = ''

@@ -25,7 +25,7 @@ class SnmpConfigHandler(ConfigHandler):
     # end __init__
 
     def get_physical_routers(self):
-        return PhysicalRouterSC.items()
+        return list(PhysicalRouterSC.items())
     # end get_physical_routers
 
 
