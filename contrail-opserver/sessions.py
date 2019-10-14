@@ -19,7 +19,6 @@ import argparse
 import json
 import re
 from .opserver_util import OpServerUtils
-import sandesh #.viz.constants as sandesh.viz.constants
 from .sandesh.viz.constants import _TABLES 
 
 class SessionQuerier(object):
