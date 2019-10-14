@@ -17,7 +17,6 @@ import ConfigParser
 import argparse
 import json
 import datetime
-import sandesh #.viz.constants as sandesh.viz.constants
 from .sandesh.viz.constants import FlowRecordNames, FLOW_TABLE,\
         FLOW_TABLE_UUID, FLOW_TABLE_AGG_BYTES, FLOW_TABLE_AGG_PKTS
 from .sandesh.viz.ttypes import FlowRecordFields

@@ -18,7 +18,6 @@ import ConfigParser
 import argparse
 import json
 from .opserver_util import OpServerUtils
-import sandesh #.viz.constants as sandesh.viz.constants
 from .sandesh.viz.constants import _STAT_TABLES 
 class StatQuerier(object):
 
