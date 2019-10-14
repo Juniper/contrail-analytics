@@ -778,7 +778,7 @@ class OpServer(object):
         self._uvepartitions_state = ConnectionStatus.UP
 
         self.redis_uve_list = []
-        if type(self._args.redis_uve_list) is str:
+        if isinstance(self._args.redis_uve_list, (basestring, str)):
             self._args.redis_uve_list = self._args.redis_uve_list.split()
         ad_freq = 10
         us_freq = 5
@@ -1246,13 +1246,13 @@ class OpServer(object):
             help="Location of analytics api ssl CA certificate")
         SandeshConfig.add_parser_arguments(parser)
         self._args = parser.parse_args(remaining_argv)
-        if type(self._args.collectors) is str:
+        if isinstance(self._args.collectors, (basestring, str)):
             self._args.collectors = self._args.collectors.split()
-        if type(self._args.redis_uve_list) is str:
+        if isinstance(self._args.redis_uve_list, (basestring, str)):
             self._args.redis_uve_list = self._args.redis_uve_list.split()
-        if type(self._args.zk_list) is str:
+        if isinstance(self._args.zk_list, (basestring, str)):
             self._args.zk_list= self._args.zk_list.split()
-        if type(self._args.api_server) is str:
+        if isinstance(self._args.api_server, (basestring, str)):
             self._args.api_server = self._args.api_server.split()
 
         self._args.redis_use_ssl = (str(self._args.redis_use_ssl).lower() == 'true')
@@ -2660,7 +2660,7 @@ class OpServer(object):
                 except ConfigParser.NoOptionError as e:
                     pass
                 else:
-                    if type(collectors) is str:
+                    if isinstance(collectors, (basestring, str)):
                         collectors = collectors.split()
                         new_chksum = hashlib.md5("".join(collectors)).hexdigest()
                         if new_chksum != self._chksum:
@@ -2673,7 +2673,7 @@ class OpServer(object):
                 except ConfigParser.NoOptionError as e:
                     pass
                 else:
-                    if type(api_servers) is str:
+                    if isinstance(api_servers, (basestring, str)):
                         api_servers = api_servers.split()
                     new_api_server_checksum = hashlib.md5(''.join(
                         api_servers)).hexdigest()
