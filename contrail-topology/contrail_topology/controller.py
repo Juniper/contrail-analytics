@@ -411,7 +411,7 @@ class Controller(object):
             if 'DEFAULTS' in config.sections():
                 try:
                     collectors = config.get('DEFAULTS', 'collectors')
-                    if type(collectors) is str:
+                    if isinstance(collectors, (basestring, str)):
                         collectors = collectors.split()
                         new_chksum = hashlib.md5("".join(collectors)).hexdigest()
                         if new_chksum != self._chksum:

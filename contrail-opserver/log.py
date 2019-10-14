@@ -25,7 +25,6 @@ from multiprocessing import Process
 from .opserver_util import OpServerUtils
 from sandesh_common.vns.ttypes import Module
 from sandesh_common.vns.constants import ModuleNames, NodeTypeNames
-import sandesh #.viz.constants as sandesh.viz.constants
 from .sandesh.viz.constants import _OBJECT_TABLES, OBJECT_LOG, SYSTEM_LOG, \
     SOURCE, MODULE, MESSAGE_TYPE, LEVEL, NODE_TYPE, INSTANCE_ID, CATEGORY, \
     TIMESTAMP, MESSAGE_TABLE, SEQUENCE_NUM, DATA, SANDESH_TYPE 
