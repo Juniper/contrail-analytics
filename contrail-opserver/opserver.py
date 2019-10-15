@@ -473,8 +473,8 @@ class OpServer(object):
                         bottle.request.user_token = user_token
                         bottle.request.user_token_info = user_token_info
                         if only_cloud_admin and not is_cloud_admin:
-                            raise bottle.HTTPResponse(status = 401,
-                                body = 'Authentication required',
+                            raise bottle.HTTPResponse(status = 403,
+                                body = 'Operation Forbidden',
                                 headers = self._reject_auth_headers())
                 return func(self, *f_args, **f_kwargs)
             return _impl
@@ -609,16 +609,16 @@ class OpServer(object):
         where_clause_list = []
         if 'where' in request.json:
             where_clause_list = request.json['where']
-            if len(where_clause_list) == 0:
-                return
-        else:
-            request.json['where'] = []
 
         name_where_clause = []
         for where_clause in where_clause_list:
             for and_query in where_clause:
                 if and_query['name'] == name:
-                    name_where_clause.append((where_clause, and_query))
+                    if and_query['value']:
+                        name_where_clause.append((where_clause, and_query))
+                    else:
+                        self._logger.debug("matching on empty string so no need to update")
+                        return
         new_clause_list = []
         if prefix:
             obj_list = [prefix + obj for obj in obj_list]
@@ -642,8 +642,8 @@ class OpServer(object):
                     elif and_query["name"] == name and and_query["op"] == \
                             OpServerUtils.MatchOp.EQUAL:
                         if and_query["value"] not in obj_list:
-                            raise bottle.HTTPResponse(status=401,
-                                    body='Authentication required',
+                            raise bottle.HTTPResponse(status=403,
+                                    body='Operation Forbidden',
                                     headers=self._reject_auth_headers())
                         if obj_value == and_query["value"]:
                             if new_clause not in new_clause_list:
