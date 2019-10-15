@@ -473,8 +473,8 @@ class OpServer(object):
                         bottle.request.user_token = user_token
                         bottle.request.user_token_info = user_token_info
                         if only_cloud_admin and not is_cloud_admin:
-                            raise bottle.HTTPResponse(status = 401,
-                                body = 'Authentication required',
+                            raise bottle.HTTPResponse(status = 403,
+                                body = 'Operation Forbidden',
                                 headers = self._reject_auth_headers())
                 return func(self, *f_args, **f_kwargs)
             return _impl
@@ -642,8 +642,8 @@ class OpServer(object):
                     elif and_query["name"] == name and and_query["op"] == \
                             OpServerUtils.MatchOp.EQUAL:
                         if and_query["value"] not in obj_list:
-                            raise bottle.HTTPResponse(status=401,
-                                    body='Authentication required',
+                            raise bottle.HTTPResponse(status=403,
+                                    body='Operation Forbidden',
                                     headers=self._reject_auth_headers())
                         if obj_value == and_query["value"]:
                             if new_clause not in new_clause_list:
