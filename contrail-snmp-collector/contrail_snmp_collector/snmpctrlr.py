@@ -18,10 +18,7 @@ from .snmpuve import SnmpUve
 from opserver.consistent_schdlr import ConsistentScheduler
 from .device_config import DeviceConfig, DeviceDict
 from .snmp_config_handler import SnmpConfigHandler
-try:
-    import configparser
-except:
-    from six.moves import configparser
+from six.moves import configparser
 import signal
 import random
 import hashlib

@@ -45,10 +45,7 @@ import copy
 import datetime
 import platform
 
-try:
-    import configparser
-except:
-    from six.moves import configparser
+from six.moves import configparser
 
 from .analytics_db import AnalyticsDb
 from gevent.server import StreamServer

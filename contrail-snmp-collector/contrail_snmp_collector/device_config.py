@@ -6,7 +6,8 @@ from future import standard_library
 standard_library.install_aliases()
 from builtins import object
 from .snmp import SnmpSession
-import copy, traceback, time, configparser
+import copy, traceback, time
+from six.moves import configparser
 
 class DeviceDict(dict):
     def __init__(self, name, obj, *a, **k):

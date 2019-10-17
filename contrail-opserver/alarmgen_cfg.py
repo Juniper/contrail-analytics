@@ -7,10 +7,7 @@ standard_library.install_aliases()
 from builtins import str
 from builtins import object
 import argparse, os, sys, re
-try:
-    import configparser
-except:
-    from six.moves import configparser
+from six.moves import configparser
 from pysandesh.sandesh_base import *
 from pysandesh.gen_py.sandesh.ttypes import SandeshLevel
 from sandesh_common.vns.constants import SERVICE_ALARM_GENERATOR, \

@@ -31,10 +31,7 @@ import signal
 import random
 import hashlib
 import logging
-try:
-    import configparser
-except:
-    from six.moves import configparser
+from six.moves import configparser
 try:
     from collections import OrderedDict
 except ImportError:
