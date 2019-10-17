@@ -18,10 +18,7 @@ from builtins import str
 from builtins import object
 import sys
 import os
-try:
-    import configparser
-except:
-    from six.moves import configparser
+from six.moves import configparser
 import argparse
 import json
 from .opserver_util import OpServerUtils

@@ -7,10 +7,7 @@ from future import standard_library
 standard_library.install_aliases()
 from builtins import object
 import copy
-try:
-    import configparser
-except:
-    from six.moves import configparser
+from six.moves import configparser
 
 class DeviceConfig(object):
     def __init__(self, name, cfg={}):

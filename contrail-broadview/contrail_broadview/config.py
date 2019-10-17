@@ -6,7 +6,8 @@ from __future__ import absolute_import
 from future import standard_library
 standard_library.install_aliases()
 from builtins import object
-import argparse, os, configparser, sys, re
+import argparse, os, sys, re
+from six.moves import configparser
 from pysandesh.sandesh_base import *
 from pysandesh.gen_py.sandesh.ttypes import SandeshLevel
 from . import device_config

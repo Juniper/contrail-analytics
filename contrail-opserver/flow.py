@@ -19,10 +19,7 @@ from builtins import str
 from builtins import object
 from past.utils import old_div
 import sys
-try:
-    import configparser
-except:
-    from six.moves import configparser
+from six.moves import configparser
 import argparse
 import json
 import datetime

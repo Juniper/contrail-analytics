@@ -17,10 +17,7 @@ from gevent.lock import Semaphore
 from opserver.consistent_schdlr import ConsistentScheduler
 from .topology_config_handler import TopologyConfigHandler
 import traceback
-try:
-    import configparser
-except:
-    from six.moves import configparser
+from six.moves import configparser
 import signal
 import random
 import hashlib
