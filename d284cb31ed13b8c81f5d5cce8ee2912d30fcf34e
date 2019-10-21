@@ -16,6 +16,24 @@
       "revId": "d284cb31ed13b8c81f5d5cce8ee2912d30fcf34e",
       "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "28923757_8651416c",
+        "filename": "contrail-opserver/opserver.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 612,
+      "author": {
+        "id": 213
+      },
+      "writtenOn": "2019-10-21T05:23:39Z",
+      "side": 0,
+      "message": "yeah, there are cases when old UI queries with empty where clause and we should not be returning anything. However, in non-admin cases, we update the query with the objects for which the user has permissions.",
+      "parentUuid": "4e7c03e3_cea4095d",
+      "revId": "d284cb31ed13b8c81f5d5cce8ee2912d30fcf34e",
+      "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
+      "unresolved": true
     }
   ]
 }
