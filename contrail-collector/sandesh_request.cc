@@ -295,7 +295,8 @@ void ShowCollectorServerReq::HandleRequest() const {
     s1.taskId_ = scheduler->GetTaskId("collector::ShowCommand");
     s1.cbFn_ = ShowCollectorServerHandler::CallbackS1;
     s1.instances_.push_back(0);
-    ps.stages_ = boost::assign::list_of(s1);
+    ps.stages_ = boost::assign::list_of(s1)
+        .convert_to_container<vector<RequestPipeline::StageSpec> >();
     RequestPipeline rp(ps);
 }
 

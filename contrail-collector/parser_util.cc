@@ -151,17 +151,17 @@ LineParser::ParseDoc(Iterator start, Iterator end,
             | lit("&")
             ) >>
          ( stop_words
-         | stats [insert(ref(*pv), _1)]
-         | word2 [insert(ref(*pv), _1)]
-         | word3 [insert(ref(*pv), _1)]
-         | uuid  [insert(ref(*pv), _1)]
-         | ip    [insert(ref(*pv), _1)]
-         | ipv6  [insert(ref(*pv), _1)]
+         | stats [insert(boost::phoenix::ref(*pv), _1)]
+         | word2 [insert(boost::phoenix::ref(*pv), _1)]
+         | word3 [insert(boost::phoenix::ref(*pv), _1)]
+         | uuid  [insert(boost::phoenix::ref(*pv), _1)]
+         | ip    [insert(boost::phoenix::ref(*pv), _1)]
+         | ipv6  [insert(boost::phoenix::ref(*pv), _1)]
          | hex1
          | oct1
          | num1
          | num2
-         | word  [insert(ref(*pv), _1)]
+         | word  [insert(boost::phoenix::ref(*pv), _1)]
          )
         );
 
