@@ -67,9 +67,8 @@ StructuredSyslogConfig::HostnameRecordsHandler(const contrail_rapidjson::Documen
             const contrail_rapidjson::Value& links_array = linkmap_fields["links"];
             assert(links_array.IsArray());
             for (contrail_rapidjson::SizeType i = 0; i < links_array.Size(); i++) {
-                linkmap.insert(std::make_pair<std::string,
-                std::string >(links_array[i]["overlay"].GetString(),
-                links_array[i]["underlay"].GetString()));
+                linkmap.insert(std::make_pair(links_array[i]["overlay"]
+                    .GetString(), links_array[i]["underlay"].GetString()));
                 LOG(DEBUG, "Adding HostnameRecord: " << name << " linkmap: "
                 << links_array[i]["overlay"].GetString() << " : "
                 << links_array[i]["underlay"].GetString());
@@ -277,8 +276,7 @@ StructuredSyslogConfig::AddHostnameRecord(const std::string &name,
     } else {
         boost::shared_ptr<HostnameRecord> c(new HostnameRecord(
                     name, hostaddr, tenant, location, device, tags, linkmap));
-        hostname_records_.insert(std::make_pair<std::string,
-                boost::shared_ptr<HostnameRecord> >(name, c));
+        hostname_records_.insert(std::make_pair(name, c));
     }
 }
 
@@ -304,8 +302,7 @@ StructuredSyslogConfig::AddApplicationRecord(const std::string &name,
         boost::shared_ptr<ApplicationRecord> c(new ApplicationRecord(
                     name, app_category, app_subcategory, app_groups,
                     app_risk, app_service_tags));
-        application_records_.insert(std::make_pair<std::string,
-                boost::shared_ptr<ApplicationRecord> >(name, c));
+        application_records_.insert(std::make_pair(name, c));
     }
 }
 
@@ -331,8 +328,7 @@ StructuredSyslogConfig::AddTenantApplicationRecord(const std::string &name,
         boost::shared_ptr<TenantApplicationRecord> c(new TenantApplicationRecord(
                     name, tenant_app_category, tenant_app_subcategory,
                     tenant_app_groups, tenant_app_risk, tenant_app_service_tags));
-        tenant_application_records_.insert(std::make_pair<std::string,
-                boost::shared_ptr<TenantApplicationRecord> >(name, c));
+        tenant_application_records_.insert(std::make_pair(name, c));
     }
 }
 
@@ -354,8 +350,7 @@ StructuredSyslogConfig::AddSlaProfileRecord(const std::string &name,
     } else {
         boost::shared_ptr<SlaProfileRecord> c(new SlaProfileRecord(
                     name, sla_params));
-        sla_profile_records_.insert(std::make_pair<std::string,
-                boost::shared_ptr<SlaProfileRecord> >(name, c));
+        sla_profile_records_.insert(std::make_pair(name, c));
     }
 }
 
@@ -417,7 +412,6 @@ StructuredSyslogConfig::AddMessageConfig(const std::string &name,
         boost::shared_ptr<MessageConfig> c(new MessageConfig(
                     name, tags, ints, process_and_store, forward, process_before_forward, 
 		    process_and_summarize, process_and_summarize_user));
-        message_configs_.insert(std::make_pair<std::string,
-                boost::shared_ptr<MessageConfig> >(name, c));
+        message_configs_.insert(std::make_pair(name, c));
     }
 }

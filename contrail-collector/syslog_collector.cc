@@ -144,7 +144,7 @@ void SyslogParser::Init()
         ("cron") ("daemon") ("ftp") ("kern") ("lpr") ("mail") ("mark")
         ("news") ("security") ("syslog") ("user") ("uucp") ("local0")
         ("local1") ("local2") ("local3") ("local4") ("local5")
-        ("local6") ("local7");
+        ("local6") ("local7").convert_to_container<vector<string> >();
 }
 void SyslogParser::WaitForIdle (int max_wait)
 {

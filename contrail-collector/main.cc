@@ -326,7 +326,9 @@ int main(int argc, char *argv[])
          (ConnectionTypeName(g_process_info_constants.ConnectionTypeNames.find(
                              ConnectionType::DATABASE)->second, "Cassandra"))
          (ConnectionTypeName(g_process_info_constants.ConnectionTypeNames.find(
-                             ConnectionType::DATABASE)->second, "RabbitMQ"));
+                             ConnectionType::DATABASE)->second, "RabbitMQ"))
+                                 .convert_to_container\
+                                  <vector<ConnectionTypeName> >();
     if (!cass_options.cassandra_ips_.empty()) {
         expected_connections.push_back(ConnectionTypeName(
                              g_process_info_constants.ConnectionTypeNames.find(

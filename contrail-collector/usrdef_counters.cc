@@ -114,8 +114,10 @@ UserDefinedCounters::AddConfig(std::string name, std::string pattern)
     } else {
         boost::shared_ptr<UserDefinedCounterData> c(new UserDefinedCounterData(
                     name, pattern));
-        config_.insert(std::make_pair<std::string,
-                boost::shared_ptr<UserDefinedCounterData> >(name, c));
+        //config_.insert(std::make_pair<std::string,
+        //        boost::shared_ptr<UserDefinedCounterData> >(name, c));
+         config_.insert(std::make_pair(name, c));
+
     }
 }
 
