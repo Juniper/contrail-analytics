@@ -26,8 +26,8 @@ from kazoo.client import KazooClient
 logging.basicConfig(level=logging.INFO,
                             format='%(asctime)s %(levelname)s %(message)s')
 
-kafka_version = 'kafka_2.11-0.9.0.1'
-kafka_dl = '/kafka_2.11-0.9.0.1.orig.tar.gz'
+kafka_version = 'kafka_2.11-2.3.1'
+kafka_dl = '/kafka_2.11-2.3.1.tgz'
 kafka_bdir  = '/tmp/cache-' + os.environ['USER'] + '-systemless_test'
 
 def start_kafka(zk_client_port, broker_listen_port, broker_id=0):
@@ -66,13 +66,11 @@ def start_kafka(zk_client_port, broker_listen_port, broker_id=0):
     logging.info('kafka Port %d' % broker_listen_port)
  
     replace_string_(confdir+"server.properties",
-        [("#port=9092","port=9092"),
-         ("listeners=PLAINTEXT://:9092","offsets.topic.replication.factor=1")])
+                    [("#listeners=PLAINTEXT://:9092","listeners=PLAINTEXT://:"+str(broker_listen_port))])
 
     #Replace the brokerid and port # in the config file
     replace_string_(confdir+"server.properties",
         [("broker.id=0","broker.id="+str(broker_id)),
-         ("port=9092","port="+str(broker_listen_port)),
          ("zookeeper.connect=localhost:2181", "zookeeper.connect=localhost:%d" % zk_client_port),
          ("log.dirs=/tmp/kafka-logs","log.dirs="+kafkabase+"logs")])
 
