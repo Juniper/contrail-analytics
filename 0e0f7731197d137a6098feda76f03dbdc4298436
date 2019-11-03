@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "dfc66ed5_9e54e68b",
+        "filename": "contrail-collector/test/utils/mockkafka/mockkafka/mockkafka.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 213
+      },
+      "writtenOn": "2019-11-03T08:27:00Z",
+      "side": 0,
+      "message": "Is this parameter not used anymore?",
+      "range": {
+        "startLine": 75,
+        "startChar": 14,
+        "endLine": 75,
+        "endChar": 26
+      },
+      "revId": "0e0f7731197d137a6098feda76f03dbdc4298436",
+      "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
+      "unresolved": true
+    }
+  ]
+}
