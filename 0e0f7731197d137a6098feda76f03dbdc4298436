@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "d0a22240_91ef0a4b",
+        "filename": "contrail-collector/test/utils/mockkafka/mockkafka/mockkafka.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 752
+      },
+      "writtenOn": "2019-11-03T10:07:57Z",
+      "side": 0,
+      "message": "offset.topic.replication.factor is not deprecated. It comes as default in server.properties. No need to mention it explicitly. \n\npchoudhary-mbp:config pchoudhary$ pwd\n/Users/pchoudhary/Downloads/kafka_2.11-2.3.1/config\npchoudhary-mbp:config pchoudhary$ cat server.properties \n\n############################# Internal Topic Settings  #############################\n# The replication factor for the group metadata internal topics \"__consumer_offsets\" and \"__transaction_state\"\n# For anything other than development testing, a value greater than 1 is recommended for to ensure availability such as 3.\noffsets.topic.replication.factor\u003d1\ntransaction.state.log.replication.factor\u003d1\ntransaction.state.log.min.isr\u003d1",
+      "parentUuid": "57f9bf43_5e00c4de",
+      "range": {
+        "startLine": 70,
+        "startChar": 44,
+        "endLine": 70,
+        "endChar": 64
+      },
+      "revId": "0e0f7731197d137a6098feda76f03dbdc4298436",
+      "serverId": "c72cd27d-1743-4a55-84a4-cd13b8400c52",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "dfc66ed5_9e54e68b",
         "filename": "contrail-collector/test/utils/mockkafka/mockkafka/mockkafka.py",
         "patchSetId": 1
