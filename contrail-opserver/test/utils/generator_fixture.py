@@ -74,6 +74,7 @@ class GeneratorFixture(fixtures.Fixture):
                 ca_cert = sandesh_config.get('sandesh_ca_cert'),
                 sandesh_ssl_enable = sandesh_config.get('sandesh_ssl_enable', False),
                 introspect_ssl_enable = sandesh_config.get('introspect_ssl_enable', False),
+                introspect_ssl_insecure = sandesh_config.get('introspect_ssl_insecure', False),
                 disable_object_logs = sandesh_config.get('disable_object_logs', False),
                 system_logs_rate_limit = sandesh_config.get('system_logs_rate_limit', DEFAULT_SANDESH_SEND_RATELIMIT))
         else:
@@ -126,6 +127,8 @@ class GeneratorFixture(fixtures.Fixture):
                         sandesh_config.get('sandesh_ssl_enable', False),
                 introspect_ssl_enable = \
                         sandesh_config.get('introspect_ssl_enable', False),
+                introspect_ssl_insecure = \
+                        sandesh_config.get('introspect_ssl_insecure', False),
                 disable_object_logs = \
                         sandesh_config.get('disable_object_logs', False),
                 system_logs_rate_limit = \
