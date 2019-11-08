@@ -165,6 +165,9 @@ class Collector(object):
             if 'introspect_ssl_enable' in self.sandesh_config:
                 args.append('--SANDESH.introspect_ssl_enable')
                 args.append(self.sandesh_config['introspect_ssl_enable'])
+            if 'introspect_ssl_insecure' in self.sandesh_config:
+                args.append('--SANDESH.introspect_ssl_insecure')
+                args.append(self.sandesh_config['introspect_ssl_insecure'])
             if 'sandesh_keyfile' in self.sandesh_config:
                 args.append('--SANDESH.sandesh_keyfile')
                 args.append(self.sandesh_config['sandesh_keyfile'])
@@ -286,6 +289,9 @@ class AlarmGen(object):
             if 'introspect_ssl_enable' in self.sandesh_config and \
                 self.sandesh_config['introspect_ssl_enable']:
                 args.append('--introspect_ssl_enable')
+            if 'introspect_ssl_insecure' in self.sandesh_config and \
+                self.sandesh_config['introspect_ssl_insecure']:
+                args.append('--introspect_ssl_insecure')
             if 'sandesh_keyfile' in self.sandesh_config:
                 args.append('--sandesh_keyfile')
                 args.append(self.sandesh_config['sandesh_keyfile'])
@@ -429,6 +435,9 @@ class OpServer(object):
             if 'introspect_ssl_enable' in self.sandesh_config and \
                 self.sandesh_config['introspect_ssl_enable']:
                 args.append('--introspect_ssl_enable')
+            if 'introspect_ssl_insecure' in self.sandesh_config and \
+                self.sandesh_config['introspect_ssl_insecure']:
+                args.append('--introspect_ssl_insecure')
             if 'sandesh_keyfile' in self.sandesh_config:
                 args.append('--sandesh_keyfile')
                 args.append(self.sandesh_config['sandesh_keyfile'])
@@ -567,6 +576,9 @@ class QueryEngine(object):
             if 'introspect_ssl_enable' in self.sandesh_config:
                 args.append('--SANDESH.introspect_ssl_enable')
                 args.append(self.sandesh_config['introspect_ssl_enable'])
+            if 'introspect_ssl_insecure' in self.sandesh_config:
+                args.append('--SANDESH.introspect_ssl_insecure')
+                args.append(self.sandesh_config['introspect_ssl_insecure'])
             if 'sandesh_keyfile' in self.sandesh_config:
                 args.append('--SANDESH.sandesh_keyfile')
                 args.append(self.sandesh_config['sandesh_keyfile'])
@@ -723,6 +735,8 @@ class AnalyticsFixture(fixtures.Fixture):
                     sandesh_config.get('sandesh_ssl_enable', False),
                 introspect_ssl_enable = \
                     sandesh_config.get('introspect_ssl_enable', False),
+                introspect_ssl_insecure = \
+                    sandesh_config.get('introspect_ssl_insecure', False),
                 disable_object_logs = \
                     sandesh_config.get('disable_object_logs', False))
     # end set_sandesh_config

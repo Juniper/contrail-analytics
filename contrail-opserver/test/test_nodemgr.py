@@ -36,6 +36,7 @@ class config(object):
         self.sandesh_ca_cert = ''
         self.sandesh_ssl_enable = False
         self.introspect_ssl_enable = None
+        self.introspect_ssl_insecure = None
         self.sandesh_dscp_value = None
         self.disable_object_logs = None
         self.sandesh_send_rate_limit = None

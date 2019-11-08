@@ -17,14 +17,14 @@ from requests.auth import HTTPBasicAuth
 
 class JsonDrv (object):
 
-    def load(self, url, user, password, cert, ca_cert, headers):
+    def load(self, url, user, password, cert, ca_cert, headers, ssl_insecure=False):
         try:
             if user and password:
                 auth=HTTPBasicAuth(user, password)
             else:
                 auth=None
             resp = requests.get(url, headers=headers, auth=auth, timeout=10,
-                                verify=ca_cert, cert=cert)
+                                verify=False if ssl_insecure else ca_cert, cert=cert)
             return json.loads(resp.text)
         except requests.ConnectionError as e:
             print("Socket Connection error : " + str(e))
@@ -32,14 +32,14 @@ class JsonDrv (object):
 
 class XmlDrv (object):
 
-    def load(self, url, user, password, cert, ca_cert, headers):
+    def load(self, url, user, password, cert, ca_cert, headers, ssl_insecure=False):
         try:
             if user and password:
                 auth=HTTPBasicAuth(user, password)
             else:
                 auth=None
             resp = requests.get(url, headers=headers, auth=auth, timeout=10,
-                                verify=ca_cert, cert=cert)
+                                verify=False if ssl_insecure else ca_cert, cert=cert)
             return etree.fromstring(str(resp.text))
         except requests.ConnectionError as e:
             print("Socket Connection error : " + str(e))
@@ -57,6 +57,7 @@ class IntrospectUtilBase (object):
         self._cert = tuple()
         self._ca_cert = False
         ssl_enabled = config.introspect_ssl_enable if config else False
+        self._ssl_insecure = config.introspect_ssl_insecure if config else False
         if ssl_enabled:
             self._http_str = "https"
             self._cert = (config.certfile, config.keyfile)
@@ -84,9 +85,9 @@ class IntrospectUtilBase (object):
         if path:
             if drv is not None:
                 return drv().load(self._mk_url_str(path, query), user,
-                    password, self._cert, self._ca_cert, headers)
+                    password, self._cert, self._ca_cert, headers, self._ssl_insecure)
             return self._drv.load(self._mk_url_str(path, query), user,
-                password, self._cert, self._ca_cert, headers)
+                password, self._cert, self._ca_cert, headers, self._ssl_insecure)
     # end dict_get
 
 
