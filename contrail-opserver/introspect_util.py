@@ -57,10 +57,11 @@ class IntrospectUtilBase (object):
         self._cert = tuple()
         self._ca_cert = False
         ssl_enabled = config.introspect_ssl_enable if config else False
+        ssl_insecure = config.introspect_ssl_insecure if config else False
         if ssl_enabled:
             self._http_str = "https"
             self._cert = (config.certfile, config.keyfile)
-            self._ca_cert = config.ca_cert
+            self._ca_cert = False if ssl_insecure else config.ca_cert
 
     def get_force_refresh(self):
         return self._force_refresh

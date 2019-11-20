@@ -632,6 +632,48 @@ class AnalyticsTest(testtools.TestCase, fixtures.TestWithFixtures):
 
     # end test_15_verify_introspect_ssl
 
+    #@unittest.skip('verify introspect ssl insecure')
+    def test_15_1_verify_introspect_ssl(self):
+        '''
+        This test enables introspect ssl insecure and starts all the analytics
+        generators in the AnalyticsFixture and verifies that the introspect
+        port is accessible with https without passing certificates.
+        '''
+        logging.info('%%% test_15_1_verify_introspect_ssl %%%')
+        sandesh_cfg = {
+            'sandesh_keyfile': builddir+'/opserver/test/data/ssl/server-privkey.pem',
+            'sandesh_certfile': builddir+'/opserver/test/data/ssl/server.pem',
+            'sandesh_ca_cert': builddir+'/opserver/test/data/ssl/ca-cert.pem',
+            'introspect_ssl_enable': 'True',
+            'introspect_ssl_insecure': 'True'
+        }
+        vizd_obj = self.useFixture(
+            AnalyticsFixture(logging, builddir,
+                             self.__class__.cassandra_port,
+                             sandesh_config=sandesh_cfg))
+        assert vizd_obj.verify_on_setup()
+        assert vizd_obj.verify_collector_obj_count()
+
+        # remove the config from vizd so that it tries to access introspect
+        # with http, it should fail
+        vizd_obj.set_sandesh_config(None)
+        assert not vizd_obj.verify_collector_gen(vizd_obj.collectors[0])
+
+        # start a python generator with insecure ssl and no certificates.
+        # verify that its introspect page is accessible.
+        test_gen = self.useFixture(
+            GeneratorFixture("contrail-test-generator",
+                vizd_obj.get_collectors(), logging,
+                vizd_obj.get_opserver_port(), sandesh_config=sandesh_cfg))
+        sandesh_cfg = {
+            'introspect_ssl_enable': 'True',
+            'introspect_ssl_insecure': 'True'
+        }
+        test_gen.set_sandesh_config(sandesh_cfg)
+        assert test_gen.verify_on_setup()
+
+    # end test_15_1_verify_introspect_ssl
+
     #@unittest.skip('check for rbac permissions')
     @mock.patch.object(OpServer, 'get_resource_list_from_uve_type')
     @mock.patch.object(OpServer, 'is_role_cloud_admin')
