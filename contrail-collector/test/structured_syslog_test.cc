@@ -155,7 +155,8 @@ vector<ArgSet> PopulateTestMessageStatsInfo(bool no_struct_part) {
             ("data.ip", DbHandler::Var("127.0.0.1"))
             ("data.prog", DbHandler::Var("RT_FLOW"))
             ("data.hostname", DbHandler::Var("syslog-hostname"))
-            ("data.timestamp", DbHandler::Var(ts));
+            ("data.timestamp", DbHandler::Var(ts))
+                .convert_to_container<map<string, DbHandler::Var> >();
     } else {
         a1.attribs = map_list_of
             ("Source", DbHandler::Var("syslog-hostname"))
@@ -167,7 +168,8 @@ vector<ArgSet> PopulateTestMessageStatsInfo(bool no_struct_part) {
             ("data.timestamp", DbHandler::Var(ts))
             ("data.source-address", DbHandler::Var("4.0.0.1"))
             ("data.source-port", DbHandler::Var(static_cast<uint64_t>(13175)))
-            ("data.reason", DbHandler::Var("TCP RST"));
+            ("data.reason", DbHandler::Var("TCP RST"))
+                .convert_to_container<map<string, DbHandler::Var> >();
     }
     DbHandler::AttribMap sm;
     a1.attribs_tag.insert(make_pair("Source", make_pair(

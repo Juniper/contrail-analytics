@@ -13,39 +13,44 @@ void CdbIfMock::initialize_tables()
     (boost::assign::map_list_of
     // following is straight from tabledump.py output
 ("UuidKey","6e6c7dcc-800f-4e98-8838-b6e9d9fc21eb") ("counters.instance", "0") ("counters.partitions", "5") ("counters.keys", "28") ("counters.updates", "36")
-    )
+    .convert_to_container<map<string,string> >()
+        )
     // End table row #1
     // Table row #2
     (boost::assign::map_list_of
     // following is straight from tabledump.py output
 ("UuidKey", "6e6c7dcc-800f-4e98-8838-b6e9d9fc21eb") ("counters.instance", "0") ("counters.partitions", "4") ("counters.keys", "27") ("counters.updates", "35") 
-    )
+    .convert_to_container<map<string,string> >()
+        )
     // End table row #2
     // Table row #3
     (boost::assign::map_list_of
     // following is straight from tabledump.py output
 ("UuidKey", "49509ec8-f1e8-4e57-9a3c-22249b429697") ("counters.instance", "0") ("counters.partitions", "3") ("counters.keys", "26") ("counters.updates", "34") 
-    )
+    .convert_to_container<map<string,string> >()
+        )
     // End table row #3
     // Table row #4
     (boost::assign::map_list_of
     // following is straight from tabledump.py output
 ("UuidKey", "378ded22-b727-4bfc-8049-4278da18546d") ("counters.instance", "0") ("counters.partitions", "2") ("counters.keys", "25") ("counters.updates", "33") 
-    )
+    .convert_to_container<map<string,string> >()
+        )
     // End table row #4
     // Table row #5
     (boost::assign::map_list_of
     // following is straight from tabledump.py output
 ("UuidKey", "96069c43-63c4-460f-95b9-87a50c5ee685") ("counters.instance", "0") ("counters.partitions", "1") ("counters.keys", "24") ("counters.updates", "32") 
-    )
+   .convert_to_container<map<string,string> >()
+        )
     // End table row #5
     // Table row #6
     (boost::assign::map_list_of
     // following is straight from tabledump.py output
 ("UuidKey", "f2994085-d98c-4047-8876-4f435fd6a7a0") ("counters.instance", "0") ("counters.partitions", "0") ("counters.keys", "23") ("counters.updates", "31") 
-    )
-    // End table row #6
- ;
+    .convert_to_container<map<string,string> >()
+        ).convert_to_container<vector<map<string, string> > >();
+    // End table row #6 
     // End MessageTable
 }
 
