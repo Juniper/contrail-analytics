@@ -87,7 +87,8 @@ TEST_F(StatWalkerTest, Simple) {
     a1.attribs = map_list_of(
         "name", DbHandler::Var("a6s40:MyProc"))(
         "Source", DbHandler::Var("a6s40"))(
-        "virt.mem", DbHandler::Var((uint64_t)1000000));
+        "virt.mem", DbHandler::Var((uint64_t)1000000))
+            .convert_to_container<map<string, DbHandler::Var> >();
 
     DbHandler::AttribMap sm;
     a1.attribs_tag.insert(make_pair("name", make_pair(DbHandler::Var("a6s40:MyProc"), sm)));
@@ -119,7 +120,8 @@ TEST_F(StatWalkerTest, SingleTag) {
         "name", DbHandler::Var("a6s40:MyProc"))(
         "Source", DbHandler::Var("a6s40"))(
         "virt.mem", DbHandler::Var((uint64_t)1000000))(
-        "virt.bank", DbHandler::Var("bank1"));
+        "virt.bank", DbHandler::Var("bank1"))
+            .convert_to_container<map<string, DbHandler::Var> >();
 
     DbHandler::AttribMap sm;
     a1.attribs_tag.insert(make_pair("name", make_pair(DbHandler::Var("a6s40:MyProc"), sm)));
@@ -140,7 +142,8 @@ TEST_F(StatWalkerTest, SingleTag) {
     StatWalker sw(boost::bind(&StatCbTester::Cb, &ct, _1, _2, _3, _4, _5), 0, statName, m1);
     DbHandler::AttribMap attribs = map_list_of(
         "mem", DbHandler::Var((uint64_t)1000000))(
-        "bank", string("bank1"));
+        "bank", string("bank1"))
+            .convert_to_container<map<string, DbHandler::Var> >();
     StatWalker::TagVal tv1;
     tv1.val = string("bank1");
     m2.insert(make_pair("bank", tv1));
@@ -158,7 +161,8 @@ TEST_F(StatWalkerTest, DoubleTag) {
         "Source", DbHandler::Var("a6s40"))(
         "table", DbHandler::Var("table1"))(
         "virt.mem", DbHandler::Var((uint64_t)1000000))(
-        "virt.bank", DbHandler::Var("bank1"));
+        "virt.bank", DbHandler::Var("bank1"))
+            .convert_to_container<map<string, DbHandler::Var> >();
 
     DbHandler::AttribMap sm;
     a1.attribs_tag.insert(make_pair("name", make_pair(DbHandler::Var("a6s40:MyProc"), sm)));
@@ -180,7 +184,8 @@ TEST_F(StatWalkerTest, DoubleTag) {
     StatWalker sw(boost::bind(&StatCbTester::Cb, &ct, _1, _2, _3, _4, _5), 0, statName, m1);
     DbHandler::AttribMap attribs = map_list_of(
         "mem", DbHandler::Var((uint64_t)1000000))(
-        "bank", string("bank1"));
+        "bank", string("bank1"))
+            .convert_to_container<map<string, DbHandler::Var> >();
     StatWalker::TagVal tv1;
     tv1.val = string("bank1");
     tv1.prefix = make_pair("table", DbHandler::Var("table1"));
