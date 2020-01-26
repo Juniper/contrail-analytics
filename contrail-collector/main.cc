@@ -34,6 +34,7 @@
 #include "boost/python.hpp"
 #include <io/process_signal.h>
 #include "config_client_collector.h"
+#include <malloc.h>
 
 using namespace std;
 using namespace boost::asio::ip;
@@ -111,6 +112,14 @@ bool CollectorInfoLogger(VizSandeshContext &ctx) {
     }
 
     analytics->SendGeneratorStatistics();
+
+    /* Releasing all free memory to system */
+    int rc = malloc_trim(0);
+    if (!rc) {
+        LOG(ERROR, "Collector free memory is not released back to system");
+    } else {
+        LOG(DEBUG, "Collector free memory is released back to system");
+    }
 
     collector_info_log_timer->Cancel();
     collector_info_log_timer->Start(60*1000, boost::bind(&CollectorInfoLogTimer),
@@ -397,7 +406,9 @@ int main(int argc, char *argv[])
             options.sandesh_config(),
             config_client,
             options.host_ip(),
-            options.get_kafka_options());
+            options.get_kafka_options(),
+            options.block_uve(),
+            options.block_config());
 
     config_client->Init();
     analytics->Init();

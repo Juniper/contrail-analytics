@@ -209,6 +209,8 @@ public:
     const std::string syslog_facility() const { return syslog_facility_; }
     const std::string kafka_prefix() const { return kafka_prefix_; }
     const bool dup() const { return dup_; }
+    const bool block_uve() const { return block_uve_; }
+    const bool block_config() const { return block_config_; }
     const uint64_t analytics_data_ttl() const { return analytics_data_ttl_; }
     const uint64_t analytics_flow_ttl() const { return analytics_flow_ttl_; }
     const uint64_t analytics_statistics_ttl() const { return analytics_statistics_ttl_; }
@@ -283,6 +285,8 @@ private:
     std::string kafka_prefix_;
     bool test_mode_;
     bool dup_;
+    bool block_uve_;
+    bool block_config_;
     uint64_t analytics_data_ttl_;
     uint64_t analytics_config_audit_ttl_;
     uint64_t analytics_flow_ttl_;

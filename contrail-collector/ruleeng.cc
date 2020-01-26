@@ -40,8 +40,8 @@ int Ruleeng::RuleWorkerID = 0;
 
 SandeshTraceBufferPtr UVETraceBuf(SandeshTraceBufferCreate("UveTrace", 25000));
 
-Ruleeng::Ruleeng(DbHandlerPtr db_handler, OpServerProxy *osp) :
-    db_handler_(db_handler), osp_(osp), rulelist_(new t_rulelist()) {
+Ruleeng::Ruleeng(DbHandlerPtr db_handler, OpServerProxy *osp, bool block_uve) :
+    db_handler_(db_handler), osp_(osp), rulelist_(new t_rulelist()) , block_uve_(block_uve) {
 }
 
 Ruleeng::~Ruleeng() { 
@@ -906,7 +906,12 @@ bool Ruleeng::rule_execute(const VizMsg *vmsgp, bool uveproc, DbHandler *db,
     const pugi::xml_node &parent(sxmsg->GetMessageNode());
     remove_identifier(parent);
     // First publish to redis and kafka
-    if (uveproc) handle_uve_publish(parent, vmsgp, db, header, db_cb);
+    if (uveproc && !block_uve_) {
+        handle_uve_publish(parent, vmsgp, db, header, db_cb);
+    } else {
+        LOG(DEBUG, "Skipping uve publish");
+    }
+
     // Check if the message needs to be dropped
     if (db && db->DropMessage(header, vmsgp)) {
         return true;

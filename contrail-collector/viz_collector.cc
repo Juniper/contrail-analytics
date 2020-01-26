@@ -54,7 +54,8 @@ VizCollector::VizCollector(EventManager *evm, unsigned short listen_port,
             const SandeshConfig &sandesh_config,
             ConfigClientCollector *config_client,
             std::string host_ip,
-            const Options::Kafka &kafka_options) :
+            const Options::Kafka &kafka_options,
+            bool block_uve, bool block_config) :
     osp_(new OpServerProxy(evm, this, redis_uve_ip, redis_uve_port,
          redis_password, aggconf, brokers, partitions, kafka_prefix,
          kafka_options)),
@@ -66,14 +67,14 @@ VizCollector::VizCollector(EventManager *evm, unsigned short listen_port,
             boost::bind(&VizCollector::DbInitializeCb, this),
             cassandra_options,
             zookeeper_server_list, use_zookeeper,
-            db_write_options, config_client));
+            db_write_options, config_client, block_config));
     } else {
         db_initializer_.reset();
     }
 
     ruleeng_.reset(new Ruleeng(
                         db_initializer_?db_initializer_->GetDbHandler():DbHandlerPtr(),
-                        osp_.get()));
+                        osp_.get(), block_uve));
     collector_ = new Collector(evm, listen_port, listen_ip, sandesh_config,
                         db_initializer_?db_initializer_->GetDbHandler():DbHandlerPtr(),
                         osp_.get(),

@@ -134,7 +134,8 @@ public:
         const Options::Cassandra &cassandra_options,
         bool use_db_write_options,
         const DbWriteOptions &db_write_options,
-        ConfigClientCollector *config_client);
+        ConfigClientCollector *config_client,
+        bool block_config = false);
     DbHandler(GenDb::GenDbIf *dbif, const TtlMap& ttl_map);
     virtual ~DbHandler();
 
@@ -360,7 +361,8 @@ class DbHandlerInitializer {
         const std::string &zookeeper_server_list,
         bool use_zookeeper,
         const DbWriteOptions &db_write_options,
-        ConfigClientCollector *config_client);
+        ConfigClientCollector *config_client,
+        bool block_config = false);
     DbHandlerInitializer(EventManager *evm,
         const std::string &db_name,
         const std::string &timer_task_name, InitializeDoneCb callback,

@@ -21,7 +21,7 @@ import time
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s %(levelname)s %(message)s')
 
-stunnel_ver = '5.55'
+stunnel_ver = '5.56'
 stunnel_bdir = '/tmp/cache-' + os.environ['USER'] + '-systemless_test'
 stunnel_url = stunnel_bdir + '/stunnel-'+stunnel_ver+'.tar.gz'
 stunnel_exe = stunnel_bdir + '/bin/stunnel'
@@ -31,10 +31,9 @@ def install_stunnel():
         output,_ = call_command_("mkdir " + stunnel_bdir)
 
     if not os.path.exists(stunnel_url):
-        process = subprocess.Popen(['wget', '-P', stunnel_bdir,
-                                    'https://www.stunnel.org/downloads/stunnel-'\
-                                    + stunnel_ver + '.tar.gz'],
-                                   cwd=stunnel_bdir)
+        process = subprocess.Popen(['wget', '-O', stunnel_url,
+                'https://github.com/Juniper/contrail-third-party-cache/blob/master/stunnel/stunnel-'\
+                                    + stunnel_ver + '.tar.gz?raw=true'])
         process.wait()
         if process.returncode is not 0:
             raise SystemError('wget '+stunnel_url)

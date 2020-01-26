@@ -18,7 +18,7 @@ class Ruleeng {
         static int RuleBuilderID;
         static int RuleWorkerID;
 
-        Ruleeng(DbHandlerPtr, OpServerProxy *);
+        Ruleeng(DbHandlerPtr, OpServerProxy *, bool block_uve = false);
         virtual ~Ruleeng();
 
         void Init();
@@ -45,6 +45,7 @@ class Ruleeng {
         OpServerProxy *osp_;
         t_rulelist *rulelist_;
         std::vector<std::string> rulesrc_;
+        bool block_uve_;
 
         bool handle_uve_publish(const pugi::xml_node& parent,
             const VizMsg *rmsg, DbHandler *db, const SandeshHeader &header,

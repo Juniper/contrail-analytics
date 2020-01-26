@@ -56,7 +56,8 @@ public:
             const SandeshConfig &sandesh_config,
             ConfigClientCollector *config_client,
             std::string host_ip,
-            const Options::Kafka& kafka_options);
+            const Options::Kafka& kafka_options,
+            bool block_uve, bool block_config);
     VizCollector(EventManager *evm, DbHandlerPtr db_handler,
                  Ruleeng *ruleeng,
                  Collector *collector, OpServerProxy *osp,

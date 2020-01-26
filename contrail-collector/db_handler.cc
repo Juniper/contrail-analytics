@@ -67,7 +67,8 @@ DbHandler::DbHandler(EventManager *evm,
         const Options::Cassandra &cassandra_options,
         bool use_db_write_options,
         const DbWriteOptions &db_write_options,
-        ConfigClientCollector *config_client) :
+        ConfigClientCollector *config_client,
+        bool block_config) :
     dbif_(new cass::cql::CqlIf(evm, cassandra_options.cassandra_ips_,
         cassandra_options.cassandra_ports_[0],
         cassandra_options.user_, cassandra_options.password_,
@@ -87,9 +88,11 @@ DbHandler::DbHandler(EventManager *evm,
     config_client_(config_client),
     use_db_write_options_(use_db_write_options) {
     udc_.reset(new UserDefinedCounters());
-    if (config_client) {
+    if (config_client && !block_config) {
         config_client->RegisterConfigReceive("udc",
                              boost::bind(&DbHandler::ReceiveConfig, this, _1, _2));
+    } else {
+        LOG(ERROR, "Not registering for config updates");
     }
     error_code error;
     col_name_ = ResolveCanonicalName();
@@ -1745,12 +1748,13 @@ DbHandlerInitializer::DbHandlerInitializer(EventManager *evm,
     const std::string &zookeeper_server_list,
     bool use_zookeeper,
     const DbWriteOptions &db_write_options,
-    ConfigClientCollector *config_client) :
+    ConfigClientCollector *config_client,
+    bool block_config) :
     db_name_(db_name),
     db_handler_(new DbHandler(evm,
         boost::bind(&DbHandlerInitializer::ScheduleInit, this),
         db_name, cassandra_options,
-        true, db_write_options, config_client)),
+        true, db_write_options, config_client, block_config)),
     callback_(callback),
     db_init_timer_(TimerManager::CreateTimer(*evm->io_service(),
         db_name + " Db Init Timer",

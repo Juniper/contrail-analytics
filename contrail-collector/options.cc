@@ -304,6 +304,8 @@ void Options::Initialize(EventManager &evm,
                 default_partitions),
          "Number of partitions to use for publishing to kafka")
         ("DEFAULT.dup", opt::bool_switch(&dup_), "Internal use flag")
+        ("DEFAULT.block_uve", opt::bool_switch(&block_uve_), "Internal flag to block uve processing")
+        ("DEFAULT.block_config", opt::bool_switch(&block_config_), "Internal flag to block config processing")
         ("DEFAULT.hostip", opt::value<string>()->default_value(host_ip),
              "IP address of collector")
         ("DEFAULT.hostname", opt::value<string>()->default_value(hostname),
