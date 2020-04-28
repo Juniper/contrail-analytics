@@ -1135,6 +1135,10 @@ public:
         /* Initialize */
         BuildRedisIPPort(redis_ip_ports);
         int redis_host_count = redis_host_port_pairs_.size();
+        cb_proc_fn_ = new RedisAsyncConnection::ClientAsyncCmdCbFn* [redis_host_count];
+        conns_ = new boost::shared_ptr<RedisAsyncConnection>* [redis_host_count];
+        npipes_ = new int* [redis_host_count];
+        connState_ = new bool* [redis_host_count];
         for (int i = 0; i < redis_host_count; i++) {
             cb_proc_fn_[i] = new RedisAsyncConnection::ClientAsyncCmdCbFn[kConnections + 1];
             conns_[i] = new boost::shared_ptr<RedisAsyncConnection>[kConnections + 1];
@@ -1192,14 +1196,14 @@ private:
     const string redis_certfile_;
     const string redis_ca_cert_;
     QEOpServerProxy * const qosp_;
-    boost::shared_ptr<RedisAsyncConnection> *conns_[kConnections+1];
-    RedisAsyncConnection::ClientAsyncCmdCbFn *cb_proc_fn_[kConnections+1];
-    bool *connState_[kConnections+1];
+    boost::shared_ptr<RedisAsyncConnection> **conns_;
+    RedisAsyncConnection::ClientAsyncCmdCbFn **cb_proc_fn_;
+    bool **connState_;
 
     tbb::mutex mutex_;
     map<string,QEPipeT*> pipes_;
     vector<pair<string, int> > redis_host_port_pairs_;
-    int *npipes_[kConnections];
+    int **npipes_;
     int max_tasks_;
     int max_rows_;
     std::map<std::string, std::vector<boost::shared_ptr<AnalyticsQuery> > >
