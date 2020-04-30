@@ -22,12 +22,19 @@
 #include "sflow_collector.h"
 #include "ipfix_collector.h"
 #include "viz_sandesh.h"
+#include <zookeeper/zookeeper_client.h>
+
+
+#include "rapidjson/document.h"
+#include <rapidjson/stringbuffer.h>
+#include <rapidjson/writer.h>
 
 using std::stringstream;
 using std::string;
 using std::map;
 using std::make_pair;
 using boost::system::error_code;
+using namespace zookeeper::client;
 
 VizCollector::VizCollector(EventManager *evm, unsigned short listen_port,
             bool protobuf_collector_enabled,
@@ -52,6 +59,7 @@ VizCollector::VizCollector(EventManager *evm, unsigned short listen_port,
             const DbWriteOptions &db_write_options,
             const SandeshConfig &sandesh_config,
             ConfigClientCollector *config_client,
+            std::string host_ip,
             bool grok_enabled,
             const std::vector<std::string> &grok_key_list,
             const std::vector<std::string> &grok_attrib_list) :
@@ -104,6 +112,14 @@ VizCollector::VizCollector(EventManager *evm, unsigned short listen_port,
             structured_syslog_kafka_partitions,
             db_initializer_->GetDbHandler()));
     }
+
+    host_ip_ = host_ip;
+    if (use_zookeeper) {
+        std::string hostname = boost::asio::ip::host_name(error);
+        zoo_client_.reset(new ZookeeperClient(hostname.c_str(),
+            zookeeper_server_list.c_str()));
+        AddNodeToZooKeeper();
+    }
 }
 
 VizCollector::VizCollector(EventManager *evm, DbHandlerPtr db_handler,
@@ -154,6 +170,7 @@ void VizCollector::WaitForIdle() {
 void VizCollector::Shutdown() {
     // First shutdown collector
     collector_->Shutdown();
+    DelNodeFromZoo();
     WaitForIdle();
 
     // Wait until all connections are cleaned up.
@@ -276,5 +293,60 @@ void VizCollector::SendDbStatistics() {
 bool VizCollector::GetCqlMetrics(cass::cql::Metrics *metrics) {
     DbHandlerPtr db_handler(db_initializer_->GetDbHandler());
     return db_handler->GetCqlMetrics(metrics);
+}
+
+void VizCollector::AddNodeToZooKeeper() {
+    error_code error;
+    std::string hostname = boost::asio::ip::host_name(error);
+    std::string path = "/analytics-discovery-";
+    zoo_client_->CreateNode(path.c_str(),
+                                    hostname.c_str(),
+                                    Z_NODE_TYPE_PERSISTENT);
+
+    path += "/" + g_vns_constants.COLLECTOR_DISCOVERY_SERVICE_NAME;
+    zoo_client_->CreateNode(path.c_str(),
+                                    hostname.c_str(),
+                                    Z_NODE_TYPE_PERSISTENT);
+
+    path += "/" + host_ip_;
+    if (zoo_client_->CheckNodeExist(path.c_str())) {
+        zoo_client_->DeleteNode(path.c_str());
+    }
+    Module::type module = Module::COLLECTOR;
+    std::string module_id(g_vns_constants.ModuleNames.find(module)->second);
+    NodeType::type node_type =
+        g_vns_constants.Module2NodeType.find(module)->second;
+    std::string type_name =
+        g_vns_constants.NodeTypeNames.find(node_type)->second;
+    std::ostringstream instance_str;
+    instance_str << getpid();
+    std::string instance_id = instance_str.str();
+    std::map<std::string, std::string> key_val_pair;
+    key_val_pair.insert(make_pair("hostname", hostname));
+    key_val_pair.insert(make_pair("type_name", type_name));
+    key_val_pair.insert(make_pair("module_id", module_id));
+    key_val_pair.insert(make_pair("instance_id", instance_id));
+    key_val_pair.insert(make_pair("ip_address", host_ip_));
+    std::map<std::string, std::string>::iterator it;
+    contrail_rapidjson::Document dd;
+    dd.SetObject();
+    for (it = key_val_pair.begin(); it != key_val_pair.end(); it++) {
+        contrail_rapidjson::Value val(contrail_rapidjson::kStringType);
+        contrail_rapidjson::Value skey(contrail_rapidjson::kStringType);
+        val.SetString(it->second.c_str(), dd.GetAllocator());
+        dd.AddMember(skey.SetString(it->first.c_str(), dd.GetAllocator()),
+                    val, dd.GetAllocator());
+    }
+    contrail_rapidjson::StringBuffer sb;
+    contrail_rapidjson::Writer<contrail_rapidjson::StringBuffer> writer(sb);
+    dd.Accept(writer);
+    string jsonline(sb.GetString());
+    zoo_client_->CreateNode(path.c_str(),
+                                    jsonline.c_str(),
+                                    Z_NODE_TYPE_EPHEMERAL);
+}
+
+void VizCollector::DelNodeFromZoo() {
+    zoo_client_->Shutdown();
 }
 
