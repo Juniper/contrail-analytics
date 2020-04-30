@@ -788,8 +788,11 @@ class OpServer(object):
                                   port = int(redis_ip_port[1]))
                     self.agp[part] = pi
 
-
+        zk_list = ""
+        if self._args.zk_list:
+            zk_list = ','.join(self._args.zk_list)
         self._uve_server = UVEServer(self.redis_uve_list,
+                                 zk_list,
                                  self._logger,
                                  self._args.redis_password,
                                  None, False,
