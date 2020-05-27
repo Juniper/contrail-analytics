@@ -924,6 +924,9 @@ bool Ruleeng::rule_execute(const VizMsg *vmsgp, bool uveproc, DbHandler *db,
 
         handle_session_object(parent, db, header, db_cb);
     }
+    else {
+      usleep(1000);
+    }
 
     RuleMsg rmsg(vmsgp); 
     rulelist_->rule_execute(rmsg);
