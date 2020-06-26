@@ -1132,19 +1132,6 @@ class Controller(object):
         uveq_trace.trace_msg(name="UVEQTrace",\
                 sandesh=self._sandesh)
 
-        for uv,types in uves.iteritems():
-            if types is None:
-                self._uveq[part][uv] = None
-            else:
-                if uv in self._uveq[part]:
-                    if self._uveq[part][uv] is not None:
-                        for kk in types.keys():
-                            self._uveq[part][uv][kk] = {}
-                else:
-                    self._uveq[part][uv] = {}
-                    for kk in types.keys():
-                        self._uveq[part][uv][kk] = {}
-
     def handle_resource_check(self, part, current_inst):
         """
         This function compares the set of synced redis instances
