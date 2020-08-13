@@ -137,7 +137,7 @@ class Mock_poll(Mock_base):
     def __init__(self, *args, **kwargs):
         Mock_base.__init__(self)
 
-    def __call__(self):
+    def __call__(self, max_records=None):
         vals = []
         for key in self.store.keys():
             vals.append(self.store[key])
@@ -447,8 +447,10 @@ class TestAlarmGen(unittest.TestCase, TestChecker):
         m_poll = Mock_poll()
         m_poll["ObjectYY:uve2"] = ConsumerRecord(topic='-uve',
                     partition=0, offset=0,
+                    timestamp=None, timestamp_type=None,
                     key='ObjectYY:uve2|type2|gen1|'+socket.getfqdn("127.0.0.1")+':0',
-                    value='{}')
+                    value='{}', checksum=None,
+                    serialized_key_size=None, serialized_value_size=None)
         mock_KafkaConsumer.return_value.poll.side_effect = \
             m_poll
 
@@ -496,8 +498,10 @@ class TestAlarmGen(unittest.TestCase, TestChecker):
         m_poll = Mock_poll()
         m_poll["ObjectYY:uve2"] = ConsumerRecord(topic='-uve',
                     partition=0, offset=0,
+                    timestamp=None, timestamp_type=None,
                     key='ObjectYY:uve2|type2|gen1|127.0.0.5:0',
-                    value='{}')
+                    value='{}', checksum=None,
+                    serialized_key_size=None, serialized_value_size=None)
         mock_KafkaConsumer.return_value.poll.side_effect = \
             m_poll
 
@@ -512,8 +516,10 @@ class TestAlarmGen(unittest.TestCase, TestChecker):
         # Feed the message in again
         m_poll["ObjectYY:uve2"] = ConsumerRecord(topic='-uve',
                     partition=0, offset=0,
+                    timestamp=None, timestamp_type=None,
                     key='ObjectYY:uve2|type2|gen1|127.0.0.5:0',
-                    value='{}')
+                    value='{}', checksum=None,
+                    serialized_key_size=None, serialized_value_size=None)
         self.assertTrue(self.checker_dict([1, "ObjectYY", "uve2"], self._ag.ptab_info))
 
 
