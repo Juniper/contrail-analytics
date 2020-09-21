@@ -1599,7 +1599,7 @@ class Controller(object):
                 if ((lredis is not None) and \
                         ((workerset != oldworkerset) or (redis_changed is True))):
                     data = {
-                        'ip-address': lredis.connection_pool.connection_kwargs['host'],
+                        'ip-address': self._conf.host_ip(),
                         'instance-id': self._instance_id,
                         'redis-port': str(self._conf.redis_server_port()),
                         'redis-agg-db': self._conf.get_redis_agg_db(),
