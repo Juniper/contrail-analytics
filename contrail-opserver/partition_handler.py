@@ -764,7 +764,11 @@ class PartitionHandler(gevent.Greenlet):
 
                 while True:
                     try:
-                        mdict = consumer.poll()
+                        #Alarmgen should not poll all records present in Kafka at once
+                        #That can cause the CPU %age to increase and hence, miss Zookeeper timeout
+                        #max_record value is added,so that only those many records are fetched at once
+                        mdict = consumer.poll(max_records=50)
+                        gevent.sleep(0.1)
                         self.resource_check()
                         if len(mdict):
                             counts = {}
