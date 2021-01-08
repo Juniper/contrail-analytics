@@ -112,6 +112,12 @@ bool CollectorInfoLogger(VizSandeshContext &ctx) {
 
     analytics->SendGeneratorStatistics();
 
+    /* Releasing process free memory to back to system */
+    int rc = malloc_trim(0);
+    if (!rc) {
+        LOG(ERROR, "Collector free memory is not released to system, rc: " << rc);
+    }
+
     collector_info_log_timer->Cancel();
     collector_info_log_timer->Start(60*1000, boost::bind(&CollectorInfoLogTimer),
                                NULL);
