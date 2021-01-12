@@ -137,8 +137,9 @@ public:
         }
         return std::make_pair(bpart, npart);
     }
-    void AddNodeToZooKeeper(const std::string &host_ip);
+    void AddNodeToZooKeeper();
     void DelNodeFromZoo();
+    void ZooStateChangeCb();
 private:
     std::string DbGlobalName(bool dup=false, const std::string &host_ip="127.0.0.1");
     void DbInitializeCb();
@@ -154,6 +155,7 @@ private:
     uint32_t redis_gen_;
     uint16_t partitions_;
     std::string kafka_prefix_;
+    std::string zookeeper_server_list_;
     DISALLOW_COPY_AND_ASSIGN(VizCollector);
 };
 
