@@ -85,3 +85,13 @@ def get_free_port():
     cs.close()
     return cport
 #end get_free_port
+    
+def add_iptables_rule(zk_port):
+    subprocess.call(['sudo', 'iptables', '-A', 'INPUT', '-j', 'DROP', '-p',\
+             'tcp', '--destination-port', str(zk_port)])
+#end add_iptables_rule
+
+def delete_iptables_rule(zk_port):
+    subprocess.call(['sudo', 'iptables', '--delete', 'INPUT', '-j', 'DROP', '-p',\
+             'tcp', '--destination-port', str(zk_port)])
+#end delete_iptables_rule
