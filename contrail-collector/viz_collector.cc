@@ -97,11 +97,14 @@ VizCollector::VizCollector(EventManager *evm, unsigned short listen_port,
     }
 
     host_ip_ = host_ip;
+    zookeeper_server_list_ = zookeeper_server_list;
     if (use_zookeeper) {
-        std::string hostname = ResolveCanonicalName(host_ip);
+        std::string hostname = ResolveCanonicalName(host_ip_);
         zoo_client_.reset(new ZookeeperClient(hostname.c_str(),
             zookeeper_server_list.c_str()));
-        AddNodeToZooKeeper(host_ip_);
+        zoo_client_->AddListener(boost::bind(&VizCollector::ZooStateChangeCb,
+                                             this));
+        AddNodeToZooKeeper();
     }
 }
 
@@ -253,9 +256,9 @@ bool VizCollector::GetCqlMetrics(cass::cql::Metrics *metrics) {
     return db_handler->GetCqlMetrics(metrics);
 }
 
-void VizCollector::AddNodeToZooKeeper(const std::string &host_ip) {
+void VizCollector::AddNodeToZooKeeper() {
     error_code error;
-    std::string hostname = ResolveCanonicalName(host_ip);
+    std::string hostname = ResolveCanonicalName(host_ip_);
     std::string path = "/analytics-discovery-";
     zoo_client_->CreateNode(path.c_str(),
                                     hostname.c_str(),
@@ -302,6 +305,15 @@ void VizCollector::AddNodeToZooKeeper(const std::string &host_ip) {
     zoo_client_->CreateNode(path.c_str(),
                                     jsonline.c_str(),
                                     Z_NODE_TYPE_EPHEMERAL);
+}
+
+void VizCollector::ZooStateChangeCb() {
+    error_code error;
+    std::string hostname = boost::asio::ip::host_name(error);
+    zoo_client_.reset(new ZookeeperClient(hostname.c_str(),
+                zookeeper_server_list_.c_str()));
+
+    AddNodeToZooKeeper();
 }
 
 void VizCollector::DelNodeFromZoo() {
