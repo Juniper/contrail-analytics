@@ -1412,7 +1412,7 @@ class Controller(object):
                     KafkaBrokers")
                 try:
                     #Blocks for ack as per 'acks' condition and times out
-                    producer.flush(timeout=2)
+                    producer.flush(timeout=20)
                     self._logger.info("AlarmGen can reach KafkaBrokers")
                 except Exception as ex:
                     self._logger.error('AlarmGen CANNOT reach \
