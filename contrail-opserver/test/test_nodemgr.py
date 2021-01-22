@@ -73,6 +73,8 @@ class NodemgrTest(unittest.TestCase):
         headers['pid']='123'
         config_obj = config()
         mock_is_running_in_kubepod.return_value = True
+        #make sure docker service is running
+        os.system("systemctl start docker")
         mock_docker_process_info_mgr.return_value = DockerProcessInfoManager('','','','')
         list_of_process = []
         process_info = {}
