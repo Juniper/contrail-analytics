@@ -2180,7 +2180,8 @@ class AnalyticsUveTest(testtools.TestCase, fixtures.TestWithFixtures):
                  },
                 ]
         }
-        assert(vizd_obj.verify_get_alarms(None, exp_uves = expected_uves))
+        assert(vizd_obj.verify_get_alarms(None, exp_uves = expected_uves, 
+            contains_=True))
     # end test_12_uve_get_alarm
 
     #@unittest.skip('Skipping redis_ssl_basic_wrong_cacert test')

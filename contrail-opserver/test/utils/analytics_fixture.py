@@ -3191,7 +3191,7 @@ class AnalyticsFixture(fixtures.Fixture):
                 del item['value']['__SOURCE__']
     # end _remove_alarm_token_and_timestamp
 
-    def _verify_uves(self, exp_uves, actual_uves):
+    def _verify_uves(self, exp_uves, actual_uves, contains_=False):
         self.logger.info('Expected UVEs: %s' % (str(exp_uves)))
         self.logger.info('Actual UVEs: %s' % (str(actual_uves)))
         if actual_uves is None:
@@ -3200,7 +3200,9 @@ class AnalyticsFixture(fixtures.Fixture):
         atk = list(actual_uves.keys())
         etk.sort()
         atk.sort()
-        if etk != atk:
+        M = all(i in atk for i in etk)
+        M = M and (contains_ or all(i in etk for i in atk))
+        if not M:
             self.logger.info('Keys mismatch between Expected UVEs and Actual UVEs')
             return False
         for key in etk:
@@ -3224,7 +3226,7 @@ class AnalyticsFixture(fixtures.Fixture):
     # end _verify_uves
 
     @retry(delay=1, tries=6)
-    def verify_get_alarms(self, table, filts=None, exp_uves=None):
+    def verify_get_alarms(self, table, filts=None, exp_uves=None, contains_=False):
         vns = VerificationOpsSrv(socket.getfqdn("127.0.0.1"), self.opserver_port,
             self.admin_user, self.admin_password)
         filters = self._get_filters_url_param(filts)
@@ -3235,7 +3237,7 @@ class AnalyticsFixture(fixtures.Fixture):
             self.logger.error('Failed to get response for %s: %s' % \
                 (str(filters), str(err)))
             assert(False)
-        return self._verify_uves(exp_uves, actual_uves)
+        return self._verify_uves(exp_uves, actual_uves, contains_)
     # end verify_get_alarms
 
     @retry(delay=1, tries=4)
